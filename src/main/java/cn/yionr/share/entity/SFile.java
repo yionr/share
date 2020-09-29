@@ -1,7 +1,7 @@
 package cn.yionr.share.entity;
 
 public class SFile {
-    private int fid;
+    private String fid;
     private String name;
     private String password;
     private int times;
@@ -18,11 +18,11 @@ public class SFile {
                 '}';
     }
 
-    public int getFid() {
+    public String getFid() {
         return fid;
     }
 
-    public void setFid(int fid) {
+    public void setFid(String fid) {
         this.fid = fid;
     }
 
