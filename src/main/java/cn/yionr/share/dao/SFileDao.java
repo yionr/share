@@ -7,8 +7,13 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface SFileDao {
     @Insert("insert into sfile values(#{fid},#{name},#{password},#{times},#{uid})")
     boolean addSFile(SFile sf);
+
+    @Select("selecct fid from sfile")
+    List<String> listCodes();
 }

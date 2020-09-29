@@ -8,15 +8,31 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 @Service
 public class FileServiceImpl {
+
+    @Autowired
+    SFileDao sFileDao;
+
+
     public List<String> codePool = new ArrayList<>();
     Properties prop;
 
     {
+
+        //load properties
+        prop = new Properties();
+
+        try {
+            prop.load(FileServiceImpl.class.getResourceAsStream("/common.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         //generate a codePool 4number from 0000-9999
         for(int i = 0;i < 10000;i++){
             if (i < 10)
@@ -29,17 +45,20 @@ public class FileServiceImpl {
                 codePool.add("" + i);
         }
 
-        //load properties
-        prop = new Properties();
-        try {
-            prop.load(FileServiceImpl.class.getResourceAsStream("/common.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+        //search in mysql , and exclude codes
+        codePool.removeAll(sFileDao.listCodes());
 
-    @Autowired
-    SFileDao sFileDao;
+        //chk local files mappered with database , first with database ,
+        // if database no some file remove them
+        // else show all loosed files in logger
+
+        List<String> codes = sFileDao.listCodes();
+
+        List<File> files = Arrays.asList(new File(prop.getProperty("tempDir")).listFiles());
+
+
+
+    }
 
     public String upload(SFileWrapper sfw) throws IOException {
 //        remove one from codePool as fid

@@ -1,16 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <title>文件分享</title>
+    <style>
+        html,body{
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .uploadBox{
+            border:10px red solid;
+        }
+        main{
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
-<form action="upload" method="post" enctype="multipart/form-data">
-    选择文件：<input type="file" name="file" value="选择文件">
-    <br>
-    选择次数：<input type="number" name="times">
-    选择密码：<input type="password" name="password">
-    <button>上传</button>
-</form>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-info">
+            <a class="navbar-brand" href="#">文件分享</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse flex-row-reverse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item active">
+                        <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#login">
+                            登录
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regedit">
+                            注册
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">登录</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="login" method="get">
+                            <div class="modal-body">
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="loginEmail">Email</label>
+                                        <input type="email" class="form-control" name="email" id="loginEmail">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="loginPassword">Password</label>
+                                        <input type="password" class="form-control" name="password" id="loginPassword">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Sign in</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="modal fade" id="regedit" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="loginLabel">注册</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="regedit" method="post">
+                            <div class="modal-body">
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="regEmail">Email</label>
+                                        <input type="email" class="form-control" name="email" id="regEmail">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="regPassword">Password</label>
+                                        <input type="password" class="form-control" name="password" id="regPassword">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Sign up</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main class="container">
+            <div class="row h-100 justify-content-center align-content-center">
+                <div class="col-8 text-center">
+                    <button type="button" class="btn btn-outline-primary px-5 mb-4" id="send">发送</button>
+                    <br>
+                    <button type="button" class="btn btn-outline-primary px-5" id="receive">接收</button>
+                    <br>
+
+                    <div class="card text-center w-100 h-100 d-none" id="sendDialog">
+                        <div class="card-body">
+                            <form action="upload" method="post" enctype="multipart/form-data">
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="customFile">
+                                    <label class="custom-file-label" for="customFile">选择文件</label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleFormControlSelect1">允许下载次数</label>
+                                    <select class="form-control" id="exampleFormControlSelect1">
+                                        <option>1</option>
+                                        <option>2</option>
+                                        <option>3</option>
+                                        <option>4</option>
+                                        <option>5</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="secondryPassword">二级密码（可选）</label>
+                                    <input type="password" id="secondryPassword" class="form-control mx-sm-3" aria-describedby="passwordHelpInline">
+                                </div>
+                                <button>上传</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </main>
+
+    <footer>
+
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script>
+        $('#send').click(function(){
+            $('#sendDialog').classList.remove('d-none')
+        })
+        $('#receive').click(function(){
+            alert('received!!')
+        })
+    </script>
 </body>
 </html>
