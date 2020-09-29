@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SFileDao {
-    @Insert("insert into sfile values(#{fid},#{name},#{password},#{time},,#{uid})")
+    @Insert("insert into sfile values(#{fid},#{name},#{password},#{times},#{uid})")
     boolean addSFile(SFile sf);
 }
