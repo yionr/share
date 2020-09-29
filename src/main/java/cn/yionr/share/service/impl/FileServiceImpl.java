@@ -40,6 +40,6 @@ public class FileServiceImpl implements FileService {
         IOUtils.copy(new FileInputStream(sfw.getFile()),new FileOutputStream(dstFile));
 //        update database
         sFileDao.addSFile(sfw.getsFile());
-        return
+        return sfw.getsFile().getFid();
     }
 }

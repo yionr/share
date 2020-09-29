@@ -15,6 +15,14 @@ public class FileController {
     @Autowired
     FileServiceImpl fileService;
 
+    /**
+     *
+     * @param file
+     * @param password
+     * @param times
+     * @return 0 shows error ;
+     * @throws IOException
+     */
     @PostMapping("/upload")
     public String upload(MultipartFile file,String password,int times) throws IOException {
         SFile sf = new SFile();
@@ -26,10 +34,10 @@ public class FileController {
         sfw.setsFile(sf);
         sfw.setFile(file.getResource().getFile());
         try {
-            fileService.upload(sfw);
-
+            return fileService.upload(sfw);
         } catch (Exception e) {
             e.printStackTrace();
+            return "0";
         }
     }
 
