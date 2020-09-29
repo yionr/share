@@ -2,7 +2,6 @@ package cn.yionr.share.service.impl;
 
 import cn.yionr.share.dao.SFileDao;
 import cn.yionr.share.entity.SFileWrapper;
-import cn.yionr.share.service.intf.FileService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,12 +9,15 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Service
-public class FileServiceImpl implements FileService {
+public class FileServiceImpl {
     public List<String> codePool = new ArrayList<>();
+    Properties prop;
+
     {
-        //generate a codePool 4number like 0001/0789
+        //generate a codePool 4number from 0000-9999
         for(int i = 0;i < 10000;i++){
             if (i < 10)
                 codePool.add("000" + i);
@@ -26,6 +28,14 @@ public class FileServiceImpl implements FileService {
             else
                 codePool.add("" + i);
         }
+
+        //load properties
+        prop = new Properties();
+        try {
+            prop.load(FileServiceImpl.class.getResourceAsStream("/common.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Autowired
@@ -35,8 +45,8 @@ public class FileServiceImpl implements FileService {
 //        remove one from codePool as fid
         sfw.getsFile().setFid(codePool.remove((int)(Math.random() * (codePool.size()+1))));
 //        upload file
-        String dst = "/Users/yionr/temp";
-        File dstFile = new File(dst,sfw.getsFile().getFid());
+        File dstFile = new File(prop.getProperty("tempDir"),sfw.getsFile().getFid());
+        System.out.println(dstFile.getAbsolutePath());
         if (!dstFile.exists())
             dstFile.createNewFile();
         IOUtils.copy(new FileInputStream(sfw.getFile()),new FileOutputStream(dstFile));
