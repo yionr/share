@@ -46,15 +46,16 @@ public class FileServiceImpl {
         }
 
         //search in mysql , and exclude codes
+        System.out.println(sFileDao);
         codePool.removeAll(sFileDao.listCodes());
 
         //chk local files mappered with database , first with database ,
         // if database no some file remove them
         // else show all loosed files in logger
 
-        List<String> codes = sFileDao.listCodes();
+        List<String> remoteCodes = sFileDao.listCodes();
 
-        List<File> files = Arrays.asList(new File(prop.getProperty("tempDir")).listFiles());
+        List<File> localCodes = Arrays.asList(new File(prop.getProperty("tempDir")).listFiles());
 
 
 
@@ -73,5 +74,9 @@ public class FileServiceImpl {
         sFileDao.addSFile(sfw.getsFile());
         System.out.println(sfw.getsFile().getFid());
         return sfw.getsFile().getFid();
+    }
+
+    public List<String> show(){
+        return sFileDao.listCodes();
     }
 }

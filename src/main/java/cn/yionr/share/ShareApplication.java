@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ShareApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ShareApplication.class, args);
+        SpringApplication.run(ShareApplication.class,  "--spring.config.location=" + "classpath:db.properties");
     }
 
 }

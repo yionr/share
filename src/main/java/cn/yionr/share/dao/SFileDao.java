@@ -14,6 +14,6 @@ public interface SFileDao {
     @Insert("insert into sfile values(#{fid},#{name},#{password},#{times},#{uid})")
     boolean addSFile(SFile sf);
 
-    @Select("selecct fid from sfile")
+    @Select("select fid from sfile")
     List<String> listCodes();
 }

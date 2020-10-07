@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 @RestController
 public class FileController {
@@ -26,7 +27,7 @@ public class FileController {
      * @throws IOException
      */
     @PostMapping("/upload")
-    public String upload(MultipartFile file,String password,int times) throws IOException {
+    public String upload(MultipartFile file, String password, int times) throws IOException {
 
         SFile sf = new SFile();
         sf.setName(file.getOriginalFilename());
@@ -53,5 +54,10 @@ public class FileController {
     @GetMapping("")
     public String download(){
         return "";
+    }
+
+    @GetMapping("/show")
+    public String show(){
+        return fileService.show().toString();
     }
 }
