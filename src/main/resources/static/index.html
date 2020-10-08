@@ -117,12 +117,12 @@
                         <div class="card-body">
                             <form action="upload" method="post" enctype="multipart/form-data">
                                 <div class="custom-file">
-                                    <input type="file" class="custom-file-input" id="customFile">
+                                    <input type="file" class="custom-file-input" id="customFile" name="file">
                                     <label class="custom-file-label" for="customFile">选择文件</label>
                                 </div>
                                 <div class="form-group">
                                     <label for="exampleFormControlSelect1">允许下载次数</label>
-                                    <select class="form-control" id="exampleFormControlSelect1">
+                                    <select class="form-control" id="exampleFormControlSelect1" name="times">
                                         <option>1</option>
                                         <option>2</option>
                                         <option>3</option>
@@ -133,7 +133,7 @@
 
                                 <div class="form-group">
                                     <label for="secondryPassword">二级密码（可选）</label>
-                                    <input type="password" id="secondryPassword" class="form-control mx-sm-3" aria-describedby="passwordHelpInline">
+                                    <input type="password" id="secondryPassword" class="form-control mx-sm-3" aria-describedby="passwordHelpInline" password>
                                 </div>
                                 <button>上传</button>
                             </form>

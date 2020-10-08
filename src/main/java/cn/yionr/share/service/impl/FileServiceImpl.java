@@ -22,7 +22,8 @@ public class FileServiceImpl {
     public List<String> codePool = new ArrayList<>();
     Properties prop;
 
-    {
+    @Autowired
+    public FileServiceImpl(SFileDao sFileDao){
 
         //load properties
         prop = new Properties();
@@ -46,7 +47,6 @@ public class FileServiceImpl {
         }
 
         //search in mysql , and exclude codes
-        System.out.println(sFileDao);
         codePool.removeAll(sFileDao.listCodes());
 
         //chk local files mappered with database , first with database ,
