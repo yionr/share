@@ -2,6 +2,7 @@ package cn.yionr.share.service.impl;
 
 import cn.yionr.share.dao.SFileDao;
 import cn.yionr.share.entity.SFileWrapper;
+import cn.yionr.share.service.intf.FileService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Service
-public class FileServiceImpl {
+public class FileServiceImpl implements FileService {
 
     @Autowired
     SFileDao sFileDao;

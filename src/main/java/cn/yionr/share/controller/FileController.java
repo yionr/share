@@ -4,6 +4,7 @@ import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
 import cn.yionr.share.entity.User;
 import cn.yionr.share.service.impl.FileServiceImpl;
+import cn.yionr.share.service.intf.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,7 +17,7 @@ import java.util.Date;
 public class FileController {
 
     @Autowired
-    FileServiceImpl fileService;
+    FileService fileService;
 
     /**
      *
