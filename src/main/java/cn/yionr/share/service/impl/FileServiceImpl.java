@@ -6,6 +6,7 @@ import cn.yionr.share.entity.SFileWrapper;
 import cn.yionr.share.service.intf.FileService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -20,21 +21,13 @@ public class FileServiceImpl implements FileService {
     @Autowired
     SFileDao sFileDao;
 
+    @Value("${files.dir}")
+    String filePath;
 
     public List<String> codePool = new ArrayList<>();
-    Properties prop;
 
     @Autowired
-    public FileServiceImpl(SFileDao sFileDao){
-
-        //load properties
-        prop = new Properties();
-
-        try {
-            prop.load(FileServiceImpl.class.getResourceAsStream("/common.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public FileServiceImpl(SFileDao sFileDao,@Value("${files.dir}") String filePath){
 
         //generate a codePool 4number from 0000-9999
         for(int i = 0;i < 10000;i++){
@@ -57,7 +50,7 @@ public class FileServiceImpl implements FileService {
 
         List<String> remoteCodes = sFileDao.listCodes();
 
-        List<File> localCodes = Arrays.asList(new File(prop.getProperty("tempDir")).listFiles());
+        List<File> localCodes = Arrays.asList(new File(filePath).listFiles());
 
 
 
@@ -67,7 +60,7 @@ public class FileServiceImpl implements FileService {
 //        remove one from codePool as fid
         sfw.getsFile().setFid(codePool.remove((int)(Math.random() * (codePool.size()+1))));
 //        upload file
-        File dstFile = new File(prop.getProperty("tempDir"),sfw.getsFile().getFid());
+        File dstFile = new File(filePath,sfw.getsFile().getFid());
         System.out.println(dstFile.getAbsolutePath());
         if (!dstFile.exists())
             dstFile.createNewFile();
@@ -90,7 +83,7 @@ public class FileServiceImpl implements FileService {
 //            取件码有效，文件在数据库中存在的话
             System.out.println(fileName);
             SFileWrapper sFileWrapper = new SFileWrapper();
-            sFileWrapper.setFile(new File(prop.getProperty("tempDir"),code));
+            sFileWrapper.setFile(new File(filePath,code));
             SFile sFile = new SFile();
             sFile.setName(fileName);
             sFileWrapper.setsFile(sFile);
