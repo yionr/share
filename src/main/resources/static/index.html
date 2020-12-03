@@ -20,9 +20,139 @@
     </style>
 </head>
 <body>
-<script>
+<!-- loginModal -->
+<div class="modal fade" id="loginModel" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginLabel">登录</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="login" method="get">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" class="form-control" name="email" id="loginEmail">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" class="form-control" name="password" id="loginPassword">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Sign in</button>
+                </div>
+            </form>
 
-</script>
+        </div>
+    </div>
+</div>
+
+<!-- regeditModal -->
+<div class="modal fade" id="regeditModel" tabindex="-1" role="dialog" aria-labelledby="regeditLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="regeditLabel">注册</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="regedit" method="GET">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="regEmail">Email</label>
+                            <input type="email" class="form-control" name="email" id="regEmail">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="regPassword">Password</label>
+                            <input type="password" class="form-control" name="password" id="regPassword">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Sign up</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- sendModal -->
+<div class="modal fade" id="sendModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendLabel">发送</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card text-center w-100 h-100 " id="sendDialog">
+                    <div class="card-body">
+                        <form action="upload" method="post" enctype="multipart/form-data" id="sendForm">
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="customFile" name="file">
+                                <label class="custom-file-label" for="customFile">选择文件</label>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleFormControlSelect1">允许下载次数</label>
+                                <select class="form-control" id="exampleFormControlSelect1" name="times">
+                                    <option>1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                    <option>5</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="secondryPassword">二级密码（可选）</label>
+                                <input type="password" id="secondryPassword" class="form-control mx-sm-3" aria-describedby="passwordHelpInline" name="password">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="sendBtn">发送</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- receiveModal -->
+<div class="modal fade" id="receiveModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="receiveLabel">接收</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="download" id="receiveForm">
+                    <label for="code">取件码：</label>
+                    <input type="text" class="form-control" name="code" id="code">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="receiveBtn">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-info">
             <a class="navbar-brand" href="#">文件分享</a>
@@ -32,116 +162,27 @@
             <div class="collapse navbar-collapse flex-row-reverse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item active">
-                        <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#login">
+                        <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#loginModel">
                             登录
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regedit">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regeditModel">
                             注册
                         </button>
                     </li>
                 </ul>
-            </div>
-
-            <div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">登录</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="login" method="get">
-                            <div class="modal-body">
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="loginEmail">Email</label>
-                                        <input type="email" class="form-control" name="email" id="loginEmail">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="loginPassword">Password</label>
-                                        <input type="password" class="form-control" name="password" id="loginPassword">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">Sign in</button>
-                            </div>
-                        </form>
-
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="modal fade" id="regedit" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="loginLabel">注册</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="regedit" method="GET">
-                            <div class="modal-body">
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="regEmail">Email</label>
-                                        <input type="email" class="form-control" name="email" id="regEmail">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="regPassword">Password</label>
-                                        <input type="password" class="form-control" name="password" id="regPassword">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">Sign up</button>
-                            </div>
-                        </form>
-
-                    </div>
-                </div>
             </div>
         </nav>
     </header>
     <main class="container">
             <div class="row h-100 justify-content-center align-content-center">
                 <div class="col-8 text-center">
-                    <button type="button" class="btn btn-outline-primary px-5 mb-4" id="send">发送</button>
+                    <button type="button" class="btn btn-outline-primary px-5 mb-4" data-toggle="modal" data-target="#sendModel" id="send">发送</button>
                     <br>
-                    <button type="button" class="btn btn-outline-primary px-5" id="receive">接收</button>
+                    <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModel" id="receive">接收</button>
                     <br>
 
-                    <div class="card text-center w-100 h-100 " id="sendDialog">
-                        <div class="card-body">
-                            <form action="upload" method="post" enctype="multipart/form-data">
-                                <div class="custom-file">
-                                    <input type="file" class="custom-file-input" id="customFile" name="file">
-                                    <label class="custom-file-label" for="customFile">选择文件</label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="exampleFormControlSelect1">允许下载次数</label>
-                                    <select class="form-control" id="exampleFormControlSelect1" name="times">
-                                        <option>1</option>
-                                        <option>2</option>
-                                        <option>3</option>
-                                        <option>4</option>
-                                        <option>5</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="secondryPassword">二级密码（可选）</label>
-                                    <input type="password" id="secondryPassword" class="form-control mx-sm-3" aria-describedby="passwordHelpInline" name="password">
-                                </div>
-                                <button>上传</button>
-                            </form>
-                        </div>
-                    </div>
                 </div>
             </div>
     </main>
@@ -156,8 +197,13 @@
         $('#send').click(function(){
             $('#sendDialog').classList.remove('d-none')
         })
-        $('#receive').click(function(){
-            alert('received!!')
+
+        $('#sendBtn').click(function(){
+            $('#sendForm').submit()
+        })
+
+        $('#receiveBtn').click(function(){
+            $('#receiveForm').submit()
         })
     </script>
 </body>
