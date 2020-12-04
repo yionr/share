@@ -28,6 +28,9 @@ public interface SFileDao {
     @Select("select times from sfile where fid=#{code}")
     int queryTimes(String code);
 
+    @Select("select password from sfile where fid=#{code}")
+    String queryPassword(String code);
+
     @Delete("delete from sfile where fid=#{code}")
     boolean delect(String code);
 }

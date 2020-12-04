@@ -4,18 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
-    <title>文件分享</title>
+    <title>风享站</title>
     <style>
         html,body{
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
-        .uploadBox{
-            border:10px red solid;
-        }
         main{
             height: 100%;
+        }
+        label.custom-file-label{
+            text-overflow: ellipsis;/*文字如果超出后，以省略号的形式展现*/
+            overflow: hidden;/*超出要裁掉*/
+            white-space: nowrap;/*文字不换行*/
+        }
+        .toast{
+            position: absolute;
+            bottom: 0;
+            right: 0;
         }
     </style>
 </head>
@@ -30,21 +37,21 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="login" method="get">
+            <form action="login">
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="form-group col-md-6">
-                            <label for="loginEmail">Email</label>
-                            <input type="email" class="form-control" name="email" id="loginEmail">
+                            <label for="loginEmail">邮箱</label>
+                            <input type="email" class="form-control" name="email" id="loginEmail" required>
                         </div>
                         <div class="form-group col-md-6">
-                            <label for="loginPassword">Password</label>
-                            <input type="password" class="form-control" name="password" id="loginPassword">
+                            <label for="loginPassword">密码</label>
+                            <input type="password" class="form-control" name="password" id="loginPassword" required>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Sign in</button>
+                    <button type="submit" class="btn btn-primary">登录</button>
                 </div>
             </form>
 
@@ -62,21 +69,21 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="regedit" method="GET">
+            <form action="regedit">
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="form-group col-md-6">
-                            <label for="regEmail">Email</label>
-                            <input type="email" class="form-control" name="email" id="regEmail">
+                            <label for="regEmail">邮箱</label>
+                            <input type="email" class="form-control" name="email" id="regEmail" required>
                         </div>
                         <div class="form-group col-md-6">
-                            <label for="regPassword">Password</label>
-                            <input type="password" class="form-control" name="password" id="regPassword">
+                            <label for="regPassword">密码</label>
+                            <input type="password" class="form-control" name="password" id="regPassword" required>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Sign up</button>
+                    <button type="submit" class="btn btn-primary">注册</button>
                 </div>
             </form>
         </div>
@@ -87,43 +94,43 @@
 <div class="modal fade" id="sendModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="sendLabel">发送</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="card text-center w-100 h-100 " id="sendDialog">
-                    <div class="card-body">
-                        <form action="upload" method="post" enctype="multipart/form-data" id="sendForm">
-                            <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="customFile" name="file">
-                                <label class="custom-file-label" for="customFile">选择文件</label>
-                            </div>
-                            <div class="form-group">
-                                <label for="exampleFormControlSelect1">允许下载次数</label>
-                                <select class="form-control" id="exampleFormControlSelect1" name="times">
-                                    <option>1</option>
-                                    <option>2</option>
-                                    <option>3</option>
-                                    <option>4</option>
-                                    <option>5</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="secondryPassword">二级密码（可选）</label>
-                                <input type="password" id="secondryPassword" class="form-control mx-sm-3" aria-describedby="passwordHelpInline" name="password">
-                            </div>
-                        </form>
-                    </div>
+            <form action="upload" method="post" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sendLabel">发送</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="sendBtn">发送</button>
-            </div>
+                <div class="modal-body">
+                        <div class="card text-center w-100 h-100 " id="sendDialog">
+                            <div class="card-body">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="inputGroupFileAddon01">上传</span>
+                                    </div>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="submitFile" aria-describedby="inputGroupFileAddon01" name="file" required>
+                                        <label class="custom-file-label" for="submitFile">选择文件</label>
+                                    </div>
+                                </div>
+                                    <div class="form-group">
+                                        <label for="allowTimes-input">允许下载次数</label>
+                                        <input type="number" id="allowTimes-input" class="form-control" aria-describedby="passwordHelpInline" name="times" value="1" min="1" max="9">
+                                    </div>
+
+                                    <div class="form-group">
+<!--                                        密码只能由数字字母下划线组成-->
+                                        <label for="secondryPassword">二级密码（可选）</label>
+                                        <input type="password" id="secondryPassword" class="form-control" aria-describedby="passwordHelpInline" name="password">
+                                    </div>
+                            </div>
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="sendBtn">发送</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -132,30 +139,66 @@
 <div class="modal fade" id="receiveModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="receiveLabel">接收</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form action="download" id="receiveForm">
-                    <label for="code">取件码：</label>
-                    <input type="text" class="form-control" name="code" id="code">
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="receiveBtn">确定</button>
-            </div>
+            <form id="download">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="receiveLabel">接收</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+<!--                    可以用ajax截获form吗，不然的话 去掉form会导致ajax获取不到name
+                        暂时先用ajax一个一个做吧
+-->
+                        <label for="code">取件码</label>
+                        <input type="number" class="form-control" name="code" id="code" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="receive-confirm">接收</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
+<div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+    <div class="toast-header">
+        <img src="img/r.png" class="rounded" alt="..." width="30" height="30">
+        <strong class="mr-auto">提示</strong>
+        <small class="ml-3">刚刚</small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="toast-body" id="toast-content">
+    取件成功
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-info">
-            <a class="navbar-brand" href="#">文件分享</a>
+            <a class="navbar-brand" href="#">风享站</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -191,20 +234,56 @@
 
     </footer>
 
+
+
+
+
+
     <script src="jquery/jquery-3.5.1.js"></script>
     <script src="bootstrap/js/bootstrap.bundle.js"></script>
     <script>
-        $('#send').click(function(){
-            $('#sendDialog').classList.remove('d-none')
+
+        $('#submitFile').on('change',function(){
+            let fileName = $(this).val().split('\\');
+            fileName = fileName[fileName.length - 1]
+            $(this).next('.custom-file-label').html(fileName);
         })
 
-        $('#sendBtn').click(function(){
-            $('#sendForm').submit()
+        $('#receive-confirm').on('click',function (){
+            /*
+            点击接收的时候
+            2. 发送请求，如果收到需要密码的指示，则向模态框中加一个密码框
+            3. 文件流打开后，关闭模态框，右下角弹出提示，下载成功
+             */
+                $.ajax('check',{
+                    method:'get',
+                    data:$('#download').serialize(),
+                    success:function (data) {
+                        // alert(data);
+                        switch (JSON.parse(data).result){
+                            case 1:
+                                //(取件码/密码正确)，关闭模态框，弹出提示：下载成功
+                                $('#receive-confirm').closest('form').attr('action','download').submit();
+                                $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                                $('.toast').toast('show')
+                                break;
+                            case 2:
+                                //需要密码，动态添加密码框
+                                break;
+                            case -1:
+                                //error，关闭模态框，弹出提示：下载失败
+                                break;
+                            case 0:
+                                //code invalid，摇动模态框，弹出ToolTips：取件码不存在
+                                break;
+                            case 3:
+                                //密码错误，摇动模态框，弹出ToolTips：密码错误，并outline:red for input:password
+                                break;
+                        }
+                    }
+                })
         })
 
-        $('#receiveBtn').click(function(){
-            $('#receiveForm').submit()
-        })
     </script>
 </body>
 </html>

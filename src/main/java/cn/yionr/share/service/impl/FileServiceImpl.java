@@ -3,6 +3,7 @@ package cn.yionr.share.service.impl;
 import cn.yionr.share.dao.SFileDao;
 import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
+import cn.yionr.share.exception.NeedPasswordException;
 import cn.yionr.share.service.intf.FileService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ public class FileServiceImpl implements FileService {
         System.out.println(sfw.getsFile().getFid());
         return sfw.getsFile().getFid();
     }
-    public SFileWrapper download(String code) {
+    public SFileWrapper download(String code) throws NeedPasswordException {
     /*
     去数据库中检查是否有文件，有的话
         0. 核对密码(暂时不做)
@@ -78,10 +79,38 @@ public class FileServiceImpl implements FileService {
         2. 将允许下载次数(times)-1
         3. 读取指定目录，提取文件返回
      */
+        String password = sFileDao.queryPassword(code);
+        if (password == null)
+                password = "";
+        if (!"".equals(password)){
+            throw new NeedPasswordException("需要密码");
+        }
+
+        return getSFileWrapper(code);
+    }
+
+    @Override
+    public SFileWrapper download(String code, String password) {
+        String currectPassword = sFileDao.queryPassword(code);
+        if (!password.equals(currectPassword)){
+            return null;
+        }
+        else{
+//            密码正确，获取文件信息并返回
+            return getSFileWrapper(code);
+        }
+    }
+
+
+
+    public List<String> show(){
+        return sFileDao.listCodes();
+    }
+
+    public SFileWrapper getSFileWrapper(String code){
         String fileName = sFileDao.queryFile(code);
         if (fileName != null){
 //            取件码有效，文件在数据库中存在的话
-            System.out.println(fileName);
             SFileWrapper sFileWrapper = new SFileWrapper();
             sFileWrapper.setFile(new File(filePath,code));
             SFile sFile = new SFile();
@@ -100,9 +129,5 @@ public class FileServiceImpl implements FileService {
 //            code invalid
             return null;
         }
-    }
-
-    public List<String> show(){
-        return sFileDao.listCodes();
     }
 }
