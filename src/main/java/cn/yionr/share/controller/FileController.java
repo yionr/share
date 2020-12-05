@@ -42,12 +42,9 @@ public class FileController {
 
         SFileWrapper sfw = new SFileWrapper();
         sfw.setsFile(sf);
-        File tempf = new File("tempfile");
-        if(!tempf.exists())
-            tempf.createNewFile();
-        System.out.println(tempf.getAbsoluteFile());
-        file.transferTo(tempf.getAbsoluteFile());
-        System.out.println(tempf.length());
+//        TODO 不要上传到这个临时文件中，直接传到目标文件中。
+        File tempf = File.createTempFile("tempfile","temp");
+        file.transferTo(tempf);
         sfw.setFile(tempf);
         return fileService.upload(sfw);
 

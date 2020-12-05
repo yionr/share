@@ -6,25 +6,29 @@
     <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
     <title>风享站</title>
     <style>
-        html,body{
+        html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
-        main{
+
+        main {
             height: 100%;
         }
-        label.custom-file-label{
-            text-overflow: ellipsis;/*文字如果超出后，以省略号的形式展现*/
-            overflow: hidden;/*超出要裁掉*/
-            white-space: nowrap;/*文字不换行*/
+
+        label.custom-file-label {
+            text-overflow: ellipsis; /*文字如果超出后，以省略号的形式展现*/
+            overflow: hidden; /*超出要裁掉*/
+            white-space: nowrap; /*文字不换行*/
         }
-        .toast{
+
+        .toast {
             position: absolute;
             bottom: 0;
             right: 0;
         }
     </style>
+    <script src="js/clipboard.min.js"></script>
 </head>
 <body>
 <!-- loginModal -->
@@ -91,7 +95,8 @@
 </div>
 
 <!-- sendModal -->
-<div class="modal fade" id="sendModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="sendModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="upload" method="post" enctype="multipart/form-data">
@@ -102,29 +107,32 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                        <div class="card text-center w-100 h-100 " id="sendDialog">
-                            <div class="card-body">
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text" id="inputGroupFileAddon01">上传</span>
-                                    </div>
-                                    <div class="custom-file">
-                                        <input type="file" class="custom-file-input" id="submitFile" aria-describedby="inputGroupFileAddon01" name="file" required>
-                                        <label class="custom-file-label" for="submitFile">选择文件</label>
-                                    </div>
+                    <div class="card text-center w-100 h-100 " id="sendDialog">
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="inputGroupFileAddon01">上传</span>
                                 </div>
-                                    <div class="form-group">
-                                        <label for="allowTimes-input">允许下载次数</label>
-                                        <input type="number" id="allowTimes-input" class="form-control" aria-describedby="passwordHelpInline" name="times" value="1" min="1" max="9">
-                                    </div>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="submitFile"
+                                           aria-describedby="inputGroupFileAddon01" name="file" required>
+                                    <label class="custom-file-label" for="submitFile">选择文件</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="allowTimes-input">允许下载次数</label>
+                                <input type="number" id="allowTimes-input" class="form-control"
+                                       aria-describedby="passwordHelpInline" name="times" value="1" min="1" max="9">
+                            </div>
 
-                                    <div class="form-group">
-<!--                                        密码只能由数字字母下划线组成-->
-                                        <label for="secondryPassword">二级密码（可选）</label>
-                                        <input type="password" id="secondryPassword" class="form-control" aria-describedby="passwordHelpInline" name="password">
-                                    </div>
+                            <div class="form-group">
+                                <!--                                        密码只能由数字字母下划线组成-->
+                                <label for="secondryPassword">二级密码（可选）</label>
+                                <input type="password" id="secondryPassword" class="form-control"
+                                       aria-describedby="passwordHelpInline" name="password">
                             </div>
                         </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
@@ -136,10 +144,11 @@
 </div>
 
 <!-- receiveModal -->
-<div class="modal fade" id="receiveModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="receiveModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="download">
+            <form>
                 <div class="modal-header">
                     <h5 class="modal-title" id="receiveLabel">接收</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -147,17 +156,39 @@
                     </button>
                 </div>
                 <div class="modal-body">
-<!--                    可以用ajax截获form吗，不然的话 去掉form会导致ajax获取不到name
-                        暂时先用ajax一个一个做吧
--->
-                        <label for="code">取件码</label>
-                        <input type="number" class="form-control" name="code" id="code" required>
+                    <!--                    可以用ajax截获form吗，不然的话 去掉form会导致ajax获取不到name
+                                            暂时先用ajax一个一个做吧
+                    -->
+                    <label for="code">取件码</label>
+                    <input type="number" class="form-control" name="code" id="code" required data-toggle="tooltip"
+                           data-placement="top" title="here">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-primary" id="receive-confirm">接收</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!--codeModal-->
+<div class="modal fade" tabindex="-1" role="dialog" id="codeModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">发送成功，您的取件码为</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="codeNumber"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copy">复制</button>
+            </div>
         </div>
     </div>
 </div>
@@ -172,118 +203,122 @@
         </button>
     </div>
     <div class="toast-body" id="toast-content">
-    取件成功
+        取件成功
     </div>
 </div>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-info">
-            <a class="navbar-brand" href="#">风享站</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-info">
+        <a class="navbar-brand" href="#">风享站</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse flex-row-reverse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#loginModel">
+                        登录
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regeditModel">
+                        注册
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+<main class="container">
+    <div class="row h-100 justify-content-center align-content-center">
+        <div class="col-8 text-center">
+            <button type="button" class="btn btn-outline-primary px-5 mb-4" data-toggle="modal" data-target="#sendModel"
+                    id="send">发送
             </button>
-            <div class="collapse navbar-collapse flex-row-reverse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item active">
-                        <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#loginModel">
-                            登录
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regeditModel">
-                            注册
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
-    <main class="container">
-            <div class="row h-100 justify-content-center align-content-center">
-                <div class="col-8 text-center">
-                    <button type="button" class="btn btn-outline-primary px-5 mb-4" data-toggle="modal" data-target="#sendModel" id="send">发送</button>
-                    <br>
-                    <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModel" id="receive">接收</button>
-                    <br>
+            <br>
+            <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModel"
+                    id="receive">接收
+            </button>
+            <br>
 
-                </div>
-            </div>
-    </main>
+        </div>
+    </div>
+</main>
+<footer>
 
-    <footer>
-
-    </footer>
+</footer>
 
 
+<script src="js/jquery/jquery-3.5.1.js"></script>
+<script src="js/jquery/jquery.form.js"></script>
+<script src="js/clipboard.min.js"></script>
+<script src="bootstrap/js/bootstrap.bundle.js"></script>
+<script>
+    $(function(){
+        new ClipboardJS('#copy')
+    })
 
+    $('#submitFile').on('change', function () {
+        let fileName = $(this).val().split('\\');
+        fileName = fileName[fileName.length - 1]
+        $(this).next('.custom-file-label').html(fileName);
+    })
 
-
-
-    <script src="jquery/jquery-3.5.1.js"></script>
-    <script src="bootstrap/js/bootstrap.bundle.js"></script>
-    <script>
-
-        $('#submitFile').on('change',function(){
-            let fileName = $(this).val().split('\\');
-            fileName = fileName[fileName.length - 1]
-            $(this).next('.custom-file-label').html(fileName);
+    $('#receive-confirm').on('click', function () {
+        /*
+        点击接收的时候
+        2. 发送请求，如果收到需要密码的指示，则向模态框中加一个密码框
+        3. 文件流打开后，关闭模态框，右下角弹出提示，下载成功
+         */
+        $.ajax('check', {
+            method: 'get',
+            data: $('#receive-confirm').closest('form').serialize(),
+            success: function (data) {
+                // alert(data);
+                switch (JSON.parse(data).result) {
+                    case 1:
+                        //(取件码/密码正确)，关闭模态框，弹出提示：下载成功
+                        $('#receive-confirm').closest('form').attr('action', 'download').submit().removeAttr('action');
+                        $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                        $('.toast').toast('show')
+                        break;
+                    case 2:
+                        //需要密码，动态添加密码框
+                        $('#receive-confirm').closest('form').attr('action', 'download').submit().removeAttr('action');
+                        $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                        break;
+                    case -1:
+                        //error，关闭模态框，弹出提示：下载失败
+                        $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                        $('.toast').find('#toast-content').val('下载失败').toast('show')
+                        break;
+                    case 0:
+                        //code invalid，摇动模态框，弹出ToolTips：取件码不存在
+                        $('[data-toggle="tooltip"]').attr('title', '取件码不存在').val('').tooltip('show');
+                        break;
+                    case 3:
+                        //密码错误，摇动模态框，弹出ToolTips：密码错误，并outline:red for input:password
+                        $('[data-toggle="tooltip"]').attr('title', '密码错误').val('').tooltip('show');
+                        break;
+                }
+            }
         })
+    })
 
-        $('#receive-confirm').on('click',function (){
-            /*
-            点击接收的时候
-            2. 发送请求，如果收到需要密码的指示，则向模态框中加一个密码框
-            3. 文件流打开后，关闭模态框，右下角弹出提示，下载成功
-             */
-                $.ajax('check',{
-                    method:'get',
-                    data:$('#download').serialize(),
-                    success:function (data) {
-                        // alert(data);
-                        switch (JSON.parse(data).result){
-                            case 1:
-                                //(取件码/密码正确)，关闭模态框，弹出提示：下载成功
-                                $('#receive-confirm').closest('form').attr('action','download').submit();
-                                $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                                $('.toast').toast('show')
-                                break;
-                            case 2:
-                                //需要密码，动态添加密码框
-                                break;
-                            case -1:
-                                //error，关闭模态框，弹出提示：下载失败
-                                break;
-                            case 0:
-                                //code invalid，摇动模态框，弹出ToolTips：取件码不存在
-                                break;
-                            case 3:
-                                //密码错误，摇动模态框，弹出ToolTips：密码错误，并outline:red for input:password
-                                break;
-                        }
-                    }
-                })
-        })
+    $("#sendBtn").closest('form').submit(function () {
+        $(this).ajaxSubmit({
+            target: '#codeNumber',
+            success: function () {
+                $('#sendBtn').closest('.modal-dialog').find('.close').trigger('click');
+                $('#codeModal').modal('show')
+                return false;
+            }
+        });
+        return false;   //阻止表单默认提交
+    });
 
-    </script>
+</script>
 </body>
 </html>
