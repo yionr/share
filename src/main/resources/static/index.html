@@ -187,6 +187,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+<!--                TODO 复制成功之后要有反馈， 将按钮变成复制成功 然后由绿渐变为原来的颜色-->
                 <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copy">复制</button>
             </div>
         </div>
@@ -256,16 +257,13 @@
 <script src="js/clipboard.min.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
+
+    //初始化剪切板
     $(function(){
         new ClipboardJS('#copy')
     })
 
-    $('#submitFile').on('change', function () {
-        let fileName = $(this).val().split('\\');
-        fileName = fileName[fileName.length - 1]
-        $(this).next('.custom-file-label').html(fileName);
-    })
-
+    //接收
     $('#receive-confirm').on('click', function () {
         /*
         点击接收的时候
@@ -307,6 +305,7 @@
         })
     })
 
+    //ajax拦截原上传表单的跳转，转而由ajax提交内容并本页返回内容
     $("#sendBtn").closest('form').submit(function () {
         $(this).ajaxSubmit({
             target: '#codeNumber',
@@ -319,6 +318,21 @@
         return false;   //阻止表单默认提交
     });
 
+    //文件选择框在选择文件之后显示文件名
+    $('#submitFile').on('change', function () {
+        let fileName = $(this).val().split('\\');
+        fileName = fileName[fileName.length - 1]
+        $(this).next('.custom-file-label').html(fileName);
+    })
+
+    //关闭模态框的时候重置表单,清空所有内容
+    $('#submitFile').closest('.modal').on('hidden.bs.modal',() => {
+        $('#submitFile').closest('form')[0].reset();
+        $('#submitFile').next('.custom-file-label').html('选择文件');
+    })
+    $('#receive-confirm').closest('.modal').on('hidden.bs.modal',() => {
+        $('#receive-confirm').closest('form')[0].reset();
+    })
 </script>
 </body>
 </html>
