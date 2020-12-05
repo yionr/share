@@ -109,10 +109,19 @@ public class FileController {
 //            密码错误
             return json.put("result",3).toString();
         }
-        System.out.println("with password");
 //        进入这的说明已经访问过一次了，不需要验证code了，直接验证密码是否正确即可。
         return json.put("result",sendFile(response,sFileWrapper)).toString();
-
+    }
+    @PostMapping("/check")
+    public String check(HttpServletResponse response, String code,String password) throws JSONException {
+        JSONObject json = new JSONObject();
+        SFileWrapper sFileWrapper = fileService.download(code,password);
+        if (sFileWrapper == null){
+//            密码错误
+            return json.put("result",3).toString();
+        }
+//        进入这的说明已经访问过一次了，不需要验证code了，直接验证密码是否正确即可。
+        return json.put("result",1).toString();
     }
 
     @GetMapping("/show")

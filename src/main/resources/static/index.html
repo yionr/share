@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -22,14 +22,25 @@
             white-space: nowrap; /*文字不换行*/
         }
 
-        .toast {
+        #toast4code {
             position: absolute;
             bottom: 0;
             right: 0;
         }
+        #toast4info {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 80px;
+            margin: 0 auto;
+        }
+        .optional{
+            height: 0;
+            transition: 1s;
+        }
     </style>
-    <script src="js/clipboard.min.js"></script>
 </head>
+
 <body>
 <!-- loginModal -->
 <div class="modal fade" id="loginModel" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
@@ -148,7 +159,7 @@
      aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form>
+            <form action="download">
                 <div class="modal-header">
                     <h5 class="modal-title" id="receiveLabel">接收</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -160,8 +171,11 @@
                                             暂时先用ajax一个一个做吧
                     -->
                     <label for="code">取件码</label>
-                    <input type="number" class="form-control" name="code" id="code" required data-toggle="tooltip"
-                           data-placement="top" title="here">
+                    <input type="number" class="form-control" name="code" id="code" required>
+                    <div class="optional overflow-hidden">
+                        <label for="code">密码</label>
+                        <input type="password" class="form-control" name="password" id="code_password" required>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
@@ -194,17 +208,33 @@
     </div>
 </div>
 
-<div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+<!--toast4code-->
+<div class="toast" id="toast4code" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
     <div class="toast-header">
-        <img src="img/r.png" class="rounded" alt="..." width="30" height="30">
+        <img src="img/r.png" class="rounded" alt="" width="30" height="30">
         <strong class="mr-auto">提示</strong>
         <small class="ml-3">刚刚</small>
         <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
-    <div class="toast-body" id="toast-content">
+    <div class="toast-body" id="code-info">
         取件成功
+    </div>
+</div>
+
+<!--toast4info-->
+<div class="toast bg-warning" id="toast4info" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
+    <div class="toast-header bg-info">
+        <img src="img/e.png" class="rounded" alt="" width="30" height="30">
+        <strong class="mr-auto">提醒</strong>
+        <small>刚刚</small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        密码错误！
     </div>
 </div>
 
@@ -219,12 +249,12 @@
         <div class="collapse navbar-collapse flex-row-reverse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item active">
-                    <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#loginModel">
+                    <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#loginModel" disabled>
                         登录
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regeditModel">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regeditModel" disabled>
                         注册
                     </button>
                 </li>
@@ -270,39 +300,91 @@
         2. 发送请求，如果收到需要密码的指示，则向模态框中加一个密码框
         3. 文件流打开后，关闭模态框，右下角弹出提示，下载成功
          */
-        $.ajax('check', {
-            method: 'get',
-            data: $('#receive-confirm').closest('form').serialize(),
-            success: function (data) {
-                // alert(data);
-                switch (JSON.parse(data).result) {
-                    case 1:
-                        //(取件码/密码正确)，关闭模态框，弹出提示：下载成功
-                        $('#receive-confirm').closest('form').attr('action', 'download').submit().removeAttr('action');
-                        $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                        $('.toast').toast('show')
-                        break;
-                    case 2:
-                        //需要密码，动态添加密码框
-                        $('#receive-confirm').closest('form').attr('action', 'download').submit().removeAttr('action');
-                        $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                        break;
-                    case -1:
-                        //error，关闭模态框，弹出提示：下载失败
-                        $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                        $('.toast').find('#toast-content').val('下载失败').toast('show')
-                        break;
-                    case 0:
-                        //code invalid，摇动模态框，弹出ToolTips：取件码不存在
-                        $('[data-toggle="tooltip"]').attr('title', '取件码不存在').val('').tooltip('show');
-                        break;
-                    case 3:
-                        //密码错误，摇动模态框，弹出ToolTips：密码错误，并outline:red for input:password
-                        $('[data-toggle="tooltip"]').attr('title', '密码错误').val('').tooltip('show');
-                        break;
+        if (parseInt($('.optional').css('height')) === 0){
+        //    如果没有要求密码的话
+            $.ajax('check', {
+                method: 'get',
+                data: $('#receive-confirm').closest('form').serialize(),
+                success: function (data) {
+                    console.log(data);
+                    switch (JSON.parse(data).result) {
+                        case 1:
+                            //取件码正确，关闭模态框，弹出提示：下载成功
+                            //TODO 在不需要password的时候将input去掉，防止get还带上‘password=’
+                            $('#receive-confirm').closest('form').attr('method', 'get').submit();
+                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                            $('#toast4code').find('.toast-body').val('下载成功')
+                            $('#toast4code').toast('show');
+                            break;
+                        case 2:
+                            //需要密码，动态添加密码框
+                            //FIXME 为什么这个会跳转页面，而上面的1不会(跳转到的页面是后端接口发回来的json数据)
+                            //因为上面submit得到的传回来的就是文件了，而这里submit得到的传回来的是json，所以需要拦截这里的表单事件
+                            // $('#receive-confirm').closest('form').attr('method', 'get').submit();
+                            $('.optional').css('height','100%')
+                            //TODO 接下来弹出tooltip，请输入密码 --- 暂时不需要什么提示信息应该也行，先把弹出密码的动画做好就行了
+                            // $('#code_password').attr('title', '请输入密码').tooltip('show');
+                            break;
+                        case -1:
+                            //error，关闭模态框，弹出提示：下载失败
+                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                            $('#toast4info').find('.toast-body').val('下载失败')
+                            $('#toast4info').toast('show');
+                            break;
+                        case 0:
+                            //code invalid，摇动模态框，弹出ToolTips：取件码不存在
+                            $('#toast4info').find('.toast-body').val('取件码不存在');
+                            $('#toast4info').toast('show');
+                            break;
+                    }
                 }
+            })
+        }
+        else{
+            // 要求密码
+            $.ajax('check', {
+                method: 'post',
+                data: $('#receive-confirm').closest('form').serialize(),
+                success: function (data) {
+                    console.log(data);
+                    switch (JSON.parse(data).result) {
+                        case 1:
+                            //密码正确，关闭模态框，弹出提示：下载成功
+                            $('#receive-confirm').closest('form').attr('method', 'post').submit();  //submit 没反应
+                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                            $('#toast4code').find('.toast-body').val('下载成功')
+                            $('#toast4code').toast('show');
+                            break;
+                        case -1:
+                            //error，关闭模态框，弹出提示：下载失败
+                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                            $('#toast4info').find('.toast-body').val('下载失败')
+                            $('#toast4info').toast('show');
+                            break;
+                        case 3:
+                            //密码错误，摇动模态框，弹出ToolTips：密码错误，并outline:red for input:password
+                            //FIXME 由于无法在模态框之上显示内容，所以暂时设定 在密码错误的情况下，关闭模态框，弹出错误提示
+                            $('#toast4info').find('.toast-body').val('密码错误')
+                            $('#toast4info').toast('show');
+                            //清空密码
+                            $('#receive-confirm').closest('form').find('[name=password]').val('')
+                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                            break;
+                    }
+                }
+            })
+        }
+
+    })
+    //让receive表单提交后不跳转
+    //当返回2时，还是会自动跳转，但是返回1就不会了
+    $('#receive-confirm').closest('form').submit(function(){
+        $(this).ajaxSubmit({
+            success: function () {
+                return false;
             }
-        })
+        });
+        // return false;
     })
 
     //ajax拦截原上传表单的跳转，转而由ajax提交内容并本页返回内容
@@ -332,6 +414,7 @@
     })
     $('#receive-confirm').closest('.modal').on('hidden.bs.modal',() => {
         $('#receive-confirm').closest('form')[0].reset();
+        $('#receive-confirm').closest('form').find('.optional').css('height',0)
     })
 </script>
 </body>
