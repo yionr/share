@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" media="screen" />
     <title>风享站</title>
     <style>
         html, body {
@@ -36,7 +37,6 @@
         }
         .optional{
             height: 0;
-            transition: 1s;
         }
     </style>
 </head>
@@ -308,6 +308,11 @@
                 success: function (data) {
                     console.log(data);
                     switch (JSON.parse(data).result) {
+                        case 0:
+                            //code invalid，摇动模态框，弹出ToolTips：取件码不存在
+                            $('#toast4info').find('.toast-body').text('取件码不存在');
+                            $('#toast4info').toast('show');
+                            break;
                         case 1:
                             //取件码正确，关闭模态框，弹出提示：下载成功
                             //TODO 在不需要password的时候将input去掉，防止get还带上‘password=’
@@ -321,19 +326,21 @@
                             //FIXME 为什么这个会跳转页面，而上面的1不会(跳转到的页面是后端接口发回来的json数据)
                             //因为上面submit得到的传回来的就是文件了，而这里submit得到的传回来的是json，所以需要拦截这里的表单事件
                             // $('#receive-confirm').closest('form').attr('method', 'get').submit();
-                            $('.optional').css('height','100%')
+                            //不生效是因为单位不一致，上面每单位，这里是0 暂时用px代替一下把
+                            //把取件码框变绿，然后禁用
+
+                            $('#code').addClass('border-success').attr('readonly','true')
+                            $('.optional').animate({
+                                'height':$('.optional').closest('.modal-body').css('height'),
+                                'color':'red'
+                            },472)
                             //TODO 接下来弹出tooltip，请输入密码 --- 暂时不需要什么提示信息应该也行，先把弹出密码的动画做好就行了
                             // $('#code_password').attr('title', '请输入密码').tooltip('show');
                             break;
                         case -1:
                             //error，关闭模态框，弹出提示：下载失败
                             $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4info').find('.toast-body').val('下载失败')
-                            $('#toast4info').toast('show');
-                            break;
-                        case 0:
-                            //code invalid，摇动模态框，弹出ToolTips：取件码不存在
-                            $('#toast4info').find('.toast-body').val('取件码不存在');
+                            $('#toast4info').find('.toast-body').text('下载失败')
                             $('#toast4info').toast('show');
                             break;
                     }
@@ -355,20 +362,20 @@
                             $('#toast4code').find('.toast-body').val('下载成功')
                             $('#toast4code').toast('show');
                             break;
-                        case -1:
-                            //error，关闭模态框，弹出提示：下载失败
-                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4info').find('.toast-body').val('下载失败')
-                            $('#toast4info').toast('show');
-                            break;
                         case 3:
                             //密码错误，摇动模态框，弹出ToolTips：密码错误，并outline:red for input:password
                             //FIXME 由于无法在模态框之上显示内容，所以暂时设定 在密码错误的情况下，关闭模态框，弹出错误提示
-                            $('#toast4info').find('.toast-body').val('密码错误')
+                            $('#toast4info').find('.toast-body').text('密码错误')
                             $('#toast4info').toast('show');
                             //清空密码
                             $('#receive-confirm').closest('form').find('[name=password]').val('')
                             $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                            break;
+                        case -1:
+                            //error，关闭模态框，弹出提示：下载失败
+                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                            $('#toast4info').find('.toast-body').text('下载失败')
+                            $('#toast4info').toast('show');
                             break;
                     }
                 }
@@ -414,7 +421,8 @@
     })
     $('#receive-confirm').closest('.modal').on('hidden.bs.modal',() => {
         $('#receive-confirm').closest('form')[0].reset();
-        $('#receive-confirm').closest('form').find('.optional').css('height',0)
+        $('#receive-confirm').closest('form').find('.optional').css('height',0);
+        $('#receive-confirm').closest('form').find('#code').removeClass('border-success').removeAttr('readonly');
     })
 </script>
 </body>
