@@ -174,12 +174,12 @@
                     <input type="number" class="form-control" name="code" id="code" required>
                     <div class="optional overflow-hidden">
                         <label for="code">密码</label>
-                        <input type="password" class="form-control" name="password" id="code_password" required>
+                        <input type="password" class="form-control" name="password" id="code_password" disabled required>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="receive-confirm">接收</button>
+                    <button type="button" class="btn btn-primary" id="receive-confirm" accesskey="1">接收</button>
                 </div>
             </form>
         </div>
@@ -297,9 +297,15 @@
     $('#receive-confirm').on('click', function () {
         /*
         点击接收的时候
+        1. 检测内容有效性
         2. 发送请求，如果收到需要密码的指示，则向模态框中加一个密码框
         3. 文件流打开后，关闭模态框，右下角弹出提示，下载成功
          */
+        if ($('#code').val().trim() === ''){
+            $('#toast4info').find('.toast-body').text('请先输入取件码')
+            $('#toast4info').toast('show');
+            return false;
+        }
         if (parseInt($('.optional').css('height')) === 0){
         //    如果没有要求密码的话
             $.ajax('check', {
@@ -318,7 +324,7 @@
                             //TODO 在不需要password的时候将input去掉，防止get还带上‘password=’
                             $('#receive-confirm').closest('form').attr('method', 'get').submit();
                             $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4code').find('.toast-body').val('下载成功')
+                            $('#toast4code').find('.toast-body').text('取件成功')
                             $('#toast4code').toast('show');
                             break;
                         case 2:
@@ -330,6 +336,7 @@
                             //把取件码框变绿，然后禁用
 
                             $('#code').addClass('border-success').attr('readonly','true')
+                            $('#code_password').removeAttr('disabled')
                             $('.optional').animate({
                                 'height':$('.optional').closest('.modal-body').css('height'),
                                 'color':'red'
@@ -340,7 +347,7 @@
                         case -1:
                             //error，关闭模态框，弹出提示：下载失败
                             $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4info').find('.toast-body').text('下载失败')
+                            $('#toast4info').find('.toast-body').text('未知错误，取件失败')
                             $('#toast4info').toast('show');
                             break;
                     }
@@ -359,7 +366,7 @@
                             //密码正确，关闭模态框，弹出提示：下载成功
                             $('#receive-confirm').closest('form').attr('method', 'post').submit();  //submit 没反应
                             $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4code').find('.toast-body').val('下载成功')
+                            $('#toast4code').find('.toast-body').text('取件成功')
                             $('#toast4code').toast('show');
                             break;
                         case 3:
@@ -383,8 +390,7 @@
         }
 
     })
-    //让receive表单提交后不跳转
-    //当返回2时，还是会自动跳转，但是返回1就不会了
+    //拦截receive后的跳转
     $('#receive-confirm').closest('form').submit(function(){
         $(this).ajaxSubmit({
             success: function () {
@@ -415,14 +421,17 @@
     })
 
     //关闭模态框的时候重置表单,清空所有内容
-    $('#submitFile').closest('.modal').on('hidden.bs.modal',() => {
-        $('#submitFile').closest('form')[0].reset();
+    $('#submitFile').closest('.modal').on('hidden.bs.modal',function () {
+        $(this).find('form')[0].reset();
         $('#submitFile').next('.custom-file-label').html('选择文件');
     })
-    $('#receive-confirm').closest('.modal').on('hidden.bs.modal',() => {
-        $('#receive-confirm').closest('form')[0].reset();
-        $('#receive-confirm').closest('form').find('.optional').css('height',0);
-        $('#receive-confirm').closest('form').find('#code').removeClass('border-success').removeAttr('readonly');
+    $('#receive-confirm').closest('.modal').on('hidden.bs.modal',function () {
+        $(this).find('form')[0].reset();
+        $(this).find('.optional').css('height',0);
+        $('#code').removeClass('border-success').removeAttr('readonly');
+        console.log($(this))
+        $('#code_password').attr('disabled','true')
+
     })
 </script>
 </body>
