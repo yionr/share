@@ -179,7 +179,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="receive-confirm" accesskey="1">接收</button>
+                    <button type="button" class="btn btn-primary" id="receive-confirm">接收</button>
                 </div>
             </form>
         </div>
@@ -338,8 +338,7 @@
                             $('#code').addClass('border-success').attr('readonly','true')
                             $('#code_password').removeAttr('disabled')
                             $('.optional').animate({
-                                'height':$('.optional').closest('.modal-body').css('height'),
-                                'color':'red'
+                                'height':$('.optional').closest('.modal-body').css('height')
                             },472)
                             //TODO 接下来弹出tooltip，请输入密码 --- 暂时不需要什么提示信息应该也行，先把弹出密码的动画做好就行了
                             // $('#code_password').attr('title', '请输入密码').tooltip('show');
@@ -433,6 +432,21 @@
         $('#code_password').attr('disabled','true')
 
     })
+
+//    添加快捷键
+    $('.modal').on('show.bs.modal',function(){
+        $(this)[0].addEventListener('keypress',kp)
+    }).on('hide.bs.modal',function(){
+        $(this)[0].removeEventListener('keypress',kp)
+    })
+    function kp(e){
+        console.log(e)
+        if(e.key === 'Enter'){
+        //    发送或者接收
+            console.log($(this))
+            $(this).find('.btn-primary').trigger('click')
+        }
+    }
 </script>
 </body>
 </html>
