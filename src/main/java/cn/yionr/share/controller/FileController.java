@@ -2,35 +2,35 @@ package cn.yionr.share.controller;
 
 import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
-import cn.yionr.share.entity.User;
 import cn.yionr.share.exception.NeedPasswordException;
-import cn.yionr.share.service.impl.FileServiceImpl;
 import cn.yionr.share.service.intf.FileService;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Date;
 
 @RestController
 public class FileController {
 
-    @Autowired
     FileService fileService;
 
+    @Autowired
+    public FileController(FileService fileService){
+        this.fileService = fileService;
+    }
     /**
      *
-     * @param file
-     * @param password
-     * @param times
+     * @param file 用户上传的文件
+     * @param password 用户设置的二级密码
+     * @param times 该文件可供下载的次数
      * @return 0 shows error ;
-     * @throws IOException
      */
     @PostMapping("/upload")
     public String upload(MultipartFile file, String password, int times) throws IOException {
@@ -42,7 +42,6 @@ public class FileController {
 
         SFileWrapper sfw = new SFileWrapper();
         sfw.setsFile(sf);
-//        TODO 不要上传到这个临时文件中，直接传到目标文件中。
         File tempf = File.createTempFile("tempfile","temp");
         file.transferTo(tempf);
         sfw.setFile(tempf);
@@ -52,10 +51,9 @@ public class FileController {
 
     /**
      *
-     * @param response
-     * @param code
+     * @param response 通过response获得输出流给用户传输文件
+     * @param code 取件码
      * @return -1: error; 0: code invalid; 1: success; 2: need password;
-     * @throws UnsupportedEncodingException
      */
     @GetMapping("/download")
     public String download(HttpServletResponse response, String code) throws JSONException {
@@ -76,7 +74,7 @@ public class FileController {
         return json.put("result",sendFile(response,sFileWrapper)).toString();
     }
     @GetMapping("/check")
-    public String check(HttpServletResponse response, String code) throws JSONException {
+    public String check(String code) throws JSONException {
         JSONObject json = new JSONObject();
         SFileWrapper sFileWrapper;
         try {
@@ -96,9 +94,9 @@ public class FileController {
 
     /**
      *
-     * @param response
-     * @param code
-     * @param password
+     * @param response 通过response获得输出流给用户传输文件
+     * @param code 取件码
+     * @param password 二级密码
      * @return   3: password incorrect
      */
     @PostMapping("/download")
@@ -113,7 +111,7 @@ public class FileController {
         return json.put("result",sendFile(response,sFileWrapper)).toString();
     }
     @PostMapping("/check")
-    public String check(HttpServletResponse response, String code,String password) throws JSONException {
+    public String check(String code,String password) throws JSONException {
         JSONObject json = new JSONObject();
         SFileWrapper sFileWrapper = fileService.download(code,password);
         if (sFileWrapper == null){
@@ -144,7 +142,7 @@ public class FileController {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sFileWrapper.getFile()));
             byte[] buff = new byte[1024];
             OutputStream os  = response.getOutputStream();
-            int i = 0;
+            int i;
             while ((i = bis.read(buff)) != -1) {
                 os.write(buff, 0, i);
                 os.flush();

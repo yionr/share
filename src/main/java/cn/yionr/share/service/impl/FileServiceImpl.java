@@ -6,24 +6,26 @@ import cn.yionr.share.entity.SFileWrapper;
 import cn.yionr.share.exception.NeedPasswordException;
 import cn.yionr.share.service.intf.FileService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
+import java.util.Objects;
 
 @Service
 public class FileServiceImpl implements FileService {
 
-    @Autowired
-
+    private static final Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
     SFileDao sFileDao;
-
-    @Value("${files.dir}")
     String filePath;
 
     public List<String> codePool = new ArrayList<>();
@@ -31,6 +33,8 @@ public class FileServiceImpl implements FileService {
     @Autowired
     public FileServiceImpl(SFileDao sFileDao,@Value("${files.dir}") String filePath){
 
+        this.sFileDao = sFileDao;
+        this.filePath = filePath;
         //generate a codePool 4number from 0000-9999
         for(int i = 0;i < 10000;i++){
             if (i < 10)
@@ -46,15 +50,17 @@ public class FileServiceImpl implements FileService {
         //search in mysql , and exclude codes
         codePool.removeAll(sFileDao.listCodes());
 
-        //chk local files mappered with database , first with database ,
+        //check local files mappered with database , first with database ,
         // if database no some file remove them
         // else show all loosed files in logger
 
         List<String> remoteCodes = sFileDao.listCodes();
 
-        List<File> localCodes = Arrays.asList(new File(filePath).listFiles());
+        List<String> localCodes = Arrays.asList(Objects.requireNonNull(new File(filePath).list()));
 
-
+        log.info("本地文件存储路径为： " + filePath);
+        log.info("数据库中保存有取件码: " + remoteCodes.toString());
+        log.info("本地含有取件码文件: " + localCodes.toString());
 
     }
 
@@ -64,14 +70,18 @@ public class FileServiceImpl implements FileService {
         sfw.getsFile().setFid(codePool.remove((int)(Math.random() * (codePool.size()+1))));
 //        upload file
         File dstFile = new File(filePath,sfw.getsFile().getFid());
-        System.out.println(dstFile.getAbsolutePath());
         if (!dstFile.exists())
             dstFile.createNewFile();
         IOUtils.copy(new FileInputStream(sfw.getFile()),new FileOutputStream(dstFile));
 //        update database
-        sFileDao.addSFile(sfw.getsFile());
-        System.out.println(sfw.getsFile().getFid());
-        return sfw.getsFile().getFid();
+        if (sFileDao.addSFile(sfw.getsFile())) {
+            log.info("服务器文件保存成功,取件码为: " + sfw.getsFile().getFid());
+            return sfw.getsFile().getFid();
+        }
+        else{
+            log.info("服务器文件保存失败");
+            return "-1";
+        }
     }
     public SFileWrapper download(String code) throws NeedPasswordException {
     /*
