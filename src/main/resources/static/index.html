@@ -38,6 +38,17 @@
         .optional{
             height: 0;
         }
+        input:invalid{
+            outline: red 1px dashed;
+        }
+        input:valid::after{
+            /*做个勾的反馈*/
+
+        }
+        input:invalid::after{
+            /*做个叉的反馈*/
+
+        }
     </style>
 </head>
 
@@ -171,14 +182,15 @@
                                             暂时先用ajax一个一个做吧
                     -->
                     <label for="code">取件码</label>
-                    <input type="number" class="form-control" name="code" id="code" required>
+                    <input type="text" class="form-control" name="code" id="code" minlength="4" maxlength="4" required pattern="\d{4}">
                     <div class="optional overflow-hidden">
-                        <label for="code">密码</label>
-                        <input type="password" class="form-control" name="password" id="code_password" disabled required>
+                        <label for="code_password">密码</label>
+                        <input type="password" class="form-control" name="password" id="code_password" disabled>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+<!--                    这里使用了button，导致无法使用h5内置的表单校验了-->
                     <button type="button" class="btn btn-primary" id="receive-confirm">接收</button>
                 </div>
             </form>
@@ -293,8 +305,13 @@
         new ClipboardJS('#copy')
     })
 
+    let receive = $('#receive-confirm');
+    let toast4info = $('#toast4info');
+    let toast4code = $('#toast4code');
+    let optional = $('.optional')
+
     //接收
-    $('#receive-confirm').on('click', function () {
+    receive.on('click', function () {
         /*
         点击接收的时候
         1. 检测内容有效性
@@ -302,30 +319,30 @@
         3. 文件流打开后，关闭模态框，右下角弹出提示，下载成功
          */
         if ($('#code').val().trim() === ''){
-            $('#toast4info').find('.toast-body').text('请先输入取件码')
-            $('#toast4info').toast('show');
+            toast4info.find('.toast-body').text('请先输入取件码')
+            toast4info.toast('show');
             return false;
         }
         if (parseInt($('.optional').css('height')) === 0){
         //    如果没有要求密码的话
             $.ajax('check', {
                 method: 'get',
-                data: $('#receive-confirm').closest('form').serialize(),
+                data: receive.closest('form').serialize(),
                 success: function (data) {
                     console.log(data);
                     switch (JSON.parse(data).result) {
                         case 0:
                             //code invalid，摇动模态框，弹出ToolTips：取件码不存在
-                            $('#toast4info').find('.toast-body').text('取件码不存在');
-                            $('#toast4info').toast('show');
+                            toast4info.find('.toast-body').text('取件码不存在');
+                            toast4info.toast('show');
                             break;
                         case 1:
                             //取件码正确，关闭模态框，弹出提示：下载成功
                             //TODO 在不需要password的时候将input去掉，防止get还带上‘password=’
-                            $('#receive-confirm').closest('form').attr('method', 'get').submit();
-                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4code').find('.toast-body').text('取件成功')
-                            $('#toast4code').toast('show');
+                            receive.closest('form').attr('method', 'get').submit();
+                            receive.closest('.modal-dialog').find('.close').trigger('click');
+                            toast4code.find('.toast-body').text('取件成功')
+                            toast4code.toast('show');
                             break;
                         case 2:
                             //需要密码，动态添加密码框
@@ -337,17 +354,17 @@
 
                             $('#code').addClass('border-success').attr('readonly','true')
                             $('#code_password').removeAttr('disabled')
-                            $('.optional').animate({
-                                'height':$('.optional').closest('.modal-body').css('height')
+                            optional.animate({
+                                'height':optional.closest('.modal-body').css('height')
                             },472)
                             //TODO 接下来弹出tooltip，请输入密码 --- 暂时不需要什么提示信息应该也行，先把弹出密码的动画做好就行了
                             // $('#code_password').attr('title', '请输入密码').tooltip('show');
                             break;
                         case -1:
                             //error，关闭模态框，弹出提示：下载失败
-                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4info').find('.toast-body').text('未知错误，取件失败')
-                            $('#toast4info').toast('show');
+                            receive.closest('.modal-dialog').find('.close').trigger('click');
+                            toast4info.find('.toast-body').text('未知错误，取件失败')
+                            toast4info.toast('show');
                             break;
                     }
                 }
@@ -363,25 +380,25 @@
                     switch (JSON.parse(data).result) {
                         case 1:
                             //密码正确，关闭模态框，弹出提示：下载成功
-                            $('#receive-confirm').closest('form').attr('method', 'post').submit();  //submit 没反应
-                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4code').find('.toast-body').text('取件成功')
-                            $('#toast4code').toast('show');
+                            receive.closest('form').attr('method', 'post').submit();  //submit 没反应
+                            receive.closest('.modal-dialog').find('.close').trigger('click');
+                            toast4code.find('.toast-body').text('取件成功')
+                            toast4code.toast('show');
                             break;
                         case 3:
                             //密码错误，摇动模态框，弹出ToolTips：密码错误，并outline:red for input:password
                             //FIXME 由于无法在模态框之上显示内容，所以暂时设定 在密码错误的情况下，关闭模态框，弹出错误提示
-                            $('#toast4info').find('.toast-body').text('密码错误')
-                            $('#toast4info').toast('show');
+                            toast4info.find('.toast-body').text('密码错误')
+                            toast4info.toast('show');
                             //清空密码
-                            $('#receive-confirm').closest('form').find('[name=password]').val('')
-                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
+                            receive.closest('form').find('[name=password]').val('')
+                            receive.closest('.modal-dialog').find('.close').trigger('click');
                             break;
                         case -1:
                             //error，关闭模态框，弹出提示：下载失败
-                            $('#receive-confirm').closest('.modal-dialog').find('.close').trigger('click');
-                            $('#toast4info').find('.toast-body').text('下载失败')
-                            $('#toast4info').toast('show');
+                            receive.closest('.modal-dialog').find('.close').trigger('click');
+                            toast4info.find('.toast-body').text('下载失败')
+                            toast4info.toast('show');
                             break;
                     }
                 }
@@ -390,7 +407,7 @@
 
     })
     //拦截receive后的跳转
-    $('#receive-confirm').closest('form').submit(function(){
+    receive.closest('form').submit(function(){
         $(this).ajaxSubmit({
             success: function () {
                 return false;
@@ -412,19 +429,20 @@
         return false;   //阻止表单默认提交
     });
 
+    let submit = $('#submitFile');
     //文件选择框在选择文件之后显示文件名
-    $('#submitFile').on('change', function () {
+    submit.on('change', function () {
         let fileName = $(this).val().split('\\');
         fileName = fileName[fileName.length - 1]
         $(this).next('.custom-file-label').html(fileName);
     })
 
     //关闭模态框的时候重置表单,清空所有内容
-    $('#submitFile').closest('.modal').on('hidden.bs.modal',function () {
+    submit.closest('.modal').on('hidden.bs.modal',function () {
         $(this).find('form')[0].reset();
         $('#submitFile').next('.custom-file-label').html('选择文件');
     })
-    $('#receive-confirm').closest('.modal').on('hidden.bs.modal',function () {
+    receive.closest('.modal').on('hidden.bs.modal',function () {
         $(this).find('form')[0].reset();
         $(this).find('.optional').css('height',0);
         $('#code').removeClass('border-success').removeAttr('readonly');

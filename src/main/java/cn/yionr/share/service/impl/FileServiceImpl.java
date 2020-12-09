@@ -20,6 +20,7 @@ import java.util.Properties;
 public class FileServiceImpl implements FileService {
 
     @Autowired
+
     SFileDao sFileDao;
 
     @Value("${files.dir}")
@@ -59,6 +60,7 @@ public class FileServiceImpl implements FileService {
 
     public String upload(SFileWrapper sfw) throws IOException {
 //        remove one from codePool as fid
+
         sfw.getsFile().setFid(codePool.remove((int)(Math.random() * (codePool.size()+1))));
 //        upload file
         File dstFile = new File(filePath,sfw.getsFile().getFid());
