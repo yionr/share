@@ -56,12 +56,31 @@ public class FileServiceImpl implements FileService {
 
         List<String> remoteCodes = sFileDao.listCodes();
 
-        List<String> localCodes = Arrays.asList(Objects.requireNonNull(new File(filePath).list()));
+        List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(filePath).list())));
+
+        String[] remoteCodeArr = remoteCodes.toArray(new String[0]);
 
         log.info("本地文件存储路径为： " + filePath);
         log.info("数据库中保存有取件码: " + remoteCodes.toString());
         log.info("本地含有取件码文件: " + localCodes.toString());
 
+        for(String code : remoteCodeArr){
+            if (localCodes.contains(code)){
+                log.info("存在 " + code + " 即将清除。。。");
+                remoteCodes.remove(code);
+                localCodes.remove(code);
+                log.info(code + " 清除完毕！");
+            }
+        }
+
+        if (!remoteCodes.isEmpty()){
+//            数据库中有取件码但是本地没有
+            log.warn("异常取件码: " + remoteCodes.toString() + " , 以上取件码只存在于数据库中，并没有本地文件对应");
+        }
+        if (!localCodes.isEmpty()){
+//            本地中有取件码但是数据库没有记录
+            log.warn("异常取件码: " + localCodes.toString() + " , 以上取件码只存在于本地，并没有数据库记录对应");
+        }
     }
 
     public String upload(SFileWrapper sfw) throws IOException {
