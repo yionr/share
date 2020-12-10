@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" media="screen" />
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" media="screen"/>
     <title>风享站</title>
     <style>
         html, body {
@@ -28,6 +28,7 @@
             bottom: 0;
             right: 0;
         }
+
         #toast4info {
             position: absolute;
             left: 0;
@@ -35,17 +36,21 @@
             bottom: 80px;
             margin: 0 auto;
         }
-        .optional{
+
+        .optional {
             height: 0;
         }
-        input:invalid{
+
+        input:invalid {
             outline: red 1px dashed;
         }
-        input:valid::after{
+
+        input:valid::after {
             /*做个勾的反馈*/
 
         }
-        input:invalid::after{
+
+        input:invalid::after {
             /*做个叉的反馈*/
 
         }
@@ -182,7 +187,8 @@
                                             暂时先用ajax一个一个做吧
                     -->
                     <label for="code">取件码</label>
-                    <input type="text" class="form-control" name="code" id="code" minlength="4" maxlength="4" required pattern="\d{4}">
+                    <input type="text" class="form-control" name="code" id="code" minlength="4" maxlength="4" required
+                           pattern="\d{4}">
                     <div class="optional overflow-hidden">
                         <label for="code_password">密码</label>
                         <input type="password" class="form-control" name="password" id="code_password" disabled>
@@ -190,7 +196,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-<!--                    这里使用了button，导致无法使用h5内置的表单校验了-->
+                    <!--                    这里使用了button，导致无法使用h5内置的表单校验了-->
                     <button type="button" class="btn btn-primary" id="receive-confirm">接收</button>
                 </div>
             </form>
@@ -213,7 +219,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-<!--                TODO 复制成功之后要有反馈， 将按钮变成复制成功 然后由绿渐变为原来的颜色-->
+                <!--                TODO 复制成功之后要有反馈， 将按钮变成复制成功 然后由绿渐变为原来的颜色-->
                 <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copy">复制</button>
             </div>
         </div>
@@ -259,18 +265,30 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse flex-row-reverse" id="navbarNav">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav" id="log-reg-btn">
                 <li class="nav-item active">
-                    <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#loginModel" disabled>
+                    <button type="button" class="btn btn-success mr-3" data-toggle="modal" data-target="#loginModel">
                         登录
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regeditModel" disabled>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#regeditModel">
                         注册
                     </button>
                 </li>
             </ul>
+
+            <div class="btn-group d-none" id="logged">
+                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
+                    yionr99@gmail.com
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#" id="changePassword">修改密码</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" id="exitLogin">退出登录</a>
+                </div>
+            </div>
         </div>
     </nav>
 </header>
@@ -301,7 +319,7 @@
 <script>
 
     //初始化剪切板
-    $(function(){
+    $(function () {
         new ClipboardJS('#copy')
     })
 
@@ -318,13 +336,11 @@
         2. 发送请求，如果收到需要密码的指示，则向模态框中加一个密码框
         3. 文件流打开后，关闭模态框，右下角弹出提示，下载成功
          */
-        if ($('#code').val().trim() === ''){
-            toast4info.find('.toast-body').text('请先输入取件码')
-            toast4info.toast('show');
+        if (!$(this).closest('form')[0].reportValidity()) {
             return false;
         }
-        if (parseInt($('.optional').css('height')) === 0){
-        //    如果没有要求密码的话
+        if (parseInt($('.optional').css('height')) === 0) {
+            //    如果没有要求密码的话
             $.ajax('check', {
                 method: 'get',
                 data: receive.closest('form').serialize(),
@@ -352,11 +368,11 @@
                             //不生效是因为单位不一致，上面每单位，这里是0 暂时用px代替一下把
                             //把取件码框变绿，然后禁用
 
-                            $('#code').addClass('border-success').attr('readonly','true')
+                            $('#code').addClass('border-success').attr('readonly', 'true')
                             $('#code_password').removeAttr('disabled')
                             optional.animate({
-                                'height':optional.closest('.modal-body').css('height')
-                            },472)
+                                'height': optional.closest('.modal-body').css('height')
+                            }, 472)
                             //TODO 接下来弹出tooltip，请输入密码 --- 暂时不需要什么提示信息应该也行，先把弹出密码的动画做好就行了
                             // $('#code_password').attr('title', '请输入密码').tooltip('show');
                             break;
@@ -369,8 +385,7 @@
                     }
                 }
             })
-        }
-        else{
+        } else {
             // 要求密码
             $.ajax('check', {
                 method: 'post',
@@ -407,7 +422,7 @@
 
     })
     //拦截receive后的跳转
-    receive.closest('form').submit(function(){
+    receive.closest('form').submit(function () {
         $(this).ajaxSubmit({
             success: function () {
                 return false;
@@ -430,6 +445,8 @@
     });
 
     let submit = $('#submitFile');
+    let loginModel = $('#loginModel')
+    let regeditModel = $('#regeditModel')
     //文件选择框在选择文件之后显示文件名
     submit.on('change', function () {
         let fileName = $(this).val().split('\\');
@@ -438,32 +455,168 @@
     })
 
     //关闭模态框的时候重置表单,清空所有内容
-    submit.closest('.modal').on('hidden.bs.modal',function () {
+    submit.closest('.modal').on('hidden.bs.modal', function () {
         $(this).find('form')[0].reset();
         $('#submitFile').next('.custom-file-label').html('选择文件');
     })
-    receive.closest('.modal').on('hidden.bs.modal',function () {
+    receive.closest('.modal').on('hidden.bs.modal', function () {
         $(this).find('form')[0].reset();
-        $(this).find('.optional').css('height',0);
+        $(this).find('.optional').css('height', 0);
         $('#code').removeClass('border-success').removeAttr('readonly');
         console.log($(this))
-        $('#code_password').attr('disabled','true')
+        $('#code_password').attr('disabled', 'true')
 
     })
-
-//    添加快捷键
-    $('.modal').on('show.bs.modal',function(){
-        $(this)[0].addEventListener('keypress',kp)
-    }).on('hide.bs.modal',function(){
-        $(this)[0].removeEventListener('keypress',kp)
+    loginModel.on('hidden.bs.modal',function(){
+        $(this).find('form')[0].reset();
     })
-    function kp(e){
+    regeditModel.on('hidden.bs.modal',function(){
+        $(this).find('form')[0].reset();
+    })
+
+    //    添加快捷键
+    $('.modal').on('show.bs.modal', function () {
+        $(this)[0].addEventListener('keypress', kp)
+    }).on('hide.bs.modal', function () {
+        $(this)[0].removeEventListener('keypress', kp)
+    })
+    function kp(e) {
         console.log(e)
-        if(e.key === 'Enter'){
-        //    发送或者接收
+        if (e.key === 'Enter') {
+            //    发送或者接收
             console.log($(this))
             $(this).find('.btn-primary').trigger('click')
         }
+    }
+
+    //    登录成功之后移除登陆注册按钮，替换为用户邮箱，可以点击，点击后弹出 修改密码、退出登录 按钮。点击退出登录，清除session，登陆注册按钮重新出现
+    //    每次打开页面的时候都自动检查cookie，如果存在jsessionid则向服务器发送检查JSESSIONID是否有效，有效的话自动就是登录状态；如果不存在则不发送
+    //    用户进行每一步和服务器有交互的操作之前都要检查session保存的账号密码是否正确。
+    $(
+        //自动登录首先要给服务器标记，只有当返回1时，进行登录操作，其余情况都不进行操作。
+        function () {
+            $.ajax('login', {
+                method: 'GET',
+                success: function (data) {
+                    switch (JSON.parse(data).status) {
+                        case 1:
+                            let email = localStorage.getItem('email');
+                            if (email !== null) {
+                                //    localStorage存在
+                                login(email);
+                            }
+                            break;
+                        case 0:
+                            toast4info.find('.toast-body').text('上次登录后密码已修改，请重新登录')
+                            toast4info.toast('show');
+                            //清空session和localStorage
+                            if (localStorage.getItem('email') !== null) {
+                                localStorage.removeItem('email')
+                            }
+                            break;
+                    }
+                }
+            })
+        }
+    )
+
+    //FIXME 有一次出现 提示邮箱已注册，但是modal还是消失了，而且登录成功了，看数据库记录也是刚添加的
+
+    regeditModel.find('form').submit(function () {
+        let email = $('#regEmail').val();
+        $(this).ajaxSubmit({
+            success: function (data) {
+                switch (JSON.parse(data).status) {
+                    case 1:
+                        console.log('注册成功');
+                        toast4code.find('.toast-body').text('注册成功')
+                        toast4code.toast('show');
+                        regeditModel.find('.close').trigger('click');
+                        //将邮箱存入localStorage
+                        localStorage.setItem('email', email)
+                        setTimeout(function () {
+                            login(email)
+                        }, 1000)
+                        break;
+                    case 0:
+                        console.log('邮箱已注册');
+                        toast4info.find('.toast-body').text('邮箱已注册')
+                        toast4info.toast('show');
+                        //清空表单
+                        regeditModel.find('form')[0].reset();
+                        break;
+                }
+                return false;
+            }
+        })
+        //这个return不能不写
+        return false;
+    })
+
+    loginModel.find('form').submit(function () {
+        let email = $('#loginEmail').val();
+        $(this).ajaxSubmit({
+            success: function (data) {
+                switch (JSON.parse(data).status) {
+                    case -1:
+                        console.log('邮箱不存在');
+                        toast4info.find('.toast-body').text('邮箱不存在')
+                        toast4info.toast('show');
+                        //清空表单
+                        loginModel.find('form')[0].reset();
+                        break;
+                    case 0:
+                        console.log('密码错误');
+                        toast4info.find('.toast-body').text('密码错误')
+                        toast4info.toast('show');
+                        //清空密码框
+                        $('#loginPassword').val('')
+                        break;
+                    case 1:
+                        console.log('登录成功');
+                        loginModel.find('.close').trigger('click');
+                        toast4code.find('.toast-body').text('登录成功')
+                        toast4code.toast('show');
+                        localStorage.setItem('email', email)
+                        setTimeout(function () {
+                            login(email)
+                        }, 1000)
+                        break;
+                }
+                return false;
+            }
+        })
+        return false;
+    })
+
+    $('#exitLogin').on('click',function(){
+    //本地先执行退出的动作，和login相反，然后ajax给服务器发送请求，删除session，然后删除localStorage
+        $.ajax('exit',{
+            method:'GET',
+            success: function(data){
+                if (JSON.parse(data).status === 2){
+                    toast4code.find('.toast-body').text('已退出登录')
+                    toast4code.toast('show');
+                    setTimeout(function(){exit()},1000);
+                    localStorage.removeItem('email');
+                }
+            }
+        })
+    })
+
+    $('#changePassword').on('click',function(){
+
+    })
+
+    //注册成功或者手动登录成功之后，将邮箱写入webstorage中。
+    function login(email) {
+        //    移除按钮，替换为邮箱，带一个下拉框，内容包含两个按钮 修改密码和退出登录
+        $('#log-reg-btn').addClass('d-none');
+        $('#logged').removeClass('d-none').find('button').text(email);
+    }
+    function exit(){
+        $('#log-reg-btn').removeClass('d-none');
+        $('#logged').addClass('d-none').find('button').text('');
     }
 </script>
 </body>

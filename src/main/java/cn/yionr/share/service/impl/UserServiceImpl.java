@@ -16,6 +16,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int regedit(User user) {
+
+        if (userDao.queryUser(user.getEmail()) != null){
+//            该邮箱已注册
+            return 0;
+        }
         return userDao.addUser(user);
     }
 
