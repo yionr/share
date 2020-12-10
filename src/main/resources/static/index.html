@@ -256,7 +256,6 @@
     </div>
 </div>
 
-
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-info">
         <a class="navbar-brand" href="#">风享站</a>
@@ -311,16 +310,18 @@
 
 </footer>
 
-
 <script src="js/jquery/jquery-3.5.1.js"></script>
 <script src="js/jquery/jquery.form.js"></script>
 <script src="js/clipboard.min.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
-
     //初始化剪切板
     $(function () {
         new ClipboardJS('#copy')
+    })
+    $('#copy').on('click',function(){
+    //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
+        $(this).text('复制成功').css('backgroundColor',"#28a745")
     })
 
     let receive = $('#receive-confirm');
@@ -608,7 +609,7 @@
 
     })
 
-    //注册成功或者手动登录成功之后，将邮箱写入webstorage中。
+    //注册成功或者手动登录成功之后，将邮箱写入localStorage中。
     function login(email) {
         //    移除按钮，替换为邮箱，带一个下拉框，内容包含两个按钮 修改密码和退出登录
         $('#log-reg-btn').addClass('d-none');

@@ -66,10 +66,10 @@ public class FileServiceImpl implements FileService {
 
         for(String code : remoteCodeArr){
             if (localCodes.contains(code)){
-                log.info("存在 " + code + " 即将清除。。。");
+                log.debug("存在 " + code + " 即将清除。。。");
                 remoteCodes.remove(code);
                 localCodes.remove(code);
-                log.info(code + " 清除完毕！");
+                log.debug(code + " 清除完毕！");
             }
         }
 
