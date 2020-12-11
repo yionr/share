@@ -31,12 +31,12 @@ public class FileServiceImpl implements FileService {
     public List<String> codePool = new ArrayList<>();
 
     @Autowired
-    public FileServiceImpl(SFileDao sFileDao,@Value("${files.dir}") String filePath){
+    public FileServiceImpl(SFileDao sFileDao, @Value("${files.dir}") String filePath) {
 
         this.sFileDao = sFileDao;
         this.filePath = filePath;
         //generate a codePool 4number from 0000-9999
-        for(int i = 0;i < 10000;i++){
+        for (int i = 0; i < 10000; i++) {
             if (i < 10)
                 codePool.add("000" + i);
             else if (i < 100)
@@ -64,8 +64,8 @@ public class FileServiceImpl implements FileService {
         log.info("数据库中保存有取件码: " + remoteCodes.toString());
         log.info("本地含有取件码文件: " + localCodes.toString());
 
-        for(String code : remoteCodeArr){
-            if (localCodes.contains(code)){
+        for (String code : remoteCodeArr) {
+            if (localCodes.contains(code)) {
                 log.debug("存在 " + code + " 即将清除。。。");
                 remoteCodes.remove(code);
                 localCodes.remove(code);
@@ -73,35 +73,52 @@ public class FileServiceImpl implements FileService {
             }
         }
 
-        if (!remoteCodes.isEmpty()){
+        if (!remoteCodes.isEmpty()) {
 //            数据库中有取件码但是本地没有
             log.warn("异常取件码: " + remoteCodes.toString() + " , 以上取件码只存在于数据库中，并没有本地文件对应");
         }
-        if (!localCodes.isEmpty()){
+        if (!localCodes.isEmpty()) {
 //            本地中有取件码但是数据库没有记录
             log.warn("异常取件码: " + localCodes.toString() + " , 以上取件码只存在于本地，并没有数据库记录对应");
         }
     }
 
-    public String upload(SFileWrapper sfw) throws IOException {
-//        remove one from codePool as fid
+    public String upload(SFileWrapper sfw) {
 
-        sfw.getsFile().setFid(codePool.remove((int)(Math.random() * (codePool.size()+1))));
-//        upload file
-        File dstFile = new File(filePath,sfw.getsFile().getFid());
-        if (!dstFile.exists())
-            dstFile.createNewFile();
-        IOUtils.copy(new FileInputStream(sfw.getFile()),new FileOutputStream(dstFile));
-//        update database
-        if (sFileDao.addSFile(sfw.getsFile())) {
-            log.info("服务器文件保存成功,取件码为: " + sfw.getsFile().getFid());
-            return sfw.getsFile().getFid();
-        }
-        else{
-            log.info("服务器文件保存失败");
+        try {
+            String fid = codePool.remove((int) (Math.random() * (codePool.size() + 1)));
+            sfw.getsFile().setFid(fid);
+            log.info("摇到取件码: " + fid);
+
+            File dstFile = new File(filePath, sfw.getsFile().getFid());
+            if (!dstFile.exists()){
+                if (dstFile.createNewFile()) {
+                    IOUtils.copy(new FileInputStream(sfw.getFile()), new FileOutputStream(dstFile));
+                    log.info("文件保存成功");
+                    if (sFileDao.addSFile(sfw.getsFile()) == 1) {
+                        log.info("记录存入数据库成功");
+                        return sfw.getsFile().getFid();
+                    } else {
+                        log.info("记录存入数据库失败");
+                        return "-1";
+                    }
+                } else {
+                    log.info("文件创建失败");
+                    return "-1";
+                }
+            }
+            else{
+                log.info("该取件码已有对应文件，算法出现错误！");
+                return "-1";
+            }
+
+
+        } catch (Exception e) {
+            log.info("保存文件的过程中出现了错误：" + e);
             return "-1";
         }
     }
+
     public SFileWrapper download(String code) throws NeedPasswordException {
     /*
     去数据库中检查是否有文件，有的话
@@ -112,8 +129,8 @@ public class FileServiceImpl implements FileService {
      */
         String password = sFileDao.queryPassword(code);
         if (password == null)
-                password = "";
-        if (!"".equals(password)){
+            password = "";
+        if (!"".equals(password)) {
             throw new NeedPasswordException("需要密码");
         }
 
@@ -123,40 +140,37 @@ public class FileServiceImpl implements FileService {
     @Override
     public SFileWrapper download(String code, String password) {
         String currectPassword = sFileDao.queryPassword(code);
-        if (!password.equals(currectPassword)){
+        if (!password.equals(currectPassword)) {
             return null;
-        }
-        else{
+        } else {
 //            密码正确，获取文件信息并返回
             return getSFileWrapper(code);
         }
     }
 
 
-
-    public List<String> show(){
+    public List<String> show() {
         return sFileDao.listCodes();
     }
 
-    public SFileWrapper getSFileWrapper(String code){
+    public SFileWrapper getSFileWrapper(String code) {
         String fileName = sFileDao.queryFile(code);
-        if (fileName != null){
+        if (fileName != null) {
 //            取件码有效，文件在数据库中存在的话
             SFileWrapper sFileWrapper = new SFileWrapper();
-            sFileWrapper.setFile(new File(filePath,code));
+            sFileWrapper.setFile(new File(filePath, code));
             SFile sFile = new SFile();
             sFile.setName(fileName);
             sFileWrapper.setsFile(sFile);
             sFileDao.decreaseTime(code);
 //            如果取件次数上限，则删掉数据库记录，并删掉文件
-            if (sFileDao.queryTimes(code) <= -1){
+            if (sFileDao.queryTimes(code) <= -1) {
                 sFileDao.delect(code);
 //                如果在这里删掉则会导致接下来Controller无法获取到文件，直接少了一次下载次数，所以可以暂时将小于0改为小于-1顶替一下
                 sFileWrapper.getFile().delete();
             }
             return sFileWrapper;
-        }
-        else{
+        } else {
 //            code invalid
             return null;
         }

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,7 +31,7 @@ public class UserController {
      *
      * @return 0: 邮箱已存在； 1： 注册成功
      */
-    @RequestMapping("/regedit")
+    @PostMapping("/regedit")
     public String regedit(User user, HttpServletResponse response, HttpServletRequest request) throws JSONException {
 //TODO        注册需要验证邮箱有效性
         JSONObject json = new JSONObject();
@@ -45,7 +46,7 @@ public class UserController {
      *
      * @return -1： 邮箱不存在； 0： 密码错误； 1： 登陆成功
      */
-    @RequestMapping("/login")
+    @PostMapping("/login")
     public String login(User user, HttpServletResponse response, HttpServletRequest request) throws JSONException {
         JSONObject json = new JSONObject();
 //        log.info("test " + user.toString() + " , " + request.getAttribute("email"));
@@ -74,7 +75,7 @@ public class UserController {
         return json.put("status",status).toString();
     }
 
-    @GetMapping("/exit")
+    @PostMapping("/exit")
     public String exit(HttpServletRequest request) throws JSONException {
         HttpSession session = request.getSession();
         session.invalidate();
