@@ -3,6 +3,7 @@ package cn.yionr.share.service.impl;
 import cn.yionr.share.mapper.SFileMapper;
 import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
+import cn.yionr.share.mapper.UserMapper;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.FileService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -26,15 +27,18 @@ public class FileServiceImpl implements FileService {
 
     private static final Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
     SFileMapper sFileMapper;
+    UserMapper userMapper;
+
     String filePath;
 
     public List<String> codePool = new ArrayList<>();
 
     @Autowired
-    public FileServiceImpl(SFileMapper sFileMapper, @Value("${files.dir}") String filePath) {
+    public FileServiceImpl(SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath) {
 
         this.sFileMapper = sFileMapper;
         this.filePath = filePath;
+        this.userMapper = userMapper;
         //generate a codePool 4number from 0000-9999
         for (int i = 0; i < 10000; i++) {
             if (i < 10)
@@ -83,7 +87,17 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    public String upload(SFileWrapper sfw) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
+    public String upload(SFileWrapper sfw,String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
+        if (email == null){
+            sfw.getsFile().setUid(-1);
+            log.info("设置uid为: -1 (游客)");
+        }
+        else{
+            int uid = userMapper.queryUser(email).getUid();
+            sfw.getsFile().setUid(uid);
+            log.info("设置uid为: " + uid);
+        }
+
         String fid = codePool.remove((int) (Math.random() * (codePool.size() + 1)));
         sfw.getsFile().setFid(fid);
         log.info("从池中随到取件码: " + fid);

@@ -9,13 +9,11 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLEncoder;
 
@@ -30,12 +28,12 @@ public class FileController {
     }
 
     /**
-     * @return xxxx: 保存成功，得到取件码
-     * status 状态码: -2: 密码已修改； -1: 非法提升权限; 0: 临时文件创建失败; 1: 随机取件码算法出错; 2/4: 目标文件创建失败; 3: 数据库记录存储失败; 5: 文件复制失败
+     * @return xxxx: 取件码; -2: 密码已修改; -1: 非法提升权限; 0: 临时文件创建失败; 1: 随机取件码算法出错; 2/4: 目标文件创建失败; 3: 数据库记录存储失败; 5: 文件复制失败
      */
     @PostMapping("/upload.do")
-    public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor) throws JSONException {
+    public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor, HttpSession session) throws JSONException {
         JSONObject json = new JSONObject();
+        String email = (String) session.getAttribute("email");
         if (visitor == null) {
             log.warn("密码不正确，已阻止用户上传文件");
             return json.put("status", -2).toString();
@@ -48,7 +46,6 @@ public class FileController {
         }
 
         sFile.setName(file.getOriginalFilename());
-        sFile.setUid(-1);
 
         SFileWrapper sfw = new SFileWrapper();
         sfw.setsFile(sFile);
@@ -63,7 +60,7 @@ public class FileController {
         }
 
         try {
-            json.put("status", fileService.upload(sfw));
+            json.put("status", fileService.upload(sfw,email));
         } catch (AlogrithmException e) {
             json.put("status", 1);
         } catch (FailedCreateFileException e) {
@@ -81,7 +78,7 @@ public class FileController {
     }
 
     /**
-     * @return -1: error; 0: code invalid; 1: success; 2: need password; 3: password incorrect
+     * @return -2: 文件传输失败 -1: 文件编码错误 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
      */
     @GetMapping("/download.do")
     public String download(HttpServletResponse response, SFile sFile, boolean check) throws JSONException {
@@ -104,8 +101,8 @@ public class FileController {
             }
         } else {
             log.info("准备下载文件");
-            try {sendFile(response, fileService.download(sFile.getFid(), sFile.getPassword(), false));} catch (Exception ignored) {}
-            return "";
+            try {return sendFile(response, fileService.download(sFile.getFid(), sFile.getPassword(), false))+"";} catch (Exception ignored) {}
+            return "-2";
         }
     }
 
