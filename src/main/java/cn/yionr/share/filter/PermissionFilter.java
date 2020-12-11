@@ -31,10 +31,8 @@ public class PermissionFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-//        TODO session有效性在这里验证，service中取到这个session，
-//        FIXME 那其实前端不用有个email字段，直接session验证就行了
         if (((HttpServletRequest) servletRequest).getRequestURI().contains(".do")) {
-//            如果是表单 or ajax请求
+//            如果是自建请求
             HttpSession session = ((HttpServletRequest) servletRequest).getSession();
             User user;
             if (session.getAttribute("email") != null) {
@@ -52,11 +50,10 @@ public class PermissionFilter implements Filter {
                 log.info("游客操作");
                 servletRequest.setAttribute("visitor", true);
             }
-            filterChain.doFilter(servletRequest, servletResponse);
         } else {
 //            其余请求
-            filterChain.doFilter(servletRequest, servletResponse);
         }
+        filterChain.doFilter(servletRequest, servletResponse);
 
 
     }

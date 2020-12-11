@@ -34,3 +34,4 @@ build/
 /src/main/resources/application-database.properties
 /src/main/resources/files/
 /out/
+/src/test/
