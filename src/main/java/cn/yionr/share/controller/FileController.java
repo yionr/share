@@ -32,6 +32,7 @@ public class FileController {
      */
     @PostMapping("/upload.do")
     public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor, HttpSession session) throws JSONException {
+//        TODO 根据UID设置可上传的文件容量
         JSONObject json = new JSONObject();
         String email = (String) session.getAttribute("email");
         if (visitor == null) {

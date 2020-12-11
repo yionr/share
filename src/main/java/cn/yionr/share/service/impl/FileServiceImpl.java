@@ -117,7 +117,6 @@ public class FileServiceImpl implements FileService {
                     return sfw.getsFile().getFid();
                 } else {
                     log.warn("记录存入数据库失败");
-//                        TODO 删除保存的文件
                     if (dstFile.delete()) {
                         log.info("文件删除成功");
                     } else {

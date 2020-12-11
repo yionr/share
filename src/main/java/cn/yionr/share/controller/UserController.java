@@ -1,15 +1,14 @@
 package cn.yionr.share.controller;
 
 import cn.yionr.share.entity.User;
-import cn.yionr.share.service.exception.UserAlreadyExsitException;
-import cn.yionr.share.service.exception.UserNotExsitException;
-import cn.yionr.share.service.exception.WrongPasswordException;
+import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.UserService;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
@@ -29,7 +28,7 @@ public class UserController {
     }
 
     /**
-     * @return 0: 邮箱已存在； 1： 注册成功
+     * @return 0: 邮箱已存在; 1： 注册成功; 2: 用户未激活
      */
     @PostMapping("/regedit.do")
     public String regedit(User user, HttpSession session) throws JSONException {
@@ -45,6 +44,9 @@ public class UserController {
         } catch (UserAlreadyExsitException e) {
             log.info("邮箱已被注册");
             return json.put("status", 0).toString();
+        } catch (UserNotActiveException e) {
+            log.info("用户未激活");
+            return json.put("status", 2).toString();
         }
     }
 
@@ -107,6 +109,20 @@ public class UserController {
         session.invalidate();
         log.info("已清除session");
         return new JSONObject().put("status", 0).toString();
+    }
+
+    @GetMapping("/active.do")
+    public String active(String email , String uuid){
+        try {
+            userService.active(email,uuid);
+            return "激活成功";
+        } catch (UserWaitToActiveNotFoundException e) {
+            return "未发现该激活用户";
+        } catch (ActiveLinkOutOfDateException e) {
+            return "激活链接过期了，请在两天内激活哦";
+        } catch (UUIDInvalidException e) {
+            return "激活码无效!";
+        }
     }
 
     void addSession(HttpSession session, User user) {
