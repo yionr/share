@@ -1,10 +1,10 @@
 package cn.yionr.share.service.impl;
 
-import cn.yionr.share.dao.SFileDao;
+import cn.yionr.share.mapper.SFileMapper;
 import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
-import cn.yionr.share.exception.*;
-import cn.yionr.share.service.intf.FileService;
+import cn.yionr.share.service.exception.*;
+import cn.yionr.share.service.FileService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,15 +25,15 @@ import java.util.Objects;
 public class FileServiceImpl implements FileService {
 
     private static final Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
-    SFileDao sFileDao;
+    SFileMapper sFileMapper;
     String filePath;
 
     public List<String> codePool = new ArrayList<>();
 
     @Autowired
-    public FileServiceImpl(SFileDao sFileDao, @Value("${files.dir}") String filePath) {
+    public FileServiceImpl(SFileMapper sFileMapper, @Value("${files.dir}") String filePath) {
 
-        this.sFileDao = sFileDao;
+        this.sFileMapper = sFileMapper;
         this.filePath = filePath;
         //generate a codePool 4number from 0000-9999
         for (int i = 0; i < 10000; i++) {
@@ -48,13 +48,13 @@ public class FileServiceImpl implements FileService {
         }
 
         //search in mysql , and exclude codes
-        codePool.removeAll(sFileDao.listCodes());
+        codePool.removeAll(sFileMapper.listCodes());
 
         //check local files mappered with database , first with database ,
         // if database no some file remove them
         // else show all loosed files in logger
 
-        List<String> remoteCodes = sFileDao.listCodes();
+        List<String> remoteCodes = sFileMapper.listCodes();
 
         List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(filePath).list())));
 
@@ -98,7 +98,7 @@ public class FileServiceImpl implements FileService {
                     throw new CopyFailedException("文件拷贝失败");
                 }
                 log.info("文件保存成功");
-                if (sFileDao.addSFile(sfw.getsFile()) == 1) {
+                if (sFileMapper.addSFile(sfw.getsFile()) == 1) {
                     log.info("记录存入数据库成功");
                     return sfw.getsFile().getFid();
                 } else {
@@ -122,8 +122,8 @@ public class FileServiceImpl implements FileService {
     }
 
     public SFileWrapper download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException {
-        if (sFileDao.queryFile(code) != null) {
-            String realPassword = sFileDao.queryPassword(code);
+        if (sFileMapper.queryFile(code) != null) {
+            String realPassword = sFileMapper.queryPassword(code);
             if (password == null) {
                 if (realPassword == null)
                     if (check) {
@@ -152,7 +152,7 @@ public class FileServiceImpl implements FileService {
     }
 
     public SFileWrapper getSFileWrapper(String code) {
-        String fileName = sFileDao.queryFile(code);
+        String fileName = sFileMapper.queryFile(code);
         if (fileName != null) {
 //            取件码有效，文件在数据库中存在的话
             SFileWrapper sFileWrapper = new SFileWrapper();
@@ -160,10 +160,10 @@ public class FileServiceImpl implements FileService {
             SFile sFile = new SFile();
             sFile.setName(fileName);
             sFileWrapper.setsFile(sFile);
-            sFileDao.decreaseTime(code);
+            sFileMapper.decreaseTime(code);
 //            如果取件次数上限，则删掉数据库记录，并删掉文件
-            if (sFileDao.queryTimes(code) <= -1) {
-                sFileDao.delect(code);
+            if (sFileMapper.queryTimes(code) <= -1) {
+                sFileMapper.delect(code);
 //                如果在这里删掉则会导致接下来Controller无法获取到文件，直接少了一次下载次数，所以可以暂时将小于0改为小于-1顶替一下
                 sFileWrapper.getFile().delete();
             }

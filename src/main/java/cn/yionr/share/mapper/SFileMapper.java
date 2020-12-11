@@ -1,4 +1,4 @@
-package cn.yionr.share.dao;
+package cn.yionr.share.mapper;
 
 import cn.yionr.share.entity.SFile;
 import org.apache.ibatis.annotations.Delete;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SFileDao {
+public interface SFileMapper {
     @Insert("insert into sfile values(#{fid},#{name},#{password},#{times},#{uid})")
     int addSFile(SFile sf);
 

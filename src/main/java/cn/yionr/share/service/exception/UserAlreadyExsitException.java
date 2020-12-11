@@ -1,4 +1,4 @@
-package cn.yionr.share.exception;
+package cn.yionr.share.service.exception;
 
 public class UserAlreadyExsitException extends Exception {
     public UserAlreadyExsitException(String s) {

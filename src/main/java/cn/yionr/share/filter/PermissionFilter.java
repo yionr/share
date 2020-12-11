@@ -1,6 +1,6 @@
 package cn.yionr.share.filter;
 
-import cn.yionr.share.dao.UserDao;
+import cn.yionr.share.mapper.UserMapper;
 import cn.yionr.share.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +17,11 @@ public class PermissionFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(PermissionFilter.class);
 
-    UserDao userDao;
+    UserMapper userMapper;
 
     @Autowired
-    public PermissionFilter(UserDao userDao) {
-        this.userDao = userDao;
+    public PermissionFilter(UserMapper userMapper) {
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -31,31 +31,24 @@ public class PermissionFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        if (((HttpServletRequest) servletRequest).getRequestURI().contains(".do")) {
-//            如果是自建请求
-            HttpSession session = ((HttpServletRequest) servletRequest).getSession();
-            User user;
-            if (session.getAttribute("email") != null) {
-                user = userDao.queryUser((String) session.getAttribute("email"));
-                if (user.getPassword().equals(session.getAttribute("password"))) {
+        HttpSession session = ((HttpServletRequest) servletRequest).getSession();
+        User user;
+        if (session.getAttribute("email") != null) {
+            user = userMapper.queryUser((String) session.getAttribute("email"));
+            if (user.getPassword().equals(session.getAttribute("password"))) {
 //                账号密码都正确
-                    log.info("用户操作");
-                    servletRequest.setAttribute("visitor", false);
-                } else {
-//                密码错误
-                    log.info("用户密码错误");
-                }
+                log.info("用户操作");
+                servletRequest.setAttribute("visitor", false);
             } else {
-//            游客
-                log.info("游客操作");
-                servletRequest.setAttribute("visitor", true);
+//                密码错误
+                log.info("用户密码错误");
             }
         } else {
-//            其余请求
+//            游客
+            log.info("游客操作");
+            servletRequest.setAttribute("visitor", true);
         }
         filterChain.doFilter(servletRequest, servletResponse);
-
-
     }
 
     @Override

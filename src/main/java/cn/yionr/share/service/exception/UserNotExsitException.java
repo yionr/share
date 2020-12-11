@@ -1,4 +1,4 @@
-package cn.yionr.share.exception;
+package cn.yionr.share.service.exception;
 
 public class UserNotExsitException extends Exception {
     public UserNotExsitException(String s) {

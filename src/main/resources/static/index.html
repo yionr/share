@@ -188,7 +188,7 @@
                                             暂时先用ajax一个一个做吧
                     -->
                     <label for="code">取件码</label>
-                    <input type="text" class="form-control" name="code" id="code" minlength="4" maxlength="4" required
+                    <input type="text" class="form-control" name="fid" id="code" minlength="4" maxlength="4" required
                            pattern="\d{4}">
                     <div class="optional overflow-hidden">
                         <label for="code_password">密码</label>
@@ -396,15 +396,15 @@
     sendModel.find('form').submit(function () {
         $(this).ajaxSubmit({
             success: function (data) {
-                let result = JSON.parse(data).status;
-                if (result.length === 4) {
+                let status = JSON.parse(data).status;
+                if (status.length === 4) {
                     //    得到取件码
                     sendModel.find('.close').trigger('click');
-                    $('#codeNumber').text(result)
+                    $('#codeNumber').text(status)
                     $('#codeModal').modal('show')
                     console.log("上传成功");
                 } else {
-                    switch (parseInt(result)) {
+                    switch (parseInt(status)) {
                         case -2:
                         //    用户信息已过期
                             sendModel.find('.close').trigger('click');
@@ -450,7 +450,7 @@
             $(this).ajaxSubmit({
                 success: function (data) {
                     console.log(data);
-                    switch (JSON.parse(data).result) {
+                    switch (JSON.parse(data).status) {
                         case 0:
                             receiveModel.find('[name=password]').val('')
                             toast4info.find('.toast-body').text('取件码不存在');
@@ -511,6 +511,10 @@
         $('#code').removeClass('border-success').removeAttr('readonly');
         console.log($(this))
         $('#code_password').attr('disabled', 'true')
+
+    })
+    $('#codeModal').on('hidden.bs.modal', function () {
+        $(this).text('复制').css('backgroundColor', "#007bff")
 
     })
 
