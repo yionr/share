@@ -1,23 +1,14 @@
 package cn.yionr.share.service.intf;
 
 import cn.yionr.share.entity.User;
+import cn.yionr.share.exception.UserAlreadyExsitException;
+import cn.yionr.share.exception.UserNotExsitException;
+import cn.yionr.share.exception.WrongPasswordException;
 
 public interface UserService {
 
-    /**
-     * 0 shows error with email exsits
-     * 1 shows success
-     *
-     * @return
-     */
-    int regedit(User user);
+    int regedit(User user) throws UserAlreadyExsitException;
 
-    /**
-     * -1 shows error username
-     * 0 shows error password
-     * 1 shows success
-     * @return
-     */
-    int login(User user);
+    void login(User user) throws UserNotExsitException, WrongPasswordException;
 
 }

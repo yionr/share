@@ -68,7 +68,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="login" method="post">
+            <form action="login.do" method="post">
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="form-group col-md-6">
@@ -100,7 +100,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="regedit" method="post">
+            <form action="regedit.do" method="post">
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="form-group col-md-6">
@@ -126,8 +126,7 @@
      aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="upload" method="post" enctype="multipart/form-data">
-                <input type="text" name="email" id="hideEmail" readonly style="display: none">
+            <form action="upload.do" method="post" enctype="multipart/form-data">
                 <div class="modal-header">
                     <h5 class="modal-title" id="sendLabel">发送</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -176,7 +175,7 @@
      aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="download">
+            <form action="download.do">
                 <input type="text" name="check" value="true" readonly style="display: none">
                 <div class="modal-header">
                     <h5 class="modal-title" id="receiveLabel">接收</h5>
@@ -221,7 +220,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                <!--                TODO 复制成功之后要有反馈， 将按钮变成复制成功 然后由绿渐变为原来的颜色-->
                 <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copy">复制</button>
             </div>
         </div>
@@ -396,10 +394,9 @@
         return false;
     })
     sendModel.find('form').submit(function () {
-        $('#hideEmail').val($('#logged button').text())
         $(this).ajaxSubmit({
             success: function (data) {
-                let result = JSON.parse(data).result;
+                let result = JSON.parse(data).status;
                 if (result.length === 4) {
                     //    得到取件码
                     sendModel.find('.close').trigger('click');
@@ -408,18 +405,37 @@
                     console.log("上传成功");
                 } else {
                     switch (parseInt(result)) {
-                        case 0:
+                        case -2:
+                        //    用户信息已过期
+                            sendModel.find('.close').trigger('click');
+                            //警告
+                            toast4info.find('.toast-body').text('用户信息已过期，请重新登录')
+                            toast4info.toast('show');
+                            setTimeout(function(){$('#exitLogin').trigger('click');},827)
+                            break;
+                        case -1:
                             //非法篡改允许次数
-                            console.log("illegal times");
                             sendModel.find('.close').trigger('click');
                             //警告
                             toast4info.find('.toast-body').text('非法篡改允许次数，上传失败')
                             toast4info.toast('show');
                             break;
-                        case -1:
+                        case 0:
+                        case 2:
+                        case 4:
+                        case 5:
                             sendModel.find('.close').trigger('click');
-                            console.log("服务器文件保存失败");
-                            toast4info.find('.toast-body').text('服务器文件保存失败,请反馈站长')
+                            toast4info.find('.toast-body').text('服务器文件保存失败,请稍后重试')
+                            toast4info.toast('show');
+                            break;
+                        case 1:
+                            sendModel.find('.close').trigger('click');
+                            toast4info.find('.toast-body').text('服务器取件码获取失败，请稍后重试')
+                            toast4info.toast('show');
+                            break;
+                        case 3:
+                            sendModel.find('.close').trigger('click');
+                            toast4info.find('.toast-body').text('数据库添加记录失败，请稍后重试')
                             toast4info.toast('show');
                             break;
                     }
@@ -520,7 +536,7 @@
      */
     //TODO    用户进行每一步和服务器有交互的操作之前都要检查session保存的账号密码是否正确。
     $(function () {
-        $.ajax('login', {
+        $.ajax('login.do', {
             method: 'POST',
             success: function (data) {
                 switch (JSON.parse(data).status) {
@@ -569,10 +585,10 @@
      */
     $('#exitLogin').on('click', function () {
         //本地先执行退出的动作，和login相反，然后ajax给服务器发送请求，删除session，然后删除localStorage
-        $.ajax('exit', {
+        $.ajax('exit.do', {
             method: 'POST',
             success: function (data) {
-                if (JSON.parse(data).status === 2) {
+                if (JSON.parse(data).status === 0) {
                     toast4code.find('.toast-body').text('已退出登录')
                     toast4code.toast('show');
                     setTimeout(function () {

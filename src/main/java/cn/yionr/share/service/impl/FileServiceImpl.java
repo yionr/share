@@ -3,7 +3,7 @@ package cn.yionr.share.service.impl;
 import cn.yionr.share.dao.SFileDao;
 import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
-import cn.yionr.share.exception.NeedPasswordException;
+import cn.yionr.share.exception.*;
 import cn.yionr.share.service.intf.FileService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
@@ -83,74 +83,72 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    public String upload(SFileWrapper sfw) {
+    public String upload(SFileWrapper sfw) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
+        String fid = codePool.remove((int) (Math.random() * (codePool.size() + 1)));
+        sfw.getsFile().setFid(fid);
+        log.info("从池中随到取件码: " + fid);
 
-        try {
-            String fid = codePool.remove((int) (Math.random() * (codePool.size() + 1)));
-            sfw.getsFile().setFid(fid);
-            log.info("摇到取件码: " + fid);
-
-            File dstFile = new File(filePath, sfw.getsFile().getFid());
-            if (!dstFile.exists()){
-                if (dstFile.createNewFile()) {
+        File dstFile = new File(filePath, sfw.getsFile().getFid());
+        if (!dstFile.exists()) {
+            if (dstFile.createNewFile()) {
+                try {
                     IOUtils.copy(new FileInputStream(sfw.getFile()), new FileOutputStream(dstFile));
-                    log.info("文件保存成功");
-                    if (sFileDao.addSFile(sfw.getsFile()) == 1) {
-                        log.info("记录存入数据库成功");
-                        return sfw.getsFile().getFid();
-                    } else {
-                        log.info("记录存入数据库失败");
-                        return "-1";
-                    }
+                } catch (IOException e) {
+                    log.warn("文件拷贝失败");
+                    throw new CopyFailedException("文件拷贝失败");
+                }
+                log.info("文件保存成功");
+                if (sFileDao.addSFile(sfw.getsFile()) == 1) {
+                    log.info("记录存入数据库成功");
+                    return sfw.getsFile().getFid();
                 } else {
-                    log.info("文件创建失败");
-                    return "-1";
+                    log.warn("记录存入数据库失败");
+//                        TODO 删除保存的文件
+                    if (dstFile.delete()) {
+                        log.info("文件删除成功");
+                    } else {
+                        log.warn("文件删除失败");
+                    }
+                    throw new FailedSaveIntoDBException("记录存入数据库失败");
+                }
+            } else {
+                log.warn("文件创建失败");
+                throw new FailedCreateFileException("文件创建失败");
+            }
+        } else {
+            log.info("该取件码已有对应文件，算法出现错误！");
+            throw new AlogrithmException("该取件码已有对应文件，算法出现错误！");
+        }
+    }
+
+    public SFileWrapper download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException {
+        if (sFileDao.queryFile(code) != null) {
+            String realPassword = sFileDao.queryPassword(code);
+            if (password == null) {
+                if (realPassword == null)
+                    if (check) {
+                        return null;
+                    } else {
+                        return getSFileWrapper(code);
+                    }
+                else {
+                    throw new NeedPasswordException("需要密码");
+                }
+            } else {
+                if (!password.equals(realPassword)) {
+                    throw new WrongPasswordException("密码错误");
+                } else {
+                    if (check) {
+                        return null;
+                    } else {
+                        return getSFileWrapper(code);
+                    }
                 }
             }
-            else{
-                log.info("该取件码已有对应文件，算法出现错误！");
-                return "-1";
-            }
-
-
-        } catch (Exception e) {
-            log.info("保存文件的过程中出现了错误：" + e);
-            return "-1";
-        }
-    }
-
-    public SFileWrapper download(String code) throws NeedPasswordException {
-    /*
-    去数据库中检查是否有文件，有的话
-        0. 核对密码(暂时不做)
-        1. 获取文件名
-        2. 将允许下载次数(times)-1
-        3. 读取指定目录，提取文件返回
-     */
-        String password = sFileDao.queryPassword(code);
-        if (password == null)
-            password = "";
-        if (!"".equals(password)) {
-            throw new NeedPasswordException("需要密码");
-        }
-
-        return getSFileWrapper(code);
-    }
-
-    @Override
-    public SFileWrapper download(String code, String password) {
-        String currectPassword = sFileDao.queryPassword(code);
-        if (!password.equals(currectPassword)) {
-            return null;
         } else {
-//            密码正确，获取文件信息并返回
-            return getSFileWrapper(code);
+            throw new CodeNotFoundException("取件码不存在");
         }
-    }
 
-
-    public List<String> show() {
-        return sFileDao.listCodes();
     }
 
     public SFileWrapper getSFileWrapper(String code) {
@@ -175,4 +173,8 @@ public class FileServiceImpl implements FileService {
             return null;
         }
     }
+
+//    public List<String> show() {
+//        return sFileDao.listCodes();
+//    }
 }

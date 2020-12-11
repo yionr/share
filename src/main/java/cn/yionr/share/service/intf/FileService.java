@@ -1,14 +1,13 @@
 package cn.yionr.share.service.intf;
 
 import cn.yionr.share.entity.SFileWrapper;
-import cn.yionr.share.exception.NeedPasswordException;
+import cn.yionr.share.exception.*;
 
 import java.io.IOException;
 import java.util.List;
 
 public interface FileService {
-    String upload(SFileWrapper sfw) throws IOException;
-    SFileWrapper download(String code) throws NeedPasswordException;
-    SFileWrapper download(String code,String password);
-    List<String> show();
+    String upload(SFileWrapper sfw) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException;
+    SFileWrapper download(String code,String password,Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException;
+//    List<String> show();
 }

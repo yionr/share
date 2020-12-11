@@ -2,6 +2,9 @@ package cn.yionr.share.service.impl;
 
 import cn.yionr.share.dao.UserDao;
 import cn.yionr.share.entity.User;
+import cn.yionr.share.exception.UserAlreadyExsitException;
+import cn.yionr.share.exception.UserNotExsitException;
+import cn.yionr.share.exception.WrongPasswordException;
 import cn.yionr.share.service.intf.UserService;
 import org.springframework.stereotype.Service;
 
@@ -15,24 +18,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int regedit(User user) {
+    public int regedit(User user) throws UserAlreadyExsitException {
 
         if (userDao.queryUser(user.getEmail()) != null){
-//            该邮箱已注册
-            return 0;
+            throw new UserAlreadyExsitException("用户已存在");
         }
         return userDao.addUser(user);
     }
 
     @Override
-    public int login(User user) {
+    public void login(User user) throws UserNotExsitException, WrongPasswordException {
         User queryUser;
         queryUser = userDao.queryUser(user.getEmail());
         if (queryUser == null)
-            return -1;
+            throw new UserNotExsitException("用户不存在");
         else if (!queryUser.getPassword().equals(user.getPassword()))
-            return 0;
-        else
-            return 1;
+            throw new WrongPasswordException("密码错误");
     }
 }

@@ -17,4 +17,7 @@ public class select {
     public void testSelect(){
         System.out.println(sFileDao.listCodes());
     }
+    @Test
+    public void te(){
+    }
 }
