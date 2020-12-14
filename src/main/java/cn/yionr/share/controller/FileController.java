@@ -4,10 +4,9 @@ import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.FileService;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +16,9 @@ import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLEncoder;
 
+@Slf4j
 @RestController
 public class FileController {
-    private static final Logger log = LoggerFactory.getLogger(FileController.class);
     FileService fileService;
 
     @Autowired
@@ -40,7 +39,7 @@ public class FileController {
             return json.put("status", -2).toString();
         }
         if (visitor || sFile.getTimes() > 99) {
-            if ( sFile.getTimes() > 9) {
+            if (sFile.getTimes() > 9) {
                 log.warn("用户权限不足，无法下载这么多次数，驳回");
                 return json.put("status", -1).toString();
             }
@@ -49,7 +48,7 @@ public class FileController {
         sFile.setName(file.getOriginalFilename());
 
         SFileWrapper sfw = new SFileWrapper();
-        sfw.setsFile(sFile);
+        sfw.setSFile(sFile);
         File tempf;
         try {
             tempf = File.createTempFile("tempfile", "temp");
@@ -61,7 +60,7 @@ public class FileController {
         }
 
         try {
-            json.put("status", fileService.upload(sfw,email));
+            json.put("status", fileService.upload(sfw, email));
         } catch (AlogrithmException e) {
             json.put("status", 1);
         } catch (FailedCreateFileException e) {
@@ -102,7 +101,10 @@ public class FileController {
             }
         } else {
             log.info("准备下载文件");
-            try {return sendFile(response, fileService.download(sFile.getFid(), sFile.getPassword(), false))+"";} catch (Exception ignored) {}
+            try {
+                return sendFile(response, fileService.download(sFile.getFid(), sFile.getPassword(), false)) + "";
+            } catch (Exception ignored) {
+            }
             return "-2";
         }
     }
@@ -114,7 +116,7 @@ public class FileController {
         response.setCharacterEncoding("utf-8");
         response.setContentLength((int) sFileWrapper.getFile().length());
         try {
-            response.setHeader("Content-Disposition", "attachment;filename=" + sFileWrapper.getsFile().getName() + ";filename*=utf-8''" + URLEncoder.encode(sFileWrapper.getsFile().getName(), "UTF-8"));
+            response.setHeader("Content-Disposition", "attachment;filename=" + sFileWrapper.getSFile().getName() + ";filename*=utf-8''" + URLEncoder.encode(sFileWrapper.getSFile().getName(), "UTF-8"));
         } catch (UnsupportedEncodingException e) {
             return -1;
         }

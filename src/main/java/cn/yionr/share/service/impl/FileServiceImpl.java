@@ -6,9 +6,8 @@ import cn.yionr.share.entity.SFileWrapper;
 import cn.yionr.share.mapper.UserMapper;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.FileService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,10 +21,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class FileServiceImpl implements FileService {
-
-    private static final Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
     SFileMapper sFileMapper;
     UserMapper userMapper;
 
@@ -87,22 +85,21 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    public String upload(SFileWrapper sfw,String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
-        if (email == null){
-            sfw.getsFile().setUid(-1);
+    public String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
+        if (email == null) {
+            sfw.getSFile().setUid(-1);
             log.info("设置uid为: -1 (游客)");
-        }
-        else{
+        } else {
             int uid = userMapper.queryUser(email).getUid();
-            sfw.getsFile().setUid(uid);
+            sfw.getSFile().setUid(uid);
             log.info("设置uid为: " + uid);
         }
 
         String fid = codePool.remove((int) (Math.random() * (codePool.size() + 1)));
-        sfw.getsFile().setFid(fid);
+        sfw.getSFile().setFid(fid);
         log.info("从池中随到取件码: " + fid);
 
-        File dstFile = new File(filePath, sfw.getsFile().getFid());
+        File dstFile = new File(filePath, sfw.getSFile().getFid());
         if (!dstFile.exists()) {
             if (dstFile.createNewFile()) {
                 try {
@@ -112,9 +109,9 @@ public class FileServiceImpl implements FileService {
                     throw new CopyFailedException("文件拷贝失败");
                 }
                 log.info("文件保存成功");
-                if (sFileMapper.addSFile(sfw.getsFile()) == 1) {
+                if (sFileMapper.addSFile(sfw.getSFile()) == 1) {
                     log.info("记录存入数据库成功");
-                    return sfw.getsFile().getFid();
+                    return sfw.getSFile().getFid();
                 } else {
                     log.warn("记录存入数据库失败");
                     if (dstFile.delete()) {
@@ -172,7 +169,7 @@ public class FileServiceImpl implements FileService {
             sFileWrapper.setFile(new File(filePath, code));
             SFile sFile = new SFile();
             sFile.setName(fileName);
-            sFileWrapper.setsFile(sFile);
+            sFileWrapper.setSFile(sFile);
             sFileMapper.decreaseTime(code);
 //            如果取件次数上限，则删掉数据库记录，并删掉文件
             if (sFileMapper.queryTimes(code) <= -1) {

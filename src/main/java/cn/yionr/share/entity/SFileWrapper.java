@@ -1,35 +1,17 @@
 package cn.yionr.share.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.File;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SFileWrapper {
     private SFile sFile;
     private File file;
-
-    public SFile getsFile() {
-        return sFile;
-    }
-
-    public void setsFile(SFile sFile) {
-        this.sFile = sFile;
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
-    }
-
-    @Override
-    public String toString() {
-        return "SFileWrapper{" +
-                "sFile=" + sFile +
-                ", file=" + file +
-                '}';
-    }
-
-    public SFileWrapper() {
-    }
 }

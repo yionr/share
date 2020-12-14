@@ -1,8 +1,7 @@
 package cn.yionr.share.tool;
 
 import cn.yionr.share.entity.MailVo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -12,28 +11,24 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 
+@Slf4j
 @Component
 public class MailTool {
-
-    private Logger logger = LoggerFactory.getLogger(getClass());//提供日志类
     private JavaMailSenderImpl mailSender;//注入邮件工具类
 
-    @Autowired
-    public MailTool(JavaMailSenderImpl mailSender){
-        this.mailSender = mailSender;
-    }
-
+    @Autowired (required = false)
+    public MailTool(JavaMailSenderImpl mailSender){this.mailSender = mailSender;}
     /**
      * 发送邮件
      */
     public MailVo sendMail(MailVo mailVo) {
-        logger.info("开始发送");
+        log.info("开始发送");
         try {
             checkMail(mailVo); //1.检测邮件
             sendMimeMail(mailVo); //2.发送邮件
             return saveMail(mailVo); //3.保存邮件
         } catch (Exception e) {
-            logger.error("发送邮件失败:", e);//打印错误信息
+            log.error("发送邮件失败:", e);//打印错误信息
             mailVo.setStatus("fail");
             mailVo.setError(e.getMessage());
             return mailVo;
@@ -62,7 +57,7 @@ public class MailTool {
             messageHelper.setFrom(mailVo.getFrom());//邮件发信人
             messageHelper.setTo(mailVo.getTo().split(","));//邮件收信人
             messageHelper.setSubject(mailVo.getSubject());//邮件主题
-            messageHelper.setText(mailVo.getText());//邮件内容
+            messageHelper.setText(mailVo.getText(),true);//邮件内容
 
             if (!StringUtils.isEmpty(mailVo.getCc())) {//抄送
                 messageHelper.setCc(mailVo.getCc().split(","));
@@ -81,7 +76,7 @@ public class MailTool {
             }
             mailSender.send(messageHelper.getMimeMessage());//正式发送邮件
             mailVo.setStatus("ok");
-            logger.info("发送邮件成功：{}->{}", mailVo.getFrom(), mailVo.getTo());
+            log.info("发送邮件成功：{}->{}", mailVo.getFrom(), mailVo.getTo());
         } catch (Exception e) {
             throw new RuntimeException(e);//发送失败
         }

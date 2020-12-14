@@ -6,8 +6,7 @@ import cn.yionr.share.entity.User;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.UserService;
 import cn.yionr.share.tool.MailTool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -19,14 +18,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
     UserMapper userMapper;
     MailTool mailTool;
 
     @Autowired
-    public UserServiceImpl(UserMapper userMapper,MailTool mailTool) {
+    public UserServiceImpl(UserMapper userMapper, MailTool mailTool) {
         this.userMapper = userMapper;
         this.mailTool = mailTool;
     }
@@ -44,6 +43,7 @@ public class UserServiceImpl implements UserService {
             } else {
                 if (Duration.between(LocalDateTime.ofInstant(Instant.ofEpochMilli(userInDB.getCreated_time()), ZoneId.systemDefault()), LocalDateTime.now()).toDays() >= 2) {
 //                    刷新数据库中该用户的创建时间，重新给用户发送激活信息，要求用户重新注册。
+
                     sendMail(user);
                 } else {
 //                    提醒用户去邮箱内激活
@@ -70,40 +70,51 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     *
      * @param uuid 激活码为创建日期进行加密的结果
      */
     @Override
-    public void active(String email, String uuid) throws ActiveLinkOutOfDateException, UserWaitToActiveNotFoundException, UUIDInvalidException {
+    public void active(String email, String uuid) throws ActiveLinkOutOfDateException, UserWaitToActiveNotFoundException, UUIDInvalidException, UserActivedException {
 
         User user = userMapper.queryUser(email);
-        if (user != null){
+        if (user != null) {
             LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochMilli(user.getCreated_time()), ZoneId.systemDefault());
             if (Duration.between(time, LocalDateTime.now()).toDays() >= 2) {
                 throw new ActiveLinkOutOfDateException("激活链接失效了");
-            }
-            else{
+            } else {
 //                根据time计算uuid是否和传来的uuid一致，不一致的话报错
-                log.info("激活码为： " + DigestUtils.md5DigestAsHex((user.getCreated_time()+"").getBytes(StandardCharsets.UTF_8)));
-                if (DigestUtils.md5DigestAsHex((user.getCreated_time()+"").getBytes(StandardCharsets.UTF_8)).equals(uuid)){
-                    userMapper.active(email);
+                if (!user.isActive()) {
+                    log.info("激活码为： " + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)));
+                    if (DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)).equals(uuid)) {
+                        userMapper.active(email);
+                    } else {
+                        throw new UUIDInvalidException("该激活码无效");
+                    }
+                } else {
+                    throw new UserActivedException("用户已注册");
                 }
-                else{
-                    throw new UUIDInvalidException("该激活码无效");
-                }
+
             }
-        }
-        else{
+        } else {
             throw new UserWaitToActiveNotFoundException("没有此待激活用户");
         }
     }
 
-    public void sendMail(User user){
+    public void sendMail(User user) {
         MailVo vo = new MailVo();
         vo.setTo(user.getEmail());
         vo.setSubject("账号激活");
-        log.info("生成激活码为: " + DigestUtils.md5DigestAsHex((user.getCreated_time()+"").getBytes(StandardCharsets.UTF_8)));
-        vo.setText("<a href='localhost:8080/active.do?email=" + user.getEmail() + "&uuid=" + DigestUtils.md5DigestAsHex((user.getCreated_time()+"").getBytes(StandardCharsets.UTF_8)) +"'>点此激活</a>");
+        log.info("生成激活码为: " + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)));
+        vo.setText("<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>激活邮件</title>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "http://localhost:8080/active.do?email=" + user.getEmail() + "&uuid=" + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)) + "\n" + " 点击上方的链接激活，本链接时效为发送邮件开始的两天内。逾期请重新注册！\n" +
+                "</body>\n" +
+                "</html>");
         new Thread(() -> mailTool.sendMail(vo)).start();
     }
 }

@@ -9,5 +9,5 @@ public interface UserService {
 
     void login(User user) throws UserNotExsitException, WrongPasswordException;
 
-    void active(String email, String uuid) throws ActiveLinkOutOfDateException, UserWaitToActiveNotFoundException, UUIDInvalidException;
+    void active(String email, String uuid) throws ActiveLinkOutOfDateException, UserWaitToActiveNotFoundException, UUIDInvalidException, UserActivedException;
 }

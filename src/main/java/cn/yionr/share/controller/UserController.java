@@ -3,22 +3,19 @@ package cn.yionr.share.controller;
 import cn.yionr.share.entity.User;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.SessionAttribute;
 
 import javax.servlet.http.HttpSession;
 
+@Slf4j
 @RestController
 public class UserController {
-
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     UserService userService;
 
@@ -112,9 +109,9 @@ public class UserController {
     }
 
     @GetMapping("/active.do")
-    public String active(String email , String uuid){
+    public String active(String email, String uuid) {
         try {
-            userService.active(email,uuid);
+            userService.active(email, uuid);
             return "激活成功";
         } catch (UserWaitToActiveNotFoundException e) {
             return "未发现该激活用户";
@@ -122,6 +119,8 @@ public class UserController {
             return "激活链接过期了，请在两天内激活哦";
         } catch (UUIDInvalidException e) {
             return "激活码无效!";
+        } catch (UserActivedException e) {
+            return "该用户已激活，请不要重复激活";
         }
     }
 
