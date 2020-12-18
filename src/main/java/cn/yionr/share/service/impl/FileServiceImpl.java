@@ -6,6 +6,7 @@ import cn.yionr.share.entity.SFileWrapper;
 import cn.yionr.share.mapper.UserMapper;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.FileService;
+import cn.yionr.share.tool.CodePool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,31 +27,23 @@ import java.util.Objects;
 public class FileServiceImpl implements FileService {
     SFileMapper sFileMapper;
     UserMapper userMapper;
-
     String filePath;
-
-    public List<String> codePool = new ArrayList<>();
-
+    CodePool codePool;
     @Autowired
-    public FileServiceImpl(SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath) {
-
+    public FileServiceImpl(CodePool codePool,SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath) {
+        this.codePool=codePool;
         this.sFileMapper = sFileMapper;
         this.filePath = filePath;
         this.userMapper = userMapper;
-        //generate a codePool 4number from 0000-9999
-        for (int i = 0; i < 10000; i++) {
-            if (i < 10)
-                codePool.add("000" + i);
-            else if (i < 100)
-                codePool.add("00" + i);
-            else if (i < 1000)
-                codePool.add("0" + i);
-            else
-                codePool.add("" + i);
-        }
 
         //search in mysql , and exclude codes
-        codePool.removeAll(sFileMapper.listCodes());
+        //遍历sql中的文件id，转换 去0 改变code的状态为被占用。
+        List<String> sqlcode=sFileMapper.listCodes();
+        for (String code:sqlcode
+             ) {
+            codePool.statchange(codePool.trimZero(code));
+        }
+
 
         //check local files mappered with database , first with database ,
         // if database no some file remove them
@@ -85,7 +78,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    public String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
+    public  String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
         if (email == null) {
             sfw.getSFile().setUid(-1);
             log.info("设置uid为: -1 (游客)");
@@ -94,8 +87,8 @@ public class FileServiceImpl implements FileService {
             sfw.getSFile().setUid(uid);
             log.info("设置uid为: " + uid);
         }
-
-        String fid = codePool.remove((int) (Math.random() * (codePool.size() + 1)));
+       // String fid=codePool.get((int) (Math.random() * (codePool.size() + 1)));
+String fid ="1";
         sfw.getSFile().setFid(fid);
         log.info("从池中随到取件码: " + fid);
 
