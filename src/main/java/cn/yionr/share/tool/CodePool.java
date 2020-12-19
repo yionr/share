@@ -7,6 +7,12 @@ import java.util.List;
 
 @Component
 public class CodePool {
+    //游客的上传下载
+       // 1.不需要记录游客信息，只需要拿到code就可以找到要下载的资源。
+       // 2.数据库记录-- 一个code对应多个文件(如果游客可以上传多个文件) 表设计由
+
+    // ---用户需要用上数据库，一个用户可以取得多个code
+    //存储真实code
     public  static int[] codePool = new int[10000];
     //checkcode 1为被占用 0为可用 --状态数组
     public  static int[] checkcode = new int[10000];
@@ -32,9 +38,10 @@ public class CodePool {
    //返回一个可用code
     private int check() {
         ArrayList<Integer> s1 = new ArrayList<>();
-       // 。。。。优化与扩容相关
-        for (int i : checkcode) {
-            if (i != 1) {
+       // 。。。。优化与扩容相关  需要优化
+        for (int i =0;i<checkcode.length;i++) {
+
+            if (checkcode[i] != 1) {
                 s1.add(i);
             }
         }
@@ -71,4 +78,20 @@ public class CodePool {
             return Integer.parseInt(num);
         }
         //扩容。。。。。
+        //。。。。。
+
+        public static void main(String[] args) {
+            CodePool pool=new CodePool();
+            System.out.println(System.currentTimeMillis());
+            for (int i = 0; i < 10; i++) {
+                new Thread(()->{
+                    System.out.println(pool.getCode());
+                }).start();
+            }
+            //pool.getCode();
+            pool.check();
+            System.out.println(System.currentTimeMillis());
+
+        }
+
 }

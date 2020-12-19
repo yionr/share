@@ -29,18 +29,20 @@ public class FileServiceImpl implements FileService {
     UserMapper userMapper;
     String filePath;
     CodePool codePool;
+
     @Autowired
-    public FileServiceImpl(CodePool codePool,SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath) {
-        this.codePool=codePool;
+    public FileServiceImpl(CodePool codePool, SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath) {
+        this.codePool = codePool;
         this.sFileMapper = sFileMapper;
         this.filePath = filePath;
         this.userMapper = userMapper;
 
+
         //search in mysql , and exclude codes
         //遍历sql中的文件id，转换 去0 改变code的状态为被占用。
-        List<String> sqlcode=sFileMapper.listCodes();
-        for (String code:sqlcode
-             ) {
+        List<String> sqlcode = sFileMapper.listCodes();
+        for (String code : sqlcode
+        ) {
             codePool.statchange(codePool.trimZero(code));
         }
 
@@ -48,7 +50,9 @@ public class FileServiceImpl implements FileService {
         //check local files mappered with database , first with database ,
         // if database no some file remove them
         // else show all loosed files in logger
-
+        /**
+        * 对数据库操作 以及上传下载文件加上事务就不会有一下问题。
+        * */
         List<String> remoteCodes = sFileMapper.listCodes();
 
         List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(filePath).list())));
@@ -69,6 +73,7 @@ public class FileServiceImpl implements FileService {
         }
 
         if (!remoteCodes.isEmpty()) {
+            //事务回滚--不会有以下问题
 //            数据库中有取件码但是本地没有
             log.warn("异常取件码: " + remoteCodes.toString() + " , 以上取件码只存在于数据库中，并没有本地文件对应");
         }
@@ -78,7 +83,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    public  String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
+    public String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
         if (email == null) {
             sfw.getSFile().setUid(-1);
             log.info("设置uid为: -1 (游客)");
@@ -87,8 +92,9 @@ public class FileServiceImpl implements FileService {
             sfw.getSFile().setUid(uid);
             log.info("设置uid为: " + uid);
         }
-       // String fid=codePool.get((int) (Math.random() * (codePool.size() + 1)));
-String fid ="1";
+
+        //获取一个code
+        String fid = codePool.getCode();
         sfw.getSFile().setFid(fid);
         log.info("从池中随到取件码: " + fid);
 
@@ -119,6 +125,7 @@ String fid ="1";
                 throw new FailedCreateFileException("文件创建失败");
             }
         } else {
+            //获取的取件码肯定不会重复，归还取件码会删除文件
             log.info("该取件码已有对应文件，算法出现错误！");
             throw new AlogrithmException("该取件码已有对应文件，算法出现错误！");
         }
@@ -165,6 +172,7 @@ String fid ="1";
             sFileWrapper.setSFile(sFile);
             sFileMapper.decreaseTime(code);
 //            如果取件次数上限，则删掉数据库记录，并删掉文件
+            //并且归还code
             if (sFileMapper.queryTimes(code) <= -1) {
                 sFileMapper.delect(code);
 //                如果在这里删掉则会导致接下来Controller无法获取到文件，直接少了一次下载次数，所以可以暂时将小于0改为小于-1顶替一下
