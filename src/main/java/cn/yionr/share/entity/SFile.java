@@ -5,10 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder @Data @NoArgsConstructor @AllArgsConstructor
 public class SFile {
     private String fid;
     private String name;

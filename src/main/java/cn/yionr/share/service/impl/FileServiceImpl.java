@@ -21,8 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-@Slf4j
-@Service
+@Slf4j @Service
 public class FileServiceImpl implements FileService {
     SFileMapper sFileMapper;
     UserMapper userMapper;
@@ -165,11 +164,10 @@ public class FileServiceImpl implements FileService {
         String fileName = sFileMapper.queryFile(code);
         if (fileName != null) {
 //            取件码有效，文件在数据库中存在的话
-            SFileWrapper sFileWrapper = new SFileWrapper();
-            sFileWrapper.setFile(new File(filePath, code));
-            SFile sFile = new SFile();
-            sFile.setName(fileName);
-            sFileWrapper.setSFile(sFile);
+            SFileWrapper sFileWrapper = SFileWrapper.builder().
+                    file(new File(filePath, code)).
+                    sFile(SFile.builder().name(fileName).build()).
+                    build();
             sFileMapper.decreaseTime(code);
 //            如果取件次数上限，则删掉数据库记录，并删掉文件
             if (sFileMapper.queryTimes(code) <= -1) {

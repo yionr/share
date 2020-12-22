@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 
-@Slf4j
-@RestController
+@Slf4j @RestController
 public class UserController {
 
     UserService userService;

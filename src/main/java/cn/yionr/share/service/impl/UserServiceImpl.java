@@ -18,8 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-@Slf4j
-@Service
+@Slf4j @Service
 public class UserServiceImpl implements UserService {
     UserMapper userMapper;
     MailTool mailTool;
@@ -100,11 +99,9 @@ public class UserServiceImpl implements UserService {
     }
 
     public void sendMail(User user) {
-        MailVo vo = new MailVo();
-        vo.setTo(user.getEmail());
-        vo.setSubject("账号激活");
         log.info("生成激活码为: " + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)));
-        vo.setText("<!DOCTYPE html>\n" +
+
+        new Thread(() -> mailTool.sendMail(MailVo.builder().to(user.getEmail()).subject("账号激活").text("<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "<head>\n" +
                 "    <meta charset=\"UTF-8\">\n" +
@@ -114,7 +111,6 @@ public class UserServiceImpl implements UserService {
                 "<body>\n" +
                 "http://localhost:8080/active.do?email=" + user.getEmail() + "&uuid=" + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)) + "\n" + " 点击上方的链接激活，本链接时效为发送邮件开始的两天内。逾期请重新注册！\n" +
                 "</body>\n" +
-                "</html>");
-        new Thread(() -> mailTool.sendMail(vo)).start();
+                "</html>").build())).start();
     }
 }

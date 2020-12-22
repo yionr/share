@@ -7,10 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.File;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder @Data @NoArgsConstructor @AllArgsConstructor
 public class SFileWrapper {
     private SFile sFile;
     private File file;

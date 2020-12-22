@@ -16,8 +16,7 @@ import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLEncoder;
 
-@Slf4j
-@RestController
+@Slf4j @RestController
 public class FileController {
     FileService fileService;
 
@@ -31,7 +30,7 @@ public class FileController {
      */
     @PostMapping("/upload.do")
     public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor, HttpSession session) throws JSONException {
-//        TODO 根据UID设置可上传的文件容量
+//      TODO 根据UID设置可上传的文件容量
         JSONObject json = new JSONObject();
         String email = (String) session.getAttribute("email");
         if (visitor == null) {
@@ -107,6 +106,20 @@ public class FileController {
             }
             return "-2";
         }
+    }
+
+    @GetMapping("/{code}")
+    public void redir(@PathVariable("code")String code,HttpServletResponse response) throws IOException {
+        log.info(code.trim());
+        switch (code.trim()){
+            case "":
+                response.sendRedirect("/");
+                break;
+            case "/\\d{4}/" :
+                response.sendRedirect("/download.do/code=" + code);
+                break;
+        }
+
     }
 
 

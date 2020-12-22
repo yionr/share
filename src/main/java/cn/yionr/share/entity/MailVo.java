@@ -8,10 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Date;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder @Data @NoArgsConstructor @AllArgsConstructor
 public class MailVo {
     private String id;//邮件id
     private String from;//邮件发送人
