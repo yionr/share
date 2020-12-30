@@ -108,19 +108,19 @@ public class FileController {
         }
     }
 
-    @GetMapping("/{code}")
-    public void redir(@PathVariable("code")String code,HttpServletResponse response) throws IOException {
-        log.info(code.trim());
-        switch (code.trim()){
-            case "":
-                response.sendRedirect("/");
-                break;
-            case "/\\d{4}/" :
-                response.sendRedirect("/download.do/code=" + code);
-                break;
-        }
-
-    }
+//    @GetMapping("/{code}")
+//    public void redir(@PathVariable("code")String code,HttpServletResponse response) throws IOException {
+//        log.info(code.trim());
+//        switch (code.trim()){
+//            case "":
+//                response.sendRedirect("/");
+//                break;
+//            case "/\\d{4}/" :
+//                response.sendRedirect("/download.do/code=" + code);
+//                break;
+//        }
+//
+//    }
 
 
     public int sendFile(HttpServletResponse response, SFileWrapper sFileWrapper) {
