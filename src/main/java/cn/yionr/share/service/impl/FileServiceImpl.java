@@ -57,7 +57,12 @@ public class FileServiceImpl implements FileService {
 
         List<String> remoteCodes = sFileMapper.listCodes();
 
-        List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(filePath).list())));
+        File localDir = new File(filePath);
+        if (localDir.exists()){
+            localDir.mkdirs();
+        }
+
+        List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(localDir.list())));
 
         String[] remoteCodeArr = remoteCodes.toArray(new String[0]);
 
