@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
                 "    <title>激活邮件</title>\n" +
                 "</head>\n" +
                 "<body>\n" +
-                "http://localhost:8080/active.do?email=" + user.getEmail() + "&uuid=" + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)) + "\n" + " 点击上方的链接激活，本链接时效为发送邮件开始的两天内。逾期请重新注册！\n" +
+                "<a href='http://localhost:8080/active.do?email='" + user.getEmail() + "&uuid=" + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)) + "</a> \n" +
                 "</body>\n" +
                 "</html>").build())).start();
     }

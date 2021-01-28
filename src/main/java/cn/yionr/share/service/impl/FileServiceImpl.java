@@ -58,7 +58,7 @@ public class FileServiceImpl implements FileService {
         List<String> remoteCodes = sFileMapper.listCodes();
 
         File localDir = new File(filePath);
-        if (localDir.exists()){
+        if (!localDir.exists()){
             localDir.mkdirs();
         }
 

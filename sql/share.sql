@@ -43,6 +43,8 @@ CREATE TABLE `user`  (
   `uid` int(11) NOT NULL,
   `email` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `password` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_time` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `active` boolean default false,
   PRIMARY KEY (`uid`) USING BTREE,
   UNIQUE INDEX `user_email_uindex`(`email`) USING BTREE,
   UNIQUE INDEX `user_uid_uindex`(`uid`) USING BTREE
