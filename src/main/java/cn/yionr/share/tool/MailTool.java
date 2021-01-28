@@ -16,8 +16,10 @@ import java.util.Date;
 public class MailTool {
     private JavaMailSenderImpl mailSender;//注入邮件工具类
 
+    private MailContentBuilder mailContentBuilder;
+
     @Autowired (required = false)
-    public MailTool(JavaMailSenderImpl mailSender){this.mailSender = mailSender;}
+    public MailTool(JavaMailSenderImpl mailSender,MailContentBuilder mailContentBuilder){this.mailSender = mailSender;this.mailContentBuilder = mailContentBuilder;}
     /**
      * 发送邮件
      */
@@ -44,9 +46,9 @@ public class MailTool {
         if (StringUtils.isEmpty(mailVo.getSubject())) {
             throw new RuntimeException("邮件主题不能为空");
         }
-        if (StringUtils.isEmpty(mailVo.getText())) {
-            throw new RuntimeException("邮件内容不能为空");
-        }
+//        if (StringUtils.isEmpty(mailVo.getText())) {
+//            throw new RuntimeException("邮件内容不能为空");
+//        }
     }
 
     //构建复杂邮件信息类
@@ -57,7 +59,7 @@ public class MailTool {
             messageHelper.setFrom(mailVo.getFrom());//邮件发信人
             messageHelper.setTo(mailVo.getTo().split(","));//邮件收信人
             messageHelper.setSubject(mailVo.getSubject());//邮件主题
-            messageHelper.setText(mailVo.getText(),true);//邮件内容
+            messageHelper.setText(mailContentBuilder.build(mailVo.getEmail(),mailVo.getUuid()),true);//邮件内容
 
             if (!StringUtils.isEmpty(mailVo.getCc())) {//抄送
                 messageHelper.setCc(mailVo.getCc().split(","));

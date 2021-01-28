@@ -100,17 +100,6 @@ public class UserServiceImpl implements UserService {
 
     public void sendMail(User user) {
         log.info("生成激活码为: " + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)));
-
-        new Thread(() -> mailTool.sendMail(MailVo.builder().to(user.getEmail()).subject("账号激活").text("<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "<head>\n" +
-                "    <meta charset=\"UTF-8\">\n" +
-                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-                "    <title>激活邮件</title>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "<a href='http://localhost:8080/active.do?email='" + user.getEmail() + "&uuid=" + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)) + "</a> \n" +
-                "</body>\n" +
-                "</html>").build())).start();
+        new Thread(() -> mailTool.sendMail(MailVo.builder().to(user.getEmail()).subject("账号激活").email(user.getEmail()).uuid(DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8))).build())).start();
     }
 }

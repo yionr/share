@@ -20,6 +20,8 @@ public class MailVo {
     private String bcc;//密送（多个邮箱则用逗号","隔开）
     private String status;//状态
     private String error;//报错信息
+    private String uuid;
+    private String email;
     @JsonIgnore
     private MultipartFile[] multipartFiles;//邮件附件
 }
