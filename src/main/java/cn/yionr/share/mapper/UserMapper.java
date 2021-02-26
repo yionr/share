@@ -14,4 +14,6 @@ public interface UserMapper {
     User queryUser(String email);
     @Update("update user set active=1 where email=#{email}")
     void active(String email);
+    @Update("update user set created_time=#{created_time} where email=#{email}")
+    int updateActiveTime(User user);
 }

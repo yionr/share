@@ -4,13 +4,18 @@ import cn.yionr.share.entity.User;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.ResultMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @Slf4j @RestController
@@ -24,8 +29,9 @@ public class UserController {
     }
 
     /**
-     * @return 0: 邮箱已存在; 1： 注册成功; 2: 用户未激活
+     * @return 0: 邮箱已存在; 1： 注册成功,发送激活邮件; 2: 用户未激活
      */
+    //TODO 未激活的时候给予提示，并阻止登录
     @PostMapping("/regedit.do")
     public String regedit(User user, HttpSession session) throws JSONException {
 //TODO        注册需要验证邮箱有效性
@@ -107,21 +113,34 @@ public class UserController {
         return new JSONObject().put("status", 0).toString();
     }
 
-    @GetMapping("/active.do")
-    public String active(String email, String uuid) {
-        try {
-            userService.active(email, uuid);
-            return "激活成功";
-        } catch (UserWaitToActiveNotFoundException e) {
-            return "未发现该激活用户";
-        } catch (ActiveLinkOutOfDateException e) {
-            return "激活链接过期了，请在两天内激活哦";
-        } catch (UUIDInvalidException e) {
-            return "激活码无效!";
-        } catch (UserActivedException e) {
-            return "该用户已激活，请不要重复激活";
-        }
+    /**
+     * @return 1:激活成功；0：未发现该激活用户；-1：激活链接过期了，请在两天内激活哦； -2：激活码无效!； -3：该用户已激活，请不要重复激活
+     */
+    @PostMapping("/active.do")  //TODO 只接受Post的active请求，所以url的激活链接无法直接激活，而是会由js读取url，改成ajax的形式发送
+    public String active(String email, String uuid, HttpSession session) throws JSONException {
+            JSONObject json = new JSONObject();
+            try {
+                addSession(session,userService.active(email, uuid));    //TODO 这样会不会报另外的错误还不知道，先这样试试
+                json.put("status",1);
+            } catch (UserWaitToActiveNotFoundException e) {
+                json.put("status",0);
+            } catch (ActiveLinkOutOfDateException e) {
+                json.put("status",-1);
+            } catch (UUIDInvalidException e) {
+                json.put("status",-2);
+            } catch (UserActivedException e) {
+                json.put("status",-3);
+            }
+            return json.toString();
+
     }
+//    激活链接直接用参数，不用active，然后index里面每次启动都会检测是否带参数了
+//    @GetMapping("/active.do")
+//    public String active(HttpServletRequest request){
+//        log.info(request.getParameter("email"));
+//        log.info(request.getParameter("uuid"));
+//        return "<meta http-equiv='refresh' content=0;URL='/'>";
+//    }
 
     void addSession(HttpSession session, User user) {
         session.setAttribute("email", user.getEmail());

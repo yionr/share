@@ -227,7 +227,7 @@
 </div>
 
 <!--toast4code-->
-<div class="toast" id="toast4code" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+<div class="toast" id="toast4code" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
     <div class="toast-header">
         <img src="img/r.png" class="rounded" alt="" width="30" height="30">
         <strong class="mr-auto">提示</strong>
@@ -336,15 +336,9 @@
             success: function (data) {
                 switch (JSON.parse(data).status) {
                     case 1:
-                        console.log('注册成功');
-                        toast4code.find('.toast-body').text('注册成功')
+                        toast4code.find('.toast-body').text('账号激活邮件已发送至您的邮箱，请及时点击激活！')
                         toast4code.toast('show');
                         regeditModel.find('.close').trigger('click');
-                        //将邮箱存入localStorage
-                        localStorage.setItem('email', email)
-                        setTimeout(function () {
-                            login(email)
-                        }, 1000)
                         break;
                     case 0:
                         console.log('邮箱已注册');
@@ -353,6 +347,12 @@
                         //清空表单
                         regeditModel.find('form')[0].reset();
                         break;
+                    case 2:
+                        toast4code.find('.toast-body').text('账号未激活，请及时到您的收件箱点击激活！')
+                        toast4code.toast('show');
+                        regeditModel.find('.close').trigger('click');
+                        break;
+
                 }
                 return false;
             }
@@ -360,6 +360,7 @@
         //这个return不能不写
         return false;
     })
+
     loginModel.find('form').submit(function () {
         let email = $('#loginEmail').val();
         $(this).ajaxSubmit({
@@ -408,12 +409,14 @@
                 } else {
                     switch (parseInt(status)) {
                         case -2:
-                        //    用户信息已过期
+                            //    用户信息已过期
                             sendModel.find('.close').trigger('click');
                             //警告
                             toast4info.find('.toast-body').text('用户信息已过期，请重新登录')
                             toast4info.toast('show');
-                            setTimeout(function(){$('#exitLogin').trigger('click');},827)
+                            setTimeout(function () {
+                                $('#exitLogin').trigger('click');
+                            }, 827)
                             break;
                         case -1:
                             //非法篡改允许次数
@@ -564,6 +567,54 @@
                         if (localStorage.getItem('email') !== null) {
                             localStorage.removeItem('email')
                         }
+                        break;
+                }
+            }
+        })
+    })
+
+    /**
+     * 检测是否是激活
+     */
+    $(function () {
+        let url = window.location.href;
+        console.log(url);
+        //TODO 如果不带参数则不进行下面动作
+        let urlParam = url.split('\?')[1];
+        let email = urlParam.split('&')[0];
+        let uuid = urlParam.split('&')[1];
+        console.log(email, uuid)
+        $.ajax('active.do', {
+            method: 'POST',
+            data: {
+                email: email.split('=')[1],
+                uuid: uuid.split('=')[1]
+            },
+            success: function (data) {
+                console.log(data)
+                switch (JSON.parse(data).status) {
+
+                    case 1:
+                        //激活成功，提示并自动登录
+                        toast4code.find('.toast-body').text('激活成功，将为您自动登录')
+                        toast4code.toast('show');
+                        //将邮箱存入localStorage
+                        localStorage.setItem('email', email.split('=')[1])
+                        setInterval(function (){
+                            window.location.href=url.split('\?')[0]
+                        },1000)
+                        break;
+                    case -1:
+                        toast4info.find('.toast-body').text('激活链接过期了，请重新注册！')
+                        toast4info.toast('show');
+                        setInterval(function (){
+                            window.location.href=url.split('\?')[0]
+                        },3000)
+                        break;
+                    case 0:
+                    case -2:
+                    case -3:
+                        window.location.href=url.split('\?')[0]
                         break;
                 }
             }
