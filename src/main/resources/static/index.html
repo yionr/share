@@ -175,7 +175,7 @@
      aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="download.do">
+            <form action="">
                 <input type="text" name="check" value="true" readonly style="display: none">
                 <div class="modal-header">
                     <h5 class="modal-title" id="receiveLabel">接收</h5>
@@ -325,9 +325,11 @@
     let sendModel = $('#sendModel')
     let file = $('[name=file]');
 
+
     /**
      * ajaxSubmit拦截表单提交
      */
+
     regeditModel.find('form').submit(function () {
         let email = $('#regEmail').val();
         $(this).ajaxSubmit({
@@ -445,6 +447,10 @@
         });
         return false;   //阻止表单默认提交
     });
+    //当输入取件码时，同步改变action
+    $('#code').on('change',function (){
+        receiveModel.find('form').attr('action','download/' + $('#code').val())
+    })
     receiveModel.find('form').submit(function () {
         if ($('[name=check]').val() === 'true') {
             $(this).ajaxSubmit({
@@ -477,11 +483,12 @@
                             receiveModel.find('[name=password]').val('')
                             receiveModel.find('.close').trigger('click');
                             break;
-                        case -1:
-                            receiveModel.find('.close').trigger('click');
-                            toast4info.find('.toast-body').text('下载失败')
-                            toast4info.toast('show');
-                            break;
+                        //    以下这种情况不会出现
+                        // case -1:
+                        //     receiveModel.find('.close').trigger('click');
+                        //     toast4info.find('.toast-body').text('非法的下载请求')
+                        //     toast4info.toast('show');
+                        //     break;
                     }
                     return false;
                 }
@@ -509,9 +516,8 @@
         $(this).find('form')[0].reset();
         $(this).find('.optional').css('height', 0);
         $('#code').removeClass('border-success').removeAttr('readonly');
-        console.log($(this))
         $('#code_password').attr('disabled', 'true')
-
+        $(this).find('form')[0].attr('action','')
     })
     $('#codeModal').on('hidden.bs.modal', function () {
         $('#copy').text('复制').css('backgroundColor', "#007bff")
