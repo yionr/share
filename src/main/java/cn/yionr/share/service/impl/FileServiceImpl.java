@@ -139,7 +139,7 @@ public class FileServiceImpl implements FileService {
         if (sFileMapper.queryFile(code) != null) {
             String realPassword = sFileMapper.queryPassword(code);
             if (password == null) {
-                if (realPassword == null)
+                if (realPassword.equals("")) //TODO 这里有瑕疵，不知道是null还是”“
                     if (check) {
                         return null;
                     } else {

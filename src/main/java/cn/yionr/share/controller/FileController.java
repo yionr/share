@@ -16,7 +16,8 @@ import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLEncoder;
 
-@Slf4j @RestController
+@Slf4j
+@RestController
 public class FileController {
     FileService fileService;
 
@@ -77,51 +78,45 @@ public class FileController {
     }
 
     /**
-     * @return -2: 文件传输失败 -1: 文件编码错误 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
+     * 要做code下载文件的方式的话，得摒弃之前的下载方式，全权由这一种方式来下载
+     *
+     * @param response
+     * @param
+     * @return ”非法的下载请求“:非法的下载请求 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
      */
-    @GetMapping("/download.do")
-    public String download(HttpServletResponse response, SFile sFile, boolean check) throws JSONException {
-        JSONObject json = new JSONObject();
-        if (check) {
-            log.info("开始检查取件码");
-            try {
-                fileService.download(sFile.getFid(), sFile.getPassword(), true);
-                log.info("取件码正常");
-                return json.put("status", 1).toString();
-            } catch (NeedPasswordException e) {
-                log.info("该取件码需要密码");
-                return json.put("status", 2).toString();
-            } catch (WrongPasswordException e) {
-                log.info("取件码密码错误");
-                return json.put("status", 3).toString();
-            } catch (CodeNotFoundException e) {
-                log.info("取件码不存在");
-                return json.put("status", 0).toString();
+    @GetMapping("/download/{code}")
+    public String download(@PathVariable("code") String code, String password, boolean check, HttpServletResponse response) throws IOException, JSONException {
+        if (code.trim().matches("\\d{4}")) {
+            JSONObject json = new JSONObject();
+            if (check) {
+                log.info("开始检查取件码");
+                try {
+                    fileService.download(code, password, true);
+                    log.info("取件码正常");
+                    return json.put("status", 1).toString();
+                } catch (NeedPasswordException e) {
+                    log.info("该取件码需要密码");
+                    return json.put("status", 2).toString();
+                } catch (WrongPasswordException e) {
+                    log.info("取件码密码错误");
+                    return json.put("status", 3).toString();
+                } catch (CodeNotFoundException e) {
+                    log.info("取件码不存在");
+                    return json.put("status", 0).toString();
+                }
+            } else {
+                log.info("准备下载文件");
+                try {
+//                TODO 这里要测试一下，如果在前端直接把check改成false，是否不需要密码也能下载带密码的文件
+                    return sendFile(response, fileService.download(code, password, false)) + "";
+                }catch (Exception e) {
+                    return json.put("status", "非法的下载请求！").toString();
+                }
             }
         } else {
-            log.info("准备下载文件");
-            try {
-                return sendFile(response, fileService.download(sFile.getFid(), sFile.getPassword(), false)) + "";
-            } catch (Exception ignored) {
-            }
-            return "-2";
+            return null;
         }
     }
-
-//    @GetMapping("/{code}")
-//    public void redir(@PathVariable("code")String code,HttpServletResponse response) throws IOException {
-//        log.info(code.trim());
-//        switch (code.trim()){
-//            case "":
-//                response.sendRedirect("/");
-//                break;
-//            case "/\\d{4}/" :
-//                response.sendRedirect("/download.do/code=" + code);
-//                break;
-//        }
-//
-//    }
-
 
     public int sendFile(HttpServletResponse response, SFileWrapper sFileWrapper) {
         response.reset();
@@ -148,9 +143,4 @@ public class FileController {
             return -1;
         }
     }
-
-//        @GetMapping("/show.do")
-//        public String show() {
-//            return fileService.show().toString();
-//        }
 }
