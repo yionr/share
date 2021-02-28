@@ -54,6 +54,27 @@
             /*做个叉的反馈*/
 
         }
+
+        /*    TODO 待补全*/
+        .filegroup {
+
+        }
+
+        .fileitem {
+
+        }
+
+        #textarea {
+            width: 100%;
+            height: 300px;
+            border: 1px green solid;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        #textarea:focus {
+            outline: none;
+        }
     </style>
 </head>
 
@@ -127,6 +148,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="upload.do" method="post" enctype="multipart/form-data">
+                <!--                标记文本类型，file / text / image   -->
+                <input type="text" value="file" name="filetype" style="display: none"/>
                 <div class="modal-header">
                     <h5 class="modal-title" id="sendLabel">发送</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -137,15 +160,11 @@
                     <div class="card text-center w-100 h-100 " id="sendDialog">
                         <div class="card-body">
                             <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text" id="inputGroupFileAddon01">上传</span>
-                                </div>
-                                <div class="custom-file">
-                                    <input type="file" multiple class="custom-file-input" id="submitFile"
-                                           aria-describedby="inputGroupFileAddon01" name="file" required>
-                                    <label class="custom-file-label" for="submitFile">选择文件</label>
-                                </div>
+                                <input type="file" class="custom-file-input d-none" id="submitFile"
+                                       aria-describedby="inputGroupFileAddon01" name="file" required>
+                                <div class="filegroup"></div>
                             </div>
+
                             <div class="form-group">
                                 <label for="allowTimes-input">允许下载次数</label>
                                 <input type="number" id="allowTimes-input" class="form-control"
@@ -184,9 +203,6 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!--                    可以用ajax截获form吗，不然的话 去掉form会导致ajax获取不到name
-                                            暂时先用ajax一个一个做吧
-                    -->
                     <label for="code">取件码</label>
                     <input type="text" class="form-control" name="fid" id="code" minlength="4" maxlength="4" required
                            pattern="\d{4}">
@@ -221,6 +237,28 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
                 <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copy">复制</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--textModal-->
+<div class="modal fade" tabindex="-1" role="dialog" id="textModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">发送文本</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <textarea name="content" id="textarea" placeholder="输入文字"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
             </div>
         </div>
     </div>
@@ -292,15 +330,16 @@
 <main class="container">
     <div class="row h-100 justify-content-center align-content-center">
         <div class="col-8 text-center">
-            <button type="button" class="btn btn-outline-primary px-5 mb-4" data-toggle="modal" data-target="#sendModel"
-                    id="send">发送
-            </button>
+            <!--            <button type="button" class="btn btn-outline-primary px-5 mb-4" data-toggle="modal" data-target="#sendModel"-->
+            <!--                    id="send">发送-->
+            <!--            </button>-->
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <button type="button" class="btn btn-outline-primary  px-5 mb-4 d-none" id="text">文本</button>
+                <button type="button" class="btn btn-outline-primary  px-5 mb-4" id="send">发送</button>
+                <button type="button" class="btn btn-outline-primary  px-5 mb-4 d-none" id="pic">图片</button>
+            </div>
             <br>
-            <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModel"
-                    id="receive">接收
-            </button>
-            <br>
-
+            <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModel" id="receive">接收</button>
         </div>
     </div>
 </main>
@@ -406,12 +445,14 @@
                 } else {
                     switch (parseInt(status)) {
                         case -2:
-                        //    用户信息已过期
+                            //    用户信息已过期
                             sendModel.find('.close').trigger('click');
                             //警告
                             toast4info.find('.toast-body').text('用户信息已过期，请重新登录')
                             toast4info.toast('show');
-                            setTimeout(function(){$('#exitLogin').trigger('click');},827)
+                            setTimeout(function () {
+                                $('#exitLogin').trigger('click');
+                            }, 827)
                             break;
                         case -1:
                             //非法篡改允许次数
@@ -449,7 +490,6 @@
         if ($('[name=check]').val() === 'true') {
             $(this).ajaxSubmit({
                 success: function (data) {
-                    console.log(data);
                     switch (JSON.parse(data).status) {
                         case 0:
                             receiveModel.find('[name=password]').val('')
@@ -503,13 +543,15 @@
     })
     sendModel.on('hidden.bs.modal', function () {
         $(this).find('form')[0].reset();
-        $('#submitFile').next('.custom-file-label').html('选择文件');
+        $(this).find('.filegroup').html('')
+    })
+    $('#textModal').on('hidden.bs.modal', function () {
+        $(this).find('textarea').val('')
     })
     receiveModel.on('hidden.bs.modal', function () {
         $(this).find('form')[0].reset();
         $(this).find('.optional').css('height', 0);
         $('#code').removeClass('border-success').removeAttr('readonly');
-        console.log($(this))
         $('#code_password').attr('disabled', 'true')
 
     })
@@ -575,13 +617,73 @@
         $(this).text('复制成功').css('backgroundColor', "#28a745")
     })
 
+    //TODO 将文件选择和属性分离
     /**
-     * 文件选择框在选择文件之后显示文件名
+     * 初始化发送框
+     * */
+    let filetype = '';
+    $(function () {
+        $('#send').on('mouseover', function () {
+            $(this).text('文件')
+            $('#text').removeClass('d-none');
+            $('#pic').removeClass('d-none');
+        })
+        $('#send').parent().on('mouseleave', function () {
+            $('#send').text('发送')
+            $('#text').addClass('d-none');
+            $('#pic').addClass('d-none');
+        })
+        // 不同按钮点开，界面不一样。
+        //点击文本则展示一个文本域
+        $('#text').on('click', function () {
+            filetype = 'text';
+            $('#textModal').modal('show');
+        })
+        //点击文件则直接让用户选择文件
+        $('#send').on('click', function () {
+            filetype = 'file'
+            file.removeAttr('accept')
+            file.trigger('click')
+        })
+        $('#pic').on('click', function () {
+            filetype = 'image'
+            file.attr('accept', 'image/*')
+            file.trigger('click')
+        })
+    })
+
+    $('#textModal').find('.modal-footer').find('button').on('click',function(){
+        let content = $('#textModal').find('textarea').val();
+        if (content.trim().length === 0){
+            toast4info.find('.toast-body').text('内容请不要为空')
+            toast4info.toast('show');
+            return;
+        }
+        let tempContent = content.length > 10 ? content.substr(0,10) + '...' : content;
+        file.next('.filegroup').append('<div class="fileitem">' + tempContent + '</div>')
+        $('[name=file]').remove()
+        $('.filegroup').append('<input type="text" name="text" value="'+ content +'" class="d-none"/>')
+        sendModel.modal('show');
+        $('#textModal').find('textarea').val('')
+    })
+    /**
+     * 选择文件后显示模态框，并显示文件名
      */
     file.on('change', function () {
-        let fileName = $(this).val().split('\\');
-        fileName = fileName[fileName.length - 1]
-        $(this).next('.custom-file-label').html(fileName);
+        //C:\fakepath\接收.png
+        let absoluteFileName = $(this).val().split('\\');
+        //接收.png
+        let fileName = absoluteFileName[absoluteFileName.length - 1]
+        if (filetype === 'image')
+            if (!/\.(gif|svg|bmp|png|jpeg|jpg|wepb|ico|tif)$/i.test(fileName)) {
+                //    警告不是图片文件，并return
+                toast4info.find('.toast-body').text('该文件不是图片，请重新选择，或使用‘文件’通道上传')
+                toast4info.toast('show');
+                return;
+            }
+        //当有文件之后，显示模态框，并将数据显示
+        $(this).next('.filegroup').append($('<div class="fileitem">' + fileName + '</div>'));
+        sendModel.modal('show');
     })
 
     /**
@@ -624,6 +726,17 @@
         $('#logged').addClass('d-none').find('button').text('');
         $('#allowTimes-input').attr('max', 9)
     }
+
+    $('#send').on('click', function () {
+        $('[name=filetype]').val('file');
+    })
+    $('#text').on('click', function () {
+        $('[name=filetype]').val('text');
+    })
+    $('#pic').on('click', function () {
+        $('[name=filetype]').val('image');
+    })
+
 </script>
 </body>
 </html>
