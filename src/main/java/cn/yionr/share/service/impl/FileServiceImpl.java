@@ -21,20 +21,25 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-@Slf4j @Service
+@Slf4j
+@Service
 public class FileServiceImpl implements FileService {
     SFileMapper sFileMapper;
     UserMapper userMapper;
 
     String filePath;
+    String textFilePath;
+    String imageFilePath;
 
     public List<String> codePool = new ArrayList<>();
 
     @Autowired
-    public FileServiceImpl(SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath) {
+    public FileServiceImpl(SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath, @Value("${textFiles.dir}") String textFilePath, @Value("${imageFiles.dir}") String imageFilePath) {
 
         this.sFileMapper = sFileMapper;
         this.filePath = filePath;
+        this.textFilePath = textFilePath;
+        this.imageFilePath = imageFilePath;
         this.userMapper = userMapper;
         //generate a codePool 4number from 0000-9999
         for (int i = 0; i < 10000; i++) {
@@ -57,12 +62,19 @@ public class FileServiceImpl implements FileService {
 
         List<String> remoteCodes = sFileMapper.listCodes();
 
-        File localDir = new File(filePath);
-        if (!localDir.exists()){
-            localDir.mkdirs();
-        }
+        File localFileDir = new File(filePath);
+        File localTextFileDir = new File(textFilePath);
+        File localImageFileDir = new File(imageFilePath);
 
-        List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(localDir.list())));
+        if (!localFileDir.exists())
+            localFileDir.mkdirs();
+        if (!localTextFileDir.exists())
+            localTextFileDir.mkdirs();
+        if (!localImageFileDir.exists())
+            localImageFileDir.mkdirs();
+
+//TODO        加了两个目录，这里会受到影响，到时候要重新写
+        List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(localFileDir.list())));
 
         String[] remoteCodeArr = remoteCodes.toArray(new String[0]);
 
@@ -89,7 +101,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    public String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
+    public String upload(SFileWrapper sfw, String email, String filetype) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
         if (email == null) {
             sfw.getSFile().setUid(-1);
             log.info("设置uid为: -1 (游客)");
@@ -100,10 +112,17 @@ public class FileServiceImpl implements FileService {
         }
 
         String fid = codePool.remove((int) (Math.random() * (codePool.size() + 1)));
-        sfw.getSFile().setFid(fid);
         log.info("从池中随到取件码: " + fid);
-
-        File dstFile = new File(filePath, sfw.getSFile().getFid());
+        sfw.getSFile().setFid(fid);
+        File dstFile;
+        if (filetype.equals("text")) {
+            sfw.getSFile().setName(fid);
+            dstFile = new File(textFilePath, sfw.getSFile().getFid());
+        } else if (filetype.equals("image")) {
+            dstFile = new File(imageFilePath, sfw.getSFile().getFid());
+        } else {
+            dstFile = new File(filePath, sfw.getSFile().getFid());
+        }
         if (!dstFile.exists()) {
             if (dstFile.createNewFile()) {
                 try {
