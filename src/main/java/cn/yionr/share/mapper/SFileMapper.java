@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface SFileMapper {
-    @Insert("insert into sfile values(#{fid},#{name},#{password},#{times},#{uid})")
+    @Insert("insert into sfile values(#{fid},#{name},#{password},#{times},#{filetype},#{uid})")
     int addSFile(SFile sf);
 
     @Select("select fid from sfile")
@@ -31,4 +31,7 @@ public interface SFileMapper {
 
     @Delete("delete from sfile where fid=#{code}")
     boolean delect(String code);
+
+    @Select("select filetype from sfile where fid=#{code}")
+    String queryFiletype(String code);
 }

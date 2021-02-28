@@ -11,5 +11,6 @@ public class SFile {
     private String name;
     private String password;
     private int times;
+    private String filetype;
     private int uid;
 }

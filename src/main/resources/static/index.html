@@ -232,7 +232,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p id="codeNumber"></p>
+                <pre id="codeNumber"></pre>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
@@ -294,6 +294,7 @@
     </div>
 </div>
 
+
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-info">
         <a class="navbar-brand" href="#">风享站</a>
@@ -339,7 +340,9 @@
                 <button type="button" class="btn btn-outline-primary  px-5 mb-4 d-none" id="pic">图片</button>
             </div>
             <br>
-            <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModel" id="receive">接收</button>
+            <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModel"
+                    id="receive">接收
+            </button>
         </div>
     </div>
 </main>
@@ -443,6 +446,7 @@
                     //    得到取件码
                     sendModel.find('.close').trigger('click');
                     $('#codeNumber').text(status)
+                    $('#codeModal').find('h5').text('发送成功，您的取件码为')
                     $('#codeModal').modal('show')
                     console.log("上传成功");
                 } else {
@@ -490,8 +494,8 @@
         return false;   //阻止表单默认提交
     });
     //当输入取件码时，同步改变action
-    $('#code').on('change',function (){
-        receiveModel.find('form').attr('action','download/' + $('#code').val())
+    $('#code').on('change', function () {
+        receiveModel.find('form').attr('action', 'download/' + $('#code').val())
     })
     receiveModel.find('form').submit(function () {
         if ($('[name=check]').val() === 'true') {
@@ -504,11 +508,25 @@
                             toast4info.toast('show');
                             break;
                         case 1:
-                            $('[name=check]').val('false')
-                            receiveModel.find('form').submit();
+                            switch ((JSON.parse(data).filetype)){
+                                case 'text':
+                                    //弹出一个显示框，将文本显示在里面
+                                    $('#codeModal').find('h5').text('文本内容为：')
+                                    $('#codeNumber').text(JSON.parse(data).content)
+                                    $('#codeModal').modal('show')
+                                    break;
+                                case 'image':
+
+                                    break;
+                                case 'file':
+                                    $('[name=check]').val('false')
+                                    receiveModel.find('form').submit();
+                                    toast4code.find('.toast-body').text('取件成功')
+                                    toast4code.toast('show');
+                                    break;
+                            }
                             receiveModel.find('.close').trigger('click');
-                            toast4code.find('.toast-body').text('取件成功')
-                            toast4code.toast('show');
+
                             break;
                         case 2:
                             $('#code').addClass('border-success').attr('readonly', 'true')
@@ -561,17 +579,17 @@
         $(this).find('.optional').css('height', 0);
         $('#code').removeClass('border-success').removeAttr('readonly');
         $('#code_password').attr('disabled', 'true')
-        $(this).find('form')[0].attr('action','')
+        $(this).find('form').attr('action', '')
     })
     $('#codeModal').on('hidden.bs.modal', function () {
         $('#copy').text('复制').css('backgroundColor', "#007bff")
-
+        $('#codeNumber').text('')
     })
 
     /**
      * 添加快捷键
      */
-    $('.modal').on('show.bs.modal', function () {
+    $('.modal:not(#textModal)').on('show.bs.modal', function () {
         $(this)[0].addEventListener('keypress', kp)
     }).on('hide.bs.modal', function () {
         $(this)[0].removeEventListener('keypress', kp)
@@ -641,21 +659,21 @@
                         toast4code.toast('show');
                         //将邮箱存入localStorage
                         localStorage.setItem('email', email.split('=')[1])
-                        setInterval(function (){
-                            window.location.href=url.split('\?')[0]
-                        },1000)
+                        setInterval(function () {
+                            window.location.href = url.split('\?')[0]
+                        }, 1000)
                         break;
                     case -1:
                         toast4info.find('.toast-body').text('激活链接过期了，请重新注册！')
                         toast4info.toast('show');
-                        setInterval(function (){
-                            window.location.href=url.split('\?')[0]
-                        },3000)
+                        setInterval(function () {
+                            window.location.href = url.split('\?')[0]
+                        }, 3000)
                         break;
                     case 0:
                     case -2:
                     case -3:
-                        window.location.href=url.split('\?')[0]
+                        window.location.href = url.split('\?')[0]
                         break;
                 }
             }
@@ -708,17 +726,18 @@
         })
     })
 
-    $('#textModal').find('.modal-footer').find('button').on('click',function(){
+    $('#textModal').find('.modal-footer').find('button').on('click', function () {
         let content = $('#textModal').find('textarea').val();
-        if (content.trim().length === 0){
+        console.log(content)
+        if (content.trim().length === 0) {
             toast4info.find('.toast-body').text('内容请不要为空')
             toast4info.toast('show');
             return;
         }
-        let tempContent = content.length > 10 ? content.substr(0,10) + '...' : content;
+        let tempContent = content.length > 10 ? content.substr(0, 10) + '...' : content;
         file.next('.filegroup').append('<div class="fileitem">' + tempContent + '</div>')
         $('[name=file]').remove()
-        $('.filegroup').append('<input type="text" name="text" value="'+ content +'" class="d-none"/>')
+        $('.filegroup').append('<textarea type="text" name="text" class="d-none">' + content + '</textarea>')
         sendModel.modal('show');
         $('#textModal').find('textarea').val('')
     })

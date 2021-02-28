@@ -12,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -100,7 +97,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    public String upload(SFileWrapper sfw, String email, String filetype) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
+    public String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
         if (email == null) {
             sfw.getSFile().setUid(-1);
             log.info("设置uid为: -1 (游客)");
@@ -114,10 +111,10 @@ public class FileServiceImpl implements FileService {
         log.info("从池中随到取件码: " + fid);
         sfw.getSFile().setFid(fid);
         File dstFile;
-        if (filetype.equals("text")) {
+        if (sfw.getSFile().getFiletype().equals("text")) {
             sfw.getSFile().setName(fid);
             dstFile = new File(textFilePath, sfw.getSFile().getFid());
-        } else if (filetype.equals("image")) {
+        } else if (sfw.getSFile().getFiletype().equals("image")) {
             dstFile = new File(imageFilePath, sfw.getSFile().getFid());
         } else {
             dstFile = new File(filePath, sfw.getSFile().getFid());
@@ -153,13 +150,20 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    public SFileWrapper download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException {
+
+
+    public Object download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException {
+        String[] result = new String[2];
         if (sFileMapper.queryFile(code) != null) {
             String realPassword = sFileMapper.queryPassword(code);
             if (password == null) {
                 if (realPassword.equals("")) //TODO 这里有瑕疵，不知道是null还是”“
                     if (check) {
-                        return null;
+                        String filetype = sFileMapper.queryFiletype(code);
+                        result[0] = filetype;
+                        if (!filetype.equals("file"))
+                            result[1] = getContent(code,filetype);
+                        return result;
                     } else {
                         return getSFileWrapper(code);
                     }
@@ -171,7 +175,11 @@ public class FileServiceImpl implements FileService {
                     throw new WrongPasswordException("密码错误");
                 } else {
                     if (check) {
-                        return null;
+                        String filetype = sFileMapper.queryFiletype(code);
+                        result[0] = filetype;
+                        if (!filetype.equals("file"))
+                            result[1] = getContent(code,filetype);
+                        return result;
                     } else {
                         return getSFileWrapper(code);
                     }
@@ -181,6 +189,38 @@ public class FileServiceImpl implements FileService {
             throw new CodeNotFoundException("取件码不存在");
         }
 
+    }
+    public String getContent(String code , String filetype){
+        String fileName = sFileMapper.queryFile(code);
+        if (fileName != null){
+            if (filetype.equals("text")){
+                File file = new File(textFilePath,code);
+                InputStreamReader reader = null;
+                try {
+                    reader = new InputStreamReader(new FileInputStream(file));
+                    BufferedReader br = new BufferedReader(reader);
+                    String line = "";
+                    StringBuilder content;
+                    line = br.readLine();
+                    content = new StringBuilder();
+                    while (line != null) {
+                        content.append(line).append("\n");
+                        line = br.readLine(); // 一次读入一行数据
+                    }
+                    return content.toString();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }else {
+//                TODO 将图片转换为字符串传输
+            }
+        }
+        else {
+            return null;
+        }
+        return "";
     }
 
     public SFileWrapper getSFileWrapper(String code) {
@@ -204,8 +244,4 @@ public class FileServiceImpl implements FileService {
             return null;
         }
     }
-
-//    public List<String> show() {
-//        return sFileDao.listCodes();
-//    }
 }

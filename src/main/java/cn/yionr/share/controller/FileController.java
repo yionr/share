@@ -30,7 +30,7 @@ public class FileController {
      * @return xxxx: 取件码; -2: 密码已修改; -1: 非法提升权限; 0: 临时文件创建失败; 1: 随机取件码算法出错; 2/4: 目标文件创建失败; 3: 数据库记录存储失败; 5: 文件复制失败
      */
     @PostMapping("/upload.do")
-    public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor, HttpSession session,String filetype,String text) throws Exception {
+    public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor, HttpSession session,String text) throws Exception {
 //      TODO 根据UID设置可上传的文件容量
         JSONObject json = new JSONObject();
         String email = (String) session.getAttribute("email");
@@ -43,15 +43,14 @@ public class FileController {
                 log.warn("用户权限不足，无法下载这么多次数，驳回");
                 return json.put("status", -1).toString();
             }
-        }
+    }
 
 
         SFileWrapper sfw = new SFileWrapper();
         File tempf;
 
-        if (filetype.equals("text")){
+        if (sFile.getFiletype().equals("text")){
 //            如果是text的话，没有file，也灭有name，其他几项 fid uid times password 都搞定， name由fid决定，放在service中加就行
-            sfw.setSFile(sFile);
             try {
                 tempf = File.createTempFile("tempfile", "temp");
                 log.info("文本为：" + text);
@@ -63,10 +62,9 @@ public class FileController {
                 return json.put("status", 0).toString();
             }
         }
-        else if (filetype.equals("image") || filetype.equals("file")){
+        else if (sFile.getFiletype().equals("image") || sFile.getFiletype().equals("file")){
 //            设置描述
             sFile.setName(file.getOriginalFilename());
-            sfw.setSFile(sFile);
 //            将文件流保存到临时文件
             try {
                 tempf = File.createTempFile("tempfile", "temp");
@@ -79,10 +77,11 @@ public class FileController {
         }else{
             throw new Exception("前台filetype遭到篡改！");
         }
-
+        sfw.setSFile(sFile);
         sfw.setFile(tempf);
+        log.info(sFile.toString());
         try {
-            json.put("status", fileService.upload(sfw, email,filetype));
+            json.put("status", fileService.upload(sfw, email));
         } catch (AlogrithmException e) {
             json.put("status", 1);
         } catch (FailedCreateFileException e) {
@@ -98,7 +97,6 @@ public class FileController {
         return json.toString();
 
     }
-//    TODO  先把上传部分写完，和dev合并一次，再把下载部分写完
 
     /**
      * 要做code下载文件的方式的话，得摒弃之前的下载方式，全权由这一种方式来下载
@@ -107,6 +105,7 @@ public class FileController {
      * @param
      * @return ”非法的下载请求“:非法的下载请求 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
      */
+    //TODO 其实可以这样设计，如果是文本or 图像的话，只请求一次，直接把数据带到json里面返回
     @GetMapping("/download/{code}")
     public String download(@PathVariable("code") String code, String password, boolean check, HttpServletResponse response) throws IOException, JSONException {
         if (code.trim().matches("\\d{4}")) {
@@ -114,9 +113,9 @@ public class FileController {
             if (check) {
                 log.info("开始检查取件码");
                 try {
-                    fileService.download(code, password, true);
+                    String[] fileinfo = (String[]) fileService.download(code, password, true);
                     log.info("取件码正常");
-                    return json.put("status", 1).toString();
+                    return json.put("status", 1).put("filetype",fileinfo[0]).put("content",fileinfo[1]).toString();
                 } catch (NeedPasswordException e) {
                     log.info("该取件码需要密码");
                     return json.put("status", 2).toString();
@@ -130,8 +129,7 @@ public class FileController {
             } else {
                 log.info("准备下载文件");
                 try {
-//                TODO 这里要测试一下，如果在前端直接把check改成false，是否不需要密码也能下载带密码的文件
-                    return sendFile(response, fileService.download(code, password, false)) + "";
+                    return sendFile(response, (SFileWrapper) fileService.download(code, password, false)) + "";
                 }catch (Exception e) {
                     return json.put("status", "非法的下载请求！").toString();
                 }
