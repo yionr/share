@@ -30,7 +30,7 @@ public class FileController {
      * @return xxxx: 取件码; -2: 密码已修改; -1: 非法提升权限; 0: 临时文件创建失败; 1: 随机取件码算法出错; 2/4: 目标文件创建失败; 3: 数据库记录存储失败; 5: 文件复制失败
      */
     @PostMapping("/upload.do")
-    public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor, HttpSession session) throws JSONException {
+    public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor, HttpSession session,String filetype,String text) throws Exception {
 //      TODO 根据UID设置可上传的文件容量
         JSONObject json = new JSONObject();
         String email = (String) session.getAttribute("email");
@@ -45,22 +45,44 @@ public class FileController {
             }
         }
 
-        sFile.setName(file.getOriginalFilename());
 
         SFileWrapper sfw = new SFileWrapper();
-        sfw.setSFile(sFile);
         File tempf;
-        try {
-            tempf = File.createTempFile("tempfile", "temp");
-            file.transferTo(tempf);
-            sfw.setFile(tempf);
-        } catch (IOException e) {
-            log.warn("临时文件创建失败");
-            return json.put("status", 0).toString();
+
+        if (filetype.equals("text")){
+//            如果是text的话，没有file，也灭有name，其他几项 fid uid times password 都搞定， name由fid决定，放在service中加就行
+            sfw.setSFile(sFile);
+            try {
+                tempf = File.createTempFile("tempfile", "temp");
+                log.info("文本为：" + text);
+                FileWriter writer = new FileWriter(tempf);
+                writer.write(text);
+                writer.close();
+            } catch (IOException e) {
+                log.warn("临时文件创建失败");
+                return json.put("status", 0).toString();
+            }
+        }
+        else if (filetype.equals("image") || filetype.equals("file")){
+//            设置描述
+            sFile.setName(file.getOriginalFilename());
+            sfw.setSFile(sFile);
+//            将文件流保存到临时文件
+            try {
+                tempf = File.createTempFile("tempfile", "temp");
+                file.transferTo(tempf);
+            } catch (IOException e) {
+                log.warn("临时文件创建失败");
+                return json.put("status", 0).toString();
+            }
+
+        }else{
+            throw new Exception("前台filetype遭到篡改！");
         }
 
+        sfw.setFile(tempf);
         try {
-            json.put("status", fileService.upload(sfw, email));
+            json.put("status", fileService.upload(sfw, email,filetype));
         } catch (AlogrithmException e) {
             json.put("status", 1);
         } catch (FailedCreateFileException e) {
@@ -76,6 +98,7 @@ public class FileController {
         return json.toString();
 
     }
+//    TODO  先把上传部分写完，和dev合并一次，再把下载部分写完
 
     /**
      * 要做code下载文件的方式的话，得摒弃之前的下载方式，全权由这一种方式来下载
