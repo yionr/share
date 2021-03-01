@@ -55,6 +55,10 @@
             /*做个叉的反馈*/
 
         }
+        #codeNumber{
+            letter-spacing: 10px;
+            font-size: 24px;
+        }
 
         /*    TODO 待补全*/
         .filegroup {
@@ -190,6 +194,48 @@
     </div>
 </div>
 
+<!--QRCodeModal-->
+<div class="modal fade" tabindex="-1" role="dialog" id="QRCodeModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">二维码</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body image d-flex justify-content-center">
+                <div id="QRCode"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">返回</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--sendTextModal-->
+<div class="modal fade" tabindex="-1" role="dialog" id="sendTextModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">发送文本</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <textarea name="content" id="textarea" placeholder="输入文字"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- receiveModal -->
 <div class="modal fade" id="receiveModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
@@ -222,7 +268,7 @@
     </div>
 </div>
 
-<!--codeModal-->
+<!--receiveCodeModal-->
 <div class="modal fade" tabindex="-1" role="dialog" id="codeModal">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -233,39 +279,18 @@
                 </button>
             </div>
             <div class="modal-body">
-                <pre id="codeNumber"></pre>
+                <p id="codeNumber" class="text-center font-weight-bold "></p>
+                <p class="qrAndDl text-center font-weight-lighter d-none">您也可以 <a href="javascript:0;" id="directLink">复制下载链接</a>或 <a href="javascript:0;" id="getQRCode">扫描二维码</a></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copy">复制</button>
+                <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copyCode">复制</button>
             </div>
         </div>
     </div>
 </div>
 
-<!--textModal-->
-<div class="modal fade" tabindex="-1" role="dialog" id="textModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">发送文本</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div>
-                    <textarea name="content" id="textarea" placeholder="输入文字"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!--imageModal-->
+<!--receiveImageModal-->
 <div class="modal fade" tabindex="-1" role="dialog" id="imageModal">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -285,6 +310,26 @@
     </div>
 </div>
 
+<!--receiveTextModal-->
+<div class="modal fade" tabindex="-1" role="dialog" id="receiveTextModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">文本内容为</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <pre id="textContent"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" data-clipboard-target="#textContent" id="copyText">复制</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <!--toast4code-->
@@ -376,6 +421,7 @@
 <script src="js/jquery/jquery-3.5.1.js"></script>
 <script src="js/jquery/jquery.form.js"></script>
 <script src="js/clipboard.min.js"></script>
+<script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
     let toast4info = $('#toast4info');
@@ -389,6 +435,8 @@
 
     let sendModal = $('#sendModal')
     let file = $('[name=file]');
+
+    let codeModal = $('#codeModal');
 
     regeditModal.find('form').submit(function () {
         let email = $('#regEmail').val();
@@ -455,6 +503,7 @@
         })
         return false;
     })
+    let tempCode;
     sendModal.find('form').submit(function () {
         $(this).ajaxSubmit({
             success: function (data) {
@@ -463,9 +512,10 @@
                     //    得到取件码
                     sendModal.find('.close').trigger('click');
                     $('#codeNumber').text(status)
-                    $('#codeModal').find('h5').text('发送成功，您的取件码为')
-                    $('#codeModal').modal('show')
-                    console.log("上传成功");
+                    tempCode = status;
+                    codeModal.find('h5').text('发送成功，您的取件码为')
+                    $('.qrAndDl').removeClass('d-none');
+                    codeModal.modal('show')
                 } else {
                     switch (parseInt(status)) {
                         case -2:
@@ -531,9 +581,8 @@
                             switch ((JSON.parse(data).filetype)){
                                 case 'text':
                                     //弹出一个显示框，将文本显示在里面
-                                    $('#codeModal').find('h5').text('文本内容为：')
-                                    $('#codeNumber').text(JSON.parse(data).content)
-                                    $('#codeModal').modal('show')
+                                    $('#textContent').text(JSON.parse(data).content)
+                                    $('#receiveTextModal').modal('show')
                                     receiveModal.find('form')[0].reset();
                                     break;
                                 case 'image':
@@ -593,7 +642,7 @@
         $(this).find('form')[0].reset();
         $(this).find('.filegroup').html('')
     })
-    $('#textModal').on('hidden.bs.modal', function () {
+    $('#sendTextModal').on('hidden.bs.modal', function () {
         $(this).find('textarea').val('')
     })
     receiveModal.on('hidden.bs.modal', function () {
@@ -603,15 +652,26 @@
         $('#code_password').attr('disabled', 'true')
         $(this).find('form').attr('action', '')
     })
-    $('#codeModal').on('hidden.bs.modal', function () {
+    codeModal.on('hidden.bs.modal', function () {
         $('#copy').text('复制').css('backgroundColor', "#007bff")
+        $('.qrAndDl').addClass('d-none')
         $('#codeNumber').text('')
+    })
+    $('#receiveTextModal').on('hidden.bs.modal', function () {
+        $('#copy').text('复制').css('backgroundColor', "#007bff")
+        $('#textContent').text('')
+    })
+    $('#QRCodeModal').on('hidden.bs.modal', function () {
+        $('#QRCode').html('');
+        $('.qrAndDl').removeClass('d-none')
+        $('#codeNumber').text(tempCode)
+        codeModal.modal('show');
     })
 
     /**
      * 添加快捷键
      */
-    $('.modal:not(#textModal)').on('show.bs.modal', function () {
+    $('.modal:not(#sendTextModal)').on('show.bs.modal', function () {
         $(this)[0].addEventListener('keypress', kp)
     }).on('hide.bs.modal', function () {
         $(this)[0].removeEventListener('keypress', kp)
@@ -709,12 +769,34 @@
      * 初始化剪切板
      **/
     $(function () {
-        new ClipboardJS('#copy')
+        new ClipboardJS('#copyCode');
+        new ClipboardJS('#copyText');
+        new ClipboardJS('#directLink',{
+            container: codeModal[0],
+            text: function(){
+                return window.location.href.split('\?')[0] + $('#codeNumber').text();
+            }
+        });
     })
-    $('#copy').on('click', function () {
+    $('#copyCode').on('click', function () {
         //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
         $(this).text('复制成功').css('backgroundColor', "#28a745")
     })
+    $('#copyText').on('click', function () {
+        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
+        $(this).text('复制成功').css('backgroundColor', "#28a745")
+    })
+    $('#directLink').on('click',function(){
+        toast4info.find('.toast-body').text('复制成功')
+        toast4info.toast('show');
+    })
+    $('#getQRCode').on('click',function(){
+        new QRCode($('#QRCode')[0], window.location.href.split('\?')[0] + $('#codeNumber').text());
+        codeModal.modal('hide');
+        $('#QRCodeModal').modal('show');
+    })
+
+
 
     /**
      * 初始化发送框
@@ -735,7 +817,7 @@
         //点击文本则展示一个文本域
         $('#text').on('click', function () {
             filetype = 'text';
-            $('#textModal').modal('show');
+            $('#sendTextModal').modal('show');
         })
         //点击文件则直接让用户选择文件
         $('#send').on('click', function () {
@@ -750,8 +832,8 @@
         })
     })
 
-    $('#textModal').find('.modal-footer').find('button').on('click', function () {
-        let content = $('#textModal').find('textarea').val();
+    $('#sendTextModal').find('.modal-footer').find('button').on('click', function () {
+        let content = $('#sendTextModal').find('textarea').val();
         console.log(content)
         if (content.trim().length === 0) {
             toast4info.find('.toast-body').text('内容请不要为空')
@@ -763,7 +845,7 @@
         $('[name=file]').remove()
         $('.filegroup').append('<textarea type="text" name="text" class="d-none">' + content + '</textarea>')
         sendModal.modal('show');
-        $('#textModal').find('textarea').val('')
+        $('#sendTextModal').find('textarea').val('')
     })
     /**
      * 选择文件后显示模态框，并显示文件名

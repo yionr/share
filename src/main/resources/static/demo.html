@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>clip</title>
+
+</head>
+<body>
+<button id="btn">复制</button>
+<script src="js/clipboard.min.js"></script>
+<script>
+    new ClipboardJS('#btn',{
+        text:function(){
+            return 'helloworld'
+        }
+    })
+</script>
+</body>
+</html>
