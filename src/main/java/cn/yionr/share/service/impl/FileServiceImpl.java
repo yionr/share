@@ -155,7 +155,7 @@ public class FileServiceImpl implements FileService {
         if (sFileMapper.queryFile(code) != null) {
             String realPassword = sFileMapper.queryPassword(code);
             if (password == null) {
-                if (realPassword.equals("")) //TODO 这里有瑕疵，不知道是null还是”“
+                if (realPassword.equals("")) //FIXME 这里有瑕疵，不知道是null还是”“
                     if (check) {
                         String filetype = sFileMapper.queryFiletype(code);
                         result[0] = filetype;

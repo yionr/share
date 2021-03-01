@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import sun.security.util.Password;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -99,6 +100,11 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new UserWaitToActiveNotFoundException("没有此待激活用户");
         }
+    }
+
+    @Override
+    public int changePassword(String email, String newPassword) {
+        return userMapper.changePassword(email, newPassword);
     }
 
     public void sendMail(User user) {

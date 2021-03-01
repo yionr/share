@@ -33,7 +33,6 @@ public class UserController {
      */
     @PostMapping("/regedit.do")
     public String regedit(User user, HttpSession session) throws JSONException {
-//TODO        注册需要验证邮箱有效性
         log.info("邮箱： " + user.getEmail() + " 提交注册");
         JSONObject json = new JSONObject();
         int status;
@@ -99,6 +98,20 @@ public class UserController {
         }
         return json.toString();
 
+    }
+    @PostMapping("/changePassword")
+    public String changePassword(String oldPassword,String newPassword,HttpSession session) throws JSONException {
+        JSONObject json = new JSONObject();
+        String email = (String) session.getAttribute("email");
+        String password = (String) session.getAttribute("password");
+        if (password.equals(oldPassword)){
+            int status = userService.changePassword(email,newPassword);
+            session.invalidate();
+            return json.put("status",status).toString();
+        }
+        else {
+            return json.put("status",-1).toString();
+        }
     }
 
     /**

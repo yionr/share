@@ -105,7 +105,6 @@ public class FileController {
      * @param
      * @return ”非法的下载请求“:非法的下载请求 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
      */
-    //FIXME 目前只有不带密码的文件可以用直链的方式下载
     @GetMapping("/download/{code}")
     public String download(@PathVariable("code") String code, String password, boolean check, HttpServletResponse response) throws IOException, JSONException {
         if (code.trim().matches("\\d{4}")) {
