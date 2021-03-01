@@ -16,4 +16,6 @@ public interface UserMapper {
     void active(String email);
     @Update("update user set created_time=#{created_time} where email=#{email}")
     int updateActiveTime(User user);
+    @Update("update user set password=#{newPassword} where email=#{email}")
+    int changePassword(String email, String newPassword);
 }
