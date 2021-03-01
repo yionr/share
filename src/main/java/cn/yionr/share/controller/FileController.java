@@ -11,13 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLEncoder;
 
-@Slf4j
-@RestController
+@Slf4j @RestController
 public class FileController {
     FileService fileService;
 
@@ -105,7 +105,7 @@ public class FileController {
      * @param
      * @return ”非法的下载请求“:非法的下载请求 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
      */
-    //TODO 其实可以这样设计，如果是文本or 图像的话，只请求一次，直接把数据带到json里面返回
+    //FIXME 目前只有不带密码的文件可以用直链的方式下载
     @GetMapping("/download/{code}")
     public String download(@PathVariable("code") String code, String password, boolean check, HttpServletResponse response) throws IOException, JSONException {
         if (code.trim().matches("\\d{4}")) {
@@ -137,6 +137,12 @@ public class FileController {
         } else {
             return null;
         }
+    }
+    @GetMapping("/????")
+    public String redir(HttpServletRequest request){
+        log.info("redir!");
+
+        return "<meta http-equiv=\"Refresh\" content=\"0; URL=/?code=" + request.getRequestURI().substring(1) +"\" />";
     }
 
     public int sendFile(HttpServletResponse response, SFileWrapper sFileWrapper) {
