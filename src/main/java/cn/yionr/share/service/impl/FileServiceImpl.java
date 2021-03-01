@@ -205,6 +205,7 @@ public class FileServiceImpl implements FileService {
                         content.append(line).append("\n");
                         line = br.readLine(); // 一次读入一行数据
                     }
+                    decreaseTimes(code,file);
                     return content.toString();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
@@ -212,9 +213,11 @@ public class FileServiceImpl implements FileService {
                     e.printStackTrace();
                 }
             }else {
-//                TODO 将图片转换为字符串传输
                 try {
-                    return Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(new File(imageFilePath,code)));
+                    File file = new File(imageFilePath,code);
+                    String result = Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(file));
+                    decreaseTimes(code,file);
+                    return result;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -234,17 +237,29 @@ public class FileServiceImpl implements FileService {
                     file(new File(filePath, code)).
                     sFile(SFile.builder().name(fileName).build()).
                     build();
-            sFileMapper.decreaseTime(code);
-//            如果取件次数上限，则删掉数据库记录，并删掉文件
-            if (sFileMapper.queryTimes(code) <= -1) {
-                sFileMapper.delect(code);
-//                如果在这里删掉则会导致接下来Controller无法获取到文件，直接少了一次下载次数，所以可以暂时将小于0改为小于-1顶替一下
-                sFileWrapper.getFile().delete();
-            }
+            decreaseTimes(code,sFileWrapper.getFile());
             return sFileWrapper;
         } else {
 //            code invalid
             return null;
         }
+    }
+
+    /**
+     *
+     * @param code
+     * @param file
+     * @return 剩余下载次数
+     */
+    public int decreaseTimes(String code,File file){
+        sFileMapper.decreaseTime(code);
+        int times = sFileMapper.queryTimes(code);
+//            如果取件次数上限，则删掉数据库记录，并删掉文件
+        if (times <= -1) {
+            sFileMapper.delect(code);
+//                如果在这里删掉则会导致接下来Controller无法获取到文件，直接少了一次下载次数，所以可以暂时将小于0改为小于-1顶替一下
+            file.delete();
+        }
+        return times;
     }
 }

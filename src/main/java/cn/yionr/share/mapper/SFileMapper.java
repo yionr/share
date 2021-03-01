@@ -21,7 +21,7 @@ public interface SFileMapper {
     String queryFile(String code);
 
     @Update("update sfile set times = times - 1 where fid=#{code}")
-    void decreaseTime(String code);
+    int decreaseTime(String code);
 
     @Select("select times from sfile where fid=#{code}")
     int queryTimes(String code);
