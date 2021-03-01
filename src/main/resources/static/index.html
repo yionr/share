@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" media="screen"/>
     <title>风享站</title>
+
     <style>
         html, body {
             width: 100%;
@@ -264,6 +265,28 @@
     </div>
 </div>
 
+<!--imageModal-->
+<div class="modal fade" tabindex="-1" role="dialog" id="imageModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">图片</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body image d-flex justify-content-center">
+                <img src="" alt="取过来的文件" width="400px">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <!--toast4code-->
 <div class="toast" id="toast4code" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
     <div class="toast-header">
@@ -366,6 +389,7 @@
 
     let sendModel = $('#sendModel')
     let file = $('[name=file]');
+
 
 
     /**
@@ -516,7 +540,8 @@
                                     $('#codeModal').modal('show')
                                     break;
                                 case 'image':
-
+                                    $('.image').find('img').attr('src','data:image/png;base64,'+JSON.parse(data).content)
+                                    $('#imageModal').modal('show')
                                     break;
                                 case 'file':
                                     $('[name=check]').val('false')

@@ -7,16 +7,14 @@ import cn.yionr.share.mapper.UserMapper;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.FileService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j @Service
 public class FileServiceImpl implements FileService {
@@ -215,6 +213,11 @@ public class FileServiceImpl implements FileService {
                 }
             }else {
 //                TODO 将图片转换为字符串传输
+                try {
+                    return Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(new File(imageFilePath,code)));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         else {
