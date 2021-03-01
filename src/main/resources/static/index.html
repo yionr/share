@@ -55,7 +55,8 @@
             /*做个叉的反馈*/
 
         }
-        #codeNumber{
+
+        #codeNumber {
             letter-spacing: 10px;
             font-size: 24px;
         }
@@ -280,11 +281,13 @@
             </div>
             <div class="modal-body">
                 <p id="codeNumber" class="text-center font-weight-bold "></p>
-                <p class="qrAndDl text-center font-weight-lighter d-none">您也可以 <a href="javascript:0;" id="directLink">复制下载链接</a>或 <a href="javascript:0;" id="getQRCode">扫描二维码</a></p>
+                <p class="qrAndDl text-center font-weight-lighter d-none">您也可以 <a href="javascript:0;" id="directLink">复制下载链接</a>或
+                    <a href="javascript:0;" id="getQRCode">扫描二维码</a></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copyCode">复制</button>
+                <button type="button" class="btn btn-primary" data-clipboard-target="#codeNumber" id="copyCode">复制
+                </button>
             </div>
         </div>
     </div>
@@ -325,7 +328,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" data-clipboard-target="#textContent" id="copyText">复制</button>
+                <button type="button" class="btn btn-primary" data-clipboard-target="#textContent" id="copyText">复制
+                </button>
             </div>
         </div>
     </div>
@@ -505,61 +509,85 @@
     })
     let tempCode;
     sendModal.find('form').submit(function () {
-        $(this).ajaxSubmit({
+        $.ajax('checkFile', {
+            data: {
+                size: $('[name=file]')[0].files[0].size,
+                times: $('#allowTimes-input').val()
+            },
+            type: 'post',
+            dataType: 'json',
             success: function (data) {
-                let status = JSON.parse(data).status;
-                if (status.length === 4) {
-                    //    得到取件码
-                    sendModal.find('.close').trigger('click');
-                    $('#codeNumber').text(status)
-                    tempCode = status;
-                    codeModal.find('h5').text('发送成功，您的取件码为')
-                    $('.qrAndDl').removeClass('d-none');
-                    codeModal.modal('show')
-                } else {
-                    switch (parseInt(status)) {
-                        case -2:
-                            //    用户信息已过期
-                            sendModal.find('.close').trigger('click');
-                            //警告
-                            toast4info.find('.toast-body').text('用户信息已过期，请重新登录')
-                            toast4info.toast('show');
-                            setTimeout(function () {
-                                $('#exitLogin').trigger('click');
-                            }, 827)
-                            break;
-                        case -1:
-                            //非法篡改允许次数
-                            sendModal.find('.close').trigger('click');
-                            //警告
-                            toast4info.find('.toast-body').text('非法篡改允许次数，上传失败')
-                            toast4info.toast('show');
-                            break;
-                        case 0:
-                        case 2:
-                        case 4:
-                        case 5:
-                            sendModal.find('.close').trigger('click');
-                            toast4info.find('.toast-body').text('服务器文件保存失败,请稍后重试')
-                            toast4info.toast('show');
-                            break;
-                        case 1:
-                            sendModal.find('.close').trigger('click');
-                            toast4info.find('.toast-body').text('服务器取件码获取失败，请稍后重试')
-                            toast4info.toast('show');
-                            break;
-                        case 3:
-                            sendModal.find('.close').trigger('click');
-                            toast4info.find('.toast-body').text('数据库添加记录失败，请稍后重试')
-                            toast4info.toast('show');
-                            break;
-                    }
-                    return false;
+                switch (data.status) {
+                    case 1:
+                        sendModal.find('form').ajaxSubmit({
+                            success: function (data) {
+                                let status = JSON.parse(data).status;
+                                if (status.length === 4) {
+                                    //    得到取件码
+                                    sendModal.find('.close').trigger('click');
+                                    $('#codeNumber').text(status)
+                                    tempCode = status;
+                                    codeModal.find('h5').text('发送成功，您的取件码为')
+                                    $('.qrAndDl').removeClass('d-none');
+                                    codeModal.modal('show')
+                                } else {
+                                    switch (parseInt(status)) {
+
+                                        case 0:
+                                        case 2:
+                                        case 4:
+                                        case 5:
+                                            sendModal.find('.close').trigger('click');
+                                            toast4info.find('.toast-body').text('服务器文件保存失败,请稍后重试')
+                                            toast4info.toast('show');
+                                            break;
+                                        case 1:
+                                            sendModal.find('.close').trigger('click');
+                                            toast4info.find('.toast-body').text('服务器取件码获取失败，请稍后重试')
+                                            toast4info.toast('show');
+                                            break;
+                                        case 3:
+                                            sendModal.find('.close').trigger('click');
+                                            toast4info.find('.toast-body').text('数据库添加记录失败，请稍后重试')
+                                            toast4info.toast('show');
+                                            break;
+                                    }
+                                    return false;
+                                }
+                            }
+                        });
+                        break;
+                    case -1:
+                        //非法篡改允许次数
+                        sendModal.find('.close').trigger('click');
+                        //警告
+                        toast4info.find('.toast-body').text('非法篡改允许次数，上传失败')
+                        toast4info.toast('show');
+                        break;
+                    case -2 :
+                        //文件容量超出上限
+                        sendModal.find('.close').trigger('click');
+                        //警告
+                        toast4info.find('.toast-body').text('文件容量超出上限！')
+                        toast4info.toast('show');
+                        break;
+                    case -3:
+                        //    用户信息已过期
+                        sendModal.find('.close').trigger('click');
+                        //警告
+                        toast4info.find('.toast-body').text('用户信息已过期，请重新登录')
+                        toast4info.toast('show');
+                        setTimeout(function () {
+                            $('#exitLogin').trigger('click');
+                        }, 827)
+                        break;
                 }
             }
-        });
+        })
+
         return false;   //阻止表单默认提交
-    });
+    })
+    ;
     /**
      * 当输入取件码时，同步改变action
      */
@@ -568,7 +596,7 @@
     })
 
     receiveModal.find('form').submit(function () {
-        if ($('[name=check]').val() === 'true') {
+        if ($('[name=check]').attr('value') === 'true') {
             $(this).ajaxSubmit({
                 success: function (data) {
                     switch (JSON.parse(data).status) {
@@ -578,7 +606,7 @@
                             toast4info.toast('show');
                             break;
                         case 1:
-                            switch ((JSON.parse(data).filetype)){
+                            switch ((JSON.parse(data).filetype)) {
                                 case 'text':
                                     //弹出一个显示框，将文本显示在里面
                                     $('#textContent').text(JSON.parse(data).content)
@@ -586,15 +614,16 @@
                                     receiveModal.find('form')[0].reset();
                                     break;
                                 case 'image':
-                                    $('.image').find('img').attr('src','data:image/png;base64,'+JSON.parse(data).content)
+                                    $('.image').find('img').attr('src', 'data:image/png;base64,' + JSON.parse(data).content)
                                     $('#imageModal').modal('show')
                                     receiveModal.find('form')[0].reset();
                                     break;
                                 case 'file':
-                                    $('[name=check]').val('false')
+                                    $('[name=check]').attr('value','false')
                                     receiveModal.find('form').submit();
                                     toast4code.find('.toast-body').text('取件成功')
                                     toast4code.toast('show');
+                                    $('[name=check]').attr('value','true')
                                     break;
                             }
                             receiveModal.find('.close').trigger('click');
@@ -605,11 +634,11 @@
                             $('#code').addClass('border-success').attr('readonly', 'true')
                             $('#code_password').removeAttr('disabled')
                             //FIXME 如果不延迟一下的话，好像会被忽略掉，猜测和模态框的动画冲突了，动画一次只能执行一个
-                            setTimeout(function(){
+                            setTimeout(function () {
                                 optional.animate({
                                     'height': optional.closest('.modal-body').css('height')
                                 }, 472)
-                            },300)
+                            }, 300)
 
                             break;
                         case 3:
@@ -625,7 +654,8 @@
             });
             return false;
         }
-        receiveModal.find('form')[0].reset();
+        //FIXME 之前为什么要在这里加这一句
+        // receiveModal.find('form')[0].reset();
         return true;
     })
 
@@ -719,7 +749,7 @@
     $(function () {
         let url = window.location.href;
         let urlParam = url.split('\?')[1];
-        if (urlParam.startsWith('email')){
+        if (urlParam.startsWith('email')) {
             let email = urlParam.split('&')[0];
             let uuid = urlParam.split('&')[1];
             $.ajax('active.do', {
@@ -757,10 +787,10 @@
                     }
                 }
             })
-        }else if (urlParam.startsWith('code')){
+        } else if (urlParam.startsWith('code')) {
             let code = urlParam.split('=')[1];
             $('#code').val(code);
-            receiveModal.find('form').attr('action','download/' + code)
+            receiveModal.find('form').attr('action', 'download/' + code)
             receiveModal.find('form').submit();
         }
     })
@@ -771,9 +801,9 @@
     $(function () {
         new ClipboardJS('#copyCode');
         new ClipboardJS('#copyText');
-        new ClipboardJS('#directLink',{
+        new ClipboardJS('#directLink', {
             container: codeModal[0],
-            text: function(){
+            text: function () {
                 return window.location.href.split('\?')[0] + $('#codeNumber').text();
             }
         });
@@ -786,16 +816,15 @@
         //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
         $(this).text('复制成功').css('backgroundColor', "#28a745")
     })
-    $('#directLink').on('click',function(){
+    $('#directLink').on('click', function () {
         toast4info.find('.toast-body').text('复制成功')
         toast4info.toast('show');
     })
-    $('#getQRCode').on('click',function(){
+    $('#getQRCode').on('click', function () {
         new QRCode($('#QRCode')[0], window.location.href.split('\?')[0] + $('#codeNumber').text());
         codeModal.modal('hide');
         $('#QRCodeModal').modal('show');
     })
-
 
 
     /**

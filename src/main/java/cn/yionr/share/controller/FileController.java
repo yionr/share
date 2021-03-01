@@ -27,24 +27,13 @@ public class FileController {
     }
 
     /**
-     * @return xxxx: 取件码; -2: 密码已修改; -1: 非法提升权限; 0: 临时文件创建失败; 1: 随机取件码算法出错; 2/4: 目标文件创建失败; 3: 数据库记录存储失败; 5: 文件复制失败
+     * @return xxxx: 取件码; 0: 临时文件创建失败; 1: 随机取件码算法出错; 2/4: 目标文件创建失败; 3: 数据库记录存储失败; 5: 文件复制失败
      */
     @PostMapping("/upload.do")
-    public String upload(MultipartFile file, SFile sFile, @RequestAttribute("visitor") Boolean visitor, HttpSession session,String text) throws Exception {
+    public String upload(MultipartFile file, SFile sFile, HttpSession session,String text) throws Exception {
 //      TODO 根据UID设置可上传的文件容量
         JSONObject json = new JSONObject();
         String email = (String) session.getAttribute("email");
-        if (visitor == null) {
-            log.warn("密码不正确，已阻止用户上传文件");
-            return json.put("status", -2).toString();
-        }
-        if (visitor || sFile.getTimes() > 99) {
-            if (sFile.getTimes() > 9) {
-                log.warn("用户权限不足，无法下载这么多次数，驳回");
-                return json.put("status", -1).toString();
-            }
-    }
-
 
         SFileWrapper sfw = new SFileWrapper();
         File tempf;
@@ -96,6 +85,64 @@ public class FileController {
 
         return json.toString();
 
+    }
+
+    /**
+     *
+     * @param size
+     * @param times
+     * @param visitor
+     * @return -3: 密码已修改;-2:文件容量超出上限 -1: 允许下载的次数超出上限;
+     * @throws JSONException
+     */
+    @PostMapping("/checkFile")
+    public String checkFile(String size,int times,@RequestAttribute("visitor") Boolean visitor) throws JSONException {
+        JSONObject json = new JSONObject();
+        if (visitor == null) {
+            log.warn("密码不正确，已阻止用户上传文件");
+            return json.put("status", -3).toString();
+        }
+        log.warn("文件容量为： " + size);
+        if (visitor) {
+            if (times > 9) {
+                log.warn("允许下载的次数超出上限");
+                return json.put("status", -1).toString();
+            }
+            if (bigger(size,1024*1024*100 + "")){
+                log.warn("文件容量超出上限");
+                return json.put("status", -2).toString();
+            }
+        }
+        else{
+//            注册用户，限制大于100次的上传，以及大于1G的文件上传
+            if (times > 99){
+                log.warn("允许下载的次数超出上限");
+                return json.put("status", -1).toString();
+            }
+            if (bigger(size,1024*1024*1024+"")){
+                log.warn("文件容量超出上限");
+                return json.put("status", -2).toString();
+            }
+        }
+        return json.put("status",1).toString();
+    }
+    public boolean bigger(String num1,String num2){
+        if (num1.length() > num2.length())
+            return true;
+        else if (num1.length() < num2.length())
+            return false;
+        else{
+            char[] n1 = num1.toCharArray();
+            char[] n2 = num2.toCharArray();
+            for (int i = 0; i < n1.length; i++) {
+                if (n1[i] > n2[i])
+                    return true;
+                else if (n1[i] < n2[i])
+                    return false;
+            }
+//            如果相等return false;
+            return false;
+        }
     }
 
     /**

@@ -14,7 +14,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 @Slf4j
-@WebFilter(filterName = "permissionFilter", urlPatterns = {"/upload.do"})
+@WebFilter(filterName = "permissionFilter", urlPatterns = {"/upload.do","/checkFile"})
 public class PermissionFilter implements Filter {
 
     UserMapper userMapper;
@@ -48,6 +48,8 @@ public class PermissionFilter implements Filter {
             log.info("游客操作");
             servletRequest.setAttribute("visitor", true);
         }
+//        限制文件大小要在这里，否则直接抛异常了
+//        FIXME 在配置文件中，将单文件容量加到10G，这样大部分时候都不会出现异常了
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
