@@ -21,7 +21,7 @@ public interface SFileMapper {
     String queryFile(String code);
 
     @Update("update sfile set times = times - 1 where fid=#{code}")
-    int decreaseTime(String code);
+    void decreaseTime(String code);
 
     @Select("select times from sfile where fid=#{code}")
     int queryTimes(String code);
@@ -30,7 +30,7 @@ public interface SFileMapper {
     String queryPassword(String code);
 
     @Delete("delete from sfile where fid=#{code}")
-    boolean delect(String code);
+    int delete(String code);
 
     @Select("select filetype from sfile where fid=#{code}")
     String queryFiletype(String code);

@@ -62,11 +62,11 @@
         }
 
         /*    TODO 待补全*/
-        .filegroup {
+        .fileGroup {
 
         }
 
-        .fileitem {
+        .fileItem {
 
         }
 
@@ -206,7 +206,7 @@
                             <div class="input-group mb-3">
                                 <input type="file" class="custom-file-input d-none" id="submitFile"
                                        aria-describedby="inputGroupFileAddon01" name="file" required>
-                                <div class="filegroup"></div>
+                                <div class="fileGroup"></div>
                             </div>
 
                             <div class="form-group">
@@ -447,7 +447,7 @@
             <div class="btn-group" role="group" aria-label="Basic example">
                 <button type="button" class="btn btn-outline-primary  px-5 mb-4 d-none" id="text">文本</button>
                 <button type="button" class="btn btn-outline-primary  px-5 mb-4" id="send">发送</button>
-                <button type="button" class="btn btn-outline-primary  px-5 mb-4 d-none" id="pic">图片</button>
+                <button type="button" class="btn btn-outline-primary  px-5 mb-4 d-none" id="image">图片</button>
             </div>
             <br>
             <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModal"
@@ -480,7 +480,11 @@
 
     let codeModal = $('#codeModal');
 
-    $('#oldPassword').on('blue',function(){
+    let tempCode;
+    let filetype = '';
+    let tempContent;
+
+    $('#oldPassword').on('blue', function () {
         $('#passwordHelperForOldPassword').addClass('d-none')
     })
     $('[action=changePassword]').submit(function () {
@@ -568,13 +572,23 @@
         })
         return false;
     })
-    let tempCode;
+    //TODO 发送文本有最大字数限制，防止太大的文本
     sendModal.find('form').submit(function () {
-        $.ajax('checkFile', {
-            data: {
+        let data;
+        if (filetype === 'text'){
+            data = {
+                size: tempContent.length*4,
+                times: $('#allowTimes-input').val()
+            }
+        }
+        else{
+            data = {
                 size: $('[name=file]')[0].files[0].size,
                 times: $('#allowTimes-input').val()
-            },
+            }
+        }
+        $.ajax('checkFile', {
+            data: data,
             type: 'post',
             dataType: 'json',
             success: function (data) {
@@ -593,7 +607,6 @@
                                     codeModal.modal('show')
                                 } else {
                                     switch (parseInt(status)) {
-
                                         case 0:
                                         case 2:
                                         case 4:
@@ -645,7 +658,6 @@
                 }
             }
         })
-
         return false;   //阻止表单默认提交
     })
     ;
@@ -680,11 +692,11 @@
                                     receiveModal.find('form')[0].reset();
                                     break;
                                 case 'file':
-                                    $('[name=check]').attr('value','false')
+                                    $('[name=check]').attr('value', 'false')
                                     receiveModal.find('form').submit();
                                     toast4code.find('.toast-body').text('取件成功')
                                     toast4code.toast('show');
-                                    $('[name=check]').attr('value','true')
+                                    $('[name=check]').attr('value', 'true')
                                     break;
                             }
                             receiveModal.find('.close').trigger('click');
@@ -709,6 +721,11 @@
                             receiveModal.find('[name=password]').val('')
                             receiveModal.find('.close').trigger('click');
                             break;
+                        case 4:
+                            toast4info.find('.toast-body').text('十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！')
+                            toast4info.toast('show');
+                            receiveModal.modal('hide');
+                            break;
                     }
                     return false;
                 }
@@ -718,45 +735,6 @@
         //FIXME 之前为什么要在这里加这一句
         // receiveModal.find('form')[0].reset();
         return true;
-    })
-
-    /**
-     *关闭模态框的时候重置表单,清空所有内容
-     */
-    regeditModal.on('hidden.bs.modal', function () {
-        $(this).find('form')[0].reset();
-    })
-    loginModal.on('hidden.bs.modal', function () {
-        $(this).find('form')[0].reset();
-    })
-    sendModal.on('hidden.bs.modal', function () {
-        $(this).find('form')[0].reset();
-        $(this).find('.filegroup').html('')
-    })
-    $('#sendTextModal').on('hidden.bs.modal', function () {
-        $(this).find('textarea').val('')
-    })
-    receiveModal.on('hidden.bs.modal', function () {
-        $(this).find('form')[0].reset();
-        $(this).find('.optional').css('height', 0);
-        $('#code').removeClass('border-success').removeAttr('readonly');
-        $('#code_password').attr('disabled', 'true')
-        $(this).find('form').attr('action', '')
-    })
-    codeModal.on('hidden.bs.modal', function () {
-        $('#copy').text('复制').css('backgroundColor', "#007bff")
-        $('.qrAndDl').addClass('d-none')
-        $('#codeNumber').text('')
-    })
-    $('#receiveTextModal').on('hidden.bs.modal', function () {
-        $('#copy').text('复制').css('backgroundColor', "#007bff")
-        $('#textContent').text('')
-    })
-    $('#QRCodeModal').on('hidden.bs.modal', function () {
-        $('#QRCode').html('');
-        $('.qrAndDl').removeClass('d-none')
-        $('#codeNumber').text(tempCode)
-        codeModal.modal('show');
     })
 
     /**
@@ -898,17 +876,16 @@
     /**
      * 初始化发送框
      * */
-    let filetype = '';
     $(function () {
         $('#send').on('mouseover', function () {
             $(this).text('文件')
             $('#text').removeClass('d-none');
-            $('#pic').removeClass('d-none');
+            $('#image').removeClass('d-none');
         })
         $('#send').parent().on('mouseleave', function () {
             $('#send').text('发送')
             $('#text').addClass('d-none');
-            $('#pic').addClass('d-none');
+            $('#image').addClass('d-none');
         })
         // 不同按钮点开，界面不一样。
         //点击文本则展示一个文本域
@@ -922,25 +899,22 @@
             file.removeAttr('accept')
             file.trigger('click')
         })
-        $('#pic').on('click', function () {
+        $('#image').on('click', function () {
             filetype = 'image'
             file.attr('accept', 'image/*')
             file.trigger('click')
         })
     })
-
     $('#sendTextModal').find('.modal-footer').find('button').on('click', function () {
-        let content = $('#sendTextModal').find('textarea').val();
-        console.log(content)
-        if (content.trim().length === 0) {
+        tempContent = $('#sendTextModal').find('textarea').val();
+        if (tempContent.trim().length === 0) {
             toast4info.find('.toast-body').text('内容请不要为空')
             toast4info.toast('show');
             return;
         }
-        let tempContent = content.length > 10 ? content.substr(0, 10) + '...' : content;
-        file.next('.filegroup').append('<div class="fileitem">' + tempContent + '</div>')
-        $('[name=file]').remove()
-        $('.filegroup').append('<textarea type="text" name="text" class="d-none">' + content + '</textarea>')
+        file.next('.fileGroup').append('<div class="fileItem">' + tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent + '</div>')
+        $('[name=file]').attr('disabled','true')
+        $('.fileGroup').append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
         sendModal.modal('show');
         $('#sendTextModal').find('textarea').val('')
     })
@@ -960,7 +934,7 @@
                 return;
             }
         //当有文件之后，显示模态框，并将数据显示
-        $(this).next('.filegroup').append($('<div class="fileitem">' + fileName + '</div>'));
+        $(this).next('.fileGroup').append($('<div class="fileItem">' + fileName + '</div>'));
         sendModal.modal('show');
     })
 
@@ -984,9 +958,6 @@
         })
     })
 
-    /**
-     * TODO 修改密码
-     */
     $('#changePassword').on('click', function () {
         $('#changePasswordModal').modal('show');
     })
@@ -1011,10 +982,49 @@
     $('#text').on('click', function () {
         $('[name=filetype]').val('text');
     })
-    $('#pic').on('click', function () {
+    $('#image').on('click', function () {
         $('[name=filetype]').val('image');
     })
 
+    /**
+     *关闭模态框的时候重置表单,清空所有内容
+     */
+    regeditModal.on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+    })
+    loginModal.on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+    })
+    sendModal.on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+        $(this).find('.fileGroup').html('')
+        $('[name=file]').removeAttr('disabled')
+    })
+    $('#sendTextModal').on('hidden.bs.modal', function () {
+        $(this).find('textarea').val('')
+    })
+    receiveModal.on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+        $(this).find('.optional').css('height', 0);
+        $('#code').removeClass('border-success').removeAttr('readonly');
+        $('#code_password').attr('disabled', 'true')
+        $(this).find('form').attr('action', '')
+    })
+    codeModal.on('hidden.bs.modal', function () {
+        $('#copy').text('复制').css('backgroundColor', "#007bff")
+        $('.qrAndDl').addClass('d-none')
+        $('#codeNumber').text('')
+    })
+    $('#receiveTextModal').on('hidden.bs.modal', function () {
+        $('#copy').text('复制').css('backgroundColor', "#007bff")
+        $('#textContent').text('')
+    })
+    $('#QRCodeModal').on('hidden.bs.modal', function () {
+        $('#QRCode').html('');
+        $('.qrAndDl').removeClass('d-none')
+        $('#codeNumber').text(tempCode)
+        codeModal.modal('show');
+    })
 </script>
 </body>
 </html>

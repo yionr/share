@@ -1,14 +1,13 @@
 package cn.yionr.share.service.impl;
 
-import cn.yionr.share.mapper.SFileMapper;
 import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
+import cn.yionr.share.mapper.SFileMapper;
 import cn.yionr.share.mapper.UserMapper;
-import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.FileService;
+import cn.yionr.share.service.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,8 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.*;
 
-@Slf4j @Service
+@Slf4j
+@Service
 public class FileServiceImpl implements FileService {
     SFileMapper sFileMapper;
     UserMapper userMapper;
@@ -67,32 +67,35 @@ public class FileServiceImpl implements FileService {
         if (!localImageFileDir.exists())
             localImageFileDir.mkdirs();
 
-//TODO        加了两个目录，这里会受到影响，到时候要重新写
         List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(localFileDir.list())));
+        localCodes.addAll(new ArrayList<>(Arrays.asList(Objects.requireNonNull(localTextFileDir.list()))));
+        localCodes.addAll(new ArrayList<>(Arrays.asList(Objects.requireNonNull(localImageFileDir.list()))));
 
         String[] remoteCodeArr = remoteCodes.toArray(new String[0]);
 
-        log.info("本地文件存储路径为： " + filePath);
-        log.info("数据库中保存有取件码: " + remoteCodes.toString());
-        log.info("本地含有取件码文件: " + localCodes.toString());
+        log.info("服务器文件存储路径为： " + filePath);
+        log.info("服务器文本存储路径为： " + textFilePath);
+        log.info("服务器图片存储路径为： " + imageFilePath);
+        log.info("=====================================");
+        log.info("数据库现有取件码: " + remoteCodes.toString());
+        log.info("本地现有取件码: " + localCodes.toString());
 
         for (String code : remoteCodeArr) {
             if (localCodes.contains(code)) {
-                log.debug("存在 " + code + " 即将清除。。。");
                 remoteCodes.remove(code);
                 localCodes.remove(code);
-                log.debug(code + " 清除完毕！");
             }
         }
 
         if (!remoteCodes.isEmpty()) {
 //            数据库中有取件码但是本地没有
-            log.warn("异常取件码: " + remoteCodes.toString() + " , 以上取件码只存在于数据库中，并没有本地文件对应");
+            log.error("异常取件码: " + remoteCodes.toString() + " , 以上取件码的本地文件已丢失！");
         }
         if (!localCodes.isEmpty()) {
 //            本地中有取件码但是数据库没有记录
-            log.warn("异常取件码: " + localCodes.toString() + " , 以上取件码只存在于本地，并没有数据库记录对应");
+            log.error("异常取件码: " + localCodes.toString() + " , 以上取件码的数据库记录已丢失！");
         }
+//        FIXME 这种方式要求三个文件夹不能有包含关系
     }
 
     public String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
@@ -119,18 +122,19 @@ public class FileServiceImpl implements FileService {
         }
         if (!dstFile.exists()) {
             if (dstFile.createNewFile()) {
+
                 try {
-                    IOUtils.copy(new FileInputStream(sfw.getFile()), new FileOutputStream(dstFile));
+                    FileUtils.copyFile(sfw.getFile(), dstFile);
+                    log.info("文件保存成功");
                 } catch (IOException e) {
                     log.warn("文件拷贝失败");
                     throw new CopyFailedException("文件拷贝失败");
                 }
-                log.info("文件保存成功");
                 if (sFileMapper.addSFile(sfw.getSFile()) == 1) {
                     log.info("记录存入数据库成功");
                     return sfw.getSFile().getFid();
                 } else {
-                    log.warn("记录存入数据库失败");
+                    log.warn("记录存入数据库失败,准备删除仓库文件");
                     if (dstFile.delete()) {
                         log.info("文件删除成功");
                     } else {
@@ -149,8 +153,7 @@ public class FileServiceImpl implements FileService {
     }
 
 
-
-    public Object download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException {
+    public Object download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, FileNotFoundException {
         String[] result = new String[2];
         if (sFileMapper.queryFile(code) != null) {
             String realPassword = sFileMapper.queryPassword(code);
@@ -160,7 +163,7 @@ public class FileServiceImpl implements FileService {
                         String filetype = sFileMapper.queryFiletype(code);
                         result[0] = filetype;
                         if (!filetype.equals("file"))
-                            result[1] = getContent(code,filetype);
+                            result[1] = getContent(code, filetype);
                         return result;
                     } else {
                         return getSFileWrapper(code);
@@ -176,7 +179,7 @@ public class FileServiceImpl implements FileService {
                         String filetype = sFileMapper.queryFiletype(code);
                         result[0] = filetype;
                         if (!filetype.equals("file"))
-                            result[1] = getContent(code,filetype);
+                            result[1] = getContent(code, filetype);
                         return result;
                     } else {
                         return getSFileWrapper(code);
@@ -188,16 +191,58 @@ public class FileServiceImpl implements FileService {
         }
 
     }
-    public String getContent(String code , String filetype){
+
+    @Override
+    public boolean deleteInfo(String code) {
+        switch (sFileMapper.delete(code)){
+            case 1:
+                log.info("数据库记录删除成功");
+                return true;
+            case 0:
+                log.warn("数据库没有记录被删除");
+                return false;
+            default:
+                log.warn("删除数据库记录返回了一个异常值！");
+                return false;
+        }
+    }
+
+    @Override
+    public boolean deleteFile(File file) throws FileNotFoundException {
+        if (!file.exists()){
+            throw new FileNotFoundException("要删除的文件不存在");
+        }
+        else{
+            if (file.delete()) {
+                log.info("文件删除成功");
+                return true;
+            }
+            else{
+                log.error("文件删除失败");
+                return false;
+            }
+        }
+    }
+
+    @Override
+    public boolean delete(File file, String code) throws FileNotFoundException {
+        return deleteInfo(code) && deleteFile(file);
+    }
+
+
+    //    FIXME 需要检测文件是否存在，如果不存在给前端报错
+    public String getContent(String code, String filetype) throws FileNotFoundException {
         String fileName = sFileMapper.queryFile(code);
-        if (fileName != null){
-            if (filetype.equals("text")){
-                File file = new File(textFilePath,code);
-                InputStreamReader reader = null;
+        if (fileName != null) {
+            if (filetype.equals("text")) {
+                File file = new File(textFilePath, code);
+                if (!file.exists())
+                    throw new FileNotFoundException("文件丢失");
+                InputStreamReader reader;
                 try {
                     reader = new InputStreamReader(new FileInputStream(file));
                     BufferedReader br = new BufferedReader(reader);
-                    String line = "";
+                    String line;
                     StringBuilder content;
                     line = br.readLine();
                     content = new StringBuilder();
@@ -205,61 +250,66 @@ public class FileServiceImpl implements FileService {
                         content.append(line).append("\n");
                         line = br.readLine(); // 一次读入一行数据
                     }
-                    decreaseTimes(code,file);
+                    reader.close();
+                    br.close();
+                    decreaseTimes(code, file);
                     return content.toString();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("读取文本时出现错误");
                 }
-            }else {
+            } else {
                 try {
-                    File file = new File(imageFilePath,code);
+                    File file = new File(imageFilePath, code);
                     String result = Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(file));
-                    decreaseTimes(code,file);
+                    decreaseTimes(code, file);
                     return result;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-        }
-        else {
+        } else {
             return null;
         }
         return "";
     }
 
-    public SFileWrapper getSFileWrapper(String code) {
+    public SFileWrapper getSFileWrapper(String code) throws FileNotFoundException {
         String fileName = sFileMapper.queryFile(code);
         if (fileName != null) {
 //            取件码有效，文件在数据库中存在的话
-            SFileWrapper sFileWrapper = SFileWrapper.builder().
-                    file(new File(filePath, code)).
-                    sFile(SFile.builder().name(fileName).build()).
-                    build();
-            decreaseTimes(code,sFileWrapper.getFile());
-            return sFileWrapper;
+            File srcFile = new File(filePath, code);
+            if (!srcFile.exists())
+                throw new FileNotFoundException("文件丢失");
+            File tempFile;
+            try {
+                tempFile = File.createTempFile("tempFile", "temp");
+                FileUtils.copyFile(srcFile, tempFile);
+                log.info("保存到临时文件的文件大小为" + FileUtils.sizeOf(tempFile));
+                SFileWrapper sFileWrapper = SFileWrapper.builder().
+                        file(tempFile).
+                        sFile(SFile.builder().name(fileName).build()).
+                        build();
+                decreaseTimes(code, srcFile);
+                return sFileWrapper;
+            } catch (IOException e) {
+                log.error("临时文件创建失败/拷贝文件失败");
+                return null;
+            }
+
         } else {
 //            code invalid
             return null;
         }
     }
 
-    /**
-     *
-     * @param code
-     * @param file
-     * @return 剩余下载次数
-     */
-    public int decreaseTimes(String code,File file){
+    public void decreaseTimes(String code, File file) throws FileNotFoundException {
         sFileMapper.decreaseTime(code);
         int times = sFileMapper.queryTimes(code);
 //            如果取件次数上限，则删掉数据库记录，并删掉文件
-        if (times <= -1) {
-            sFileMapper.delect(code);
-//                如果在这里删掉则会导致接下来Controller无法获取到文件，直接少了一次下载次数，所以可以暂时将小于0改为小于-1顶替一下
-            file.delete();
+        log.info("该文件剩余下载次数：" + times);
+        if (times <= 0) {
+            log.info("该文件下载次数已用完，即将删除数据库和仓库数据");
+            delete(file, code);
         }
-        return times;
     }
 }

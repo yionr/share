@@ -33,6 +33,8 @@ build/
 .vscode/
 /src/main/resources/application-database.properties
 /src/main/resources/files/
+/src/main/resources/text/
+/src/main/resources/image/
 /out/
 /src/test/
 /src/main/resources/application-mail.properties

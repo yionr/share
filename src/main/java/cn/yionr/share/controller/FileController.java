@@ -88,12 +88,7 @@ public class FileController {
     }
 
     /**
-     *
-     * @param size
-     * @param times
-     * @param visitor
      * @return -3: 密码已修改;-2:文件容量超出上限 -1: 允许下载的次数超出上限;
-     * @throws JSONException
      */
     @PostMapping("/checkFile")
     public String checkFile(String size,int times,@RequestAttribute("visitor") Boolean visitor) throws JSONException {
@@ -147,15 +142,12 @@ public class FileController {
 
     /**
      * 要做code下载文件的方式的话，得摒弃之前的下载方式，全权由这一种方式来下载
-     *
-     * @param response
-     * @param
-     * @return ”非法的下载请求“:非法的下载请求 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
+     * @return ”非法的下载请求“:非法的下载请求 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误 4: 服务器文件被异常删除，用户文件丢失
      */
     @GetMapping("/download/{code}")
     public String download(@PathVariable("code") String code, String password, boolean check, HttpServletResponse response) throws IOException, JSONException {
+        JSONObject json = new JSONObject();
         if (code.trim().matches("\\d{4}")) {
-            JSONObject json = new JSONObject();
             if (check) {
                 log.info("开始检查取件码");
                 try {
@@ -171,17 +163,27 @@ public class FileController {
                 } catch (CodeNotFoundException e) {
                     log.info("取件码不存在");
                     return json.put("status", 0).toString();
+                } catch (FileNotFoundException e) {
+                    log.info("取件码不存在");
+                    return "十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！";
                 }
             } else {
                 log.info("准备下载文件");
                 try {
-                    return sendFile(response, (SFileWrapper) fileService.download(code, password, false)) + "";
-                }catch (Exception e) {
+                    SFileWrapper sfw = (SFileWrapper) fileService.download(code, password, false);
+                    return sendFile(response, sfw) + "";
+                } catch (FileNotFoundException e) {
+                    log.info("服务器文件被其他动作删除，该用户文件丢失");
+//                    return json.put("status",4).toString();
+//                    FIXME 这里先临时用这种方法替代一下，如果要完善得把文件存在的校验放到check校验中去
+                    fileService.deleteInfo(code);
+                    return "十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！";
+                } catch (CodeNotFoundException | WrongPasswordException | NeedPasswordException e) {
                     return json.put("status", "非法的下载请求！").toString();
                 }
             }
         } else {
-            return null;
+            return json.put("status", 0).toString();
         }
     }
     @GetMapping("/????")
@@ -201,7 +203,6 @@ public class FileController {
         } catch (UnsupportedEncodingException e) {
             return -1;
         }
-
         try {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sFileWrapper.getFile()));
             byte[] buff = new byte[1024];
@@ -211,6 +212,7 @@ public class FileController {
                 os.write(buff, 0, i);
                 os.flush();
             }
+            bis.close();
             return 1;
         } catch (IOException e) {
             return -1;
