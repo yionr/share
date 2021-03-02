@@ -17,7 +17,8 @@ import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLEncoder;
 
-@Slf4j @RestController
+@Slf4j
+@RestController
 public class FileController {
     FileService fileService;
 
@@ -30,45 +31,44 @@ public class FileController {
      * @return xxxx: 取件码; 0: 临时文件创建失败; 1: 随机取件码算法出错; 2/4: 目标文件创建失败; 3: 数据库记录存储失败; 5: 文件复制失败
      */
     @PostMapping("/upload.do")
-    public String upload(MultipartFile file, SFile sFile, HttpSession session,String text) throws Exception {
-//      TODO 根据UID设置可上传的文件容量
+    public String upload(MultipartFile file, SFile sFile, HttpSession session, String text) throws Exception {
         JSONObject json = new JSONObject();
         String email = (String) session.getAttribute("email");
 
         SFileWrapper sfw = new SFileWrapper();
         File tempf;
 
-        if (sFile.getFiletype().equals("text")){
+        if (sFile.getFiletype().equals("text")) {
 //            如果是text的话，没有file，也灭有name，其他几项 fid uid times password 都搞定， name由fid决定，放在service中加就行
             try {
                 tempf = File.createTempFile("tempfile", "temp");
                 log.info("文本为：" + text);
                 FileWriter writer = new FileWriter(tempf);
                 writer.write(text);
+                log.info("承载文本的临时文件已创建成功");
                 writer.close();
             } catch (IOException e) {
-                log.warn("临时文件创建失败");
+                log.error("临时文件创建失败");
                 return json.put("status", 0).toString();
             }
-        }
-        else if (sFile.getFiletype().equals("image") || sFile.getFiletype().equals("file")){
+        } else if (sFile.getFiletype().equals("image") || sFile.getFiletype().equals("file")) {
 //            设置描述
             sFile.setName(file.getOriginalFilename());
 //            将文件流保存到临时文件
             try {
                 tempf = File.createTempFile("tempfile", "temp");
                 file.transferTo(tempf);
+                log.info("临时文件创建成功");
             } catch (IOException e) {
                 log.warn("临时文件创建失败");
                 return json.put("status", 0).toString();
             }
 
-        }else{
+        } else {
             throw new Exception("前台filetype遭到篡改！");
         }
         sfw.setSFile(sFile);
         sfw.setFile(tempf);
-        log.info(sFile.toString());
         try {
             json.put("status", fileService.upload(sfw, email));
         } catch (AlogrithmException e) {
@@ -91,7 +91,7 @@ public class FileController {
      * @return -3: 密码已修改;-2:文件容量超出上限 -1: 允许下载的次数超出上限;
      */
     @PostMapping("/checkFile")
-    public String checkFile(String size,int times,@RequestAttribute("visitor") Boolean visitor) throws JSONException {
+    public String checkFile(String size, int times, @RequestAttribute("visitor") Boolean visitor) throws JSONException {
         JSONObject json = new JSONObject();
         if (visitor == null) {
             log.warn("密码不正确，已阻止用户上传文件");
@@ -103,30 +103,30 @@ public class FileController {
                 log.warn("允许下载的次数超出上限");
                 return json.put("status", -1).toString();
             }
-            if (bigger(size,1024*1024*100 + "")){
+            if (bigger(size, 1024 * 1024 * 100 + "")) {
                 log.warn("文件容量超出上限");
                 return json.put("status", -2).toString();
             }
-        }
-        else{
+        } else {
 //            注册用户，限制大于100次的上传，以及大于1G的文件上传
-            if (times > 99){
+            if (times > 99) {
                 log.warn("允许下载的次数超出上限");
                 return json.put("status", -1).toString();
             }
-            if (bigger(size,1024*1024*1024+"")){
+            if (bigger(size, 1024 * 1024 * 1024 + "")) {
                 log.warn("文件容量超出上限");
                 return json.put("status", -2).toString();
             }
         }
-        return json.put("status",1).toString();
+        return json.put("status", 1).toString();
     }
-    public boolean bigger(String num1,String num2){
+
+    public boolean bigger(String num1, String num2) {
         if (num1.length() > num2.length())
             return true;
         else if (num1.length() < num2.length())
             return false;
-        else{
+        else {
             char[] n1 = num1.toCharArray();
             char[] n2 = num2.toCharArray();
             for (int i = 0; i < n1.length; i++) {
@@ -142,6 +142,7 @@ public class FileController {
 
     /**
      * 要做code下载文件的方式的话，得摒弃之前的下载方式，全权由这一种方式来下载
+     *
      * @return ”非法的下载请求“:非法的下载请求 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误 4: 服务器文件被异常删除，用户文件丢失
      */
     @GetMapping("/download/{code}")
@@ -153,7 +154,7 @@ public class FileController {
                 try {
                     String[] fileinfo = (String[]) fileService.download(code, password, true);
                     log.info("取件码正常");
-                    return json.put("status", 1).put("filetype",fileinfo[0]).put("content",fileinfo[1]).toString();
+                    return json.put("status", 1).put("filetype", fileinfo[0]).put("content", fileinfo[1]).toString();
                 } catch (NeedPasswordException e) {
                     log.info("该取件码需要密码");
                     return json.put("status", 2).toString();
@@ -186,11 +187,12 @@ public class FileController {
             return json.put("status", 0).toString();
         }
     }
+
     @GetMapping("/????")
-    public String redir(HttpServletRequest request){
+    public String redir(HttpServletRequest request) {
         log.info("redir!");
 
-        return "<meta http-equiv=\"Refresh\" content=\"0; URL=/?code=" + request.getRequestURI().substring(1) +"\" />";
+        return "<meta http-equiv=\"Refresh\" content=\"0; URL=/?code=" + request.getRequestURI().substring(1) + "\" />";
     }
 
     public int sendFile(HttpServletResponse response, SFileWrapper sFileWrapper) {
@@ -213,6 +215,13 @@ public class FileController {
                 os.flush();
             }
             bis.close();
+            log.info("文件已传输完毕，即将删除临时文件");
+            if (sFileWrapper.getFile().delete()) {
+                log.info("临时文件删除成功");
+            }
+            else{
+                log.warn("临时文件删除失败，文件存放在：" + sFileWrapper.getFile().getAbsolutePath());
+            }
             return 1;
         } catch (IOException e) {
             return -1;

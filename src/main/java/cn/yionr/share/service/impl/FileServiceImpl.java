@@ -150,10 +150,14 @@ public class FileServiceImpl implements FileService {
         }
         if (!dstFile.exists()) {
             if (dstFile.createNewFile()) {
-
                 try {
                     FileUtils.copyFile(sfw.getFile(), dstFile);
-                    log.info("文件保存成功");
+                    log.info("文件保存成功,即将删除临时文件");
+                    if (sfw.getFile().delete()) {
+                        log.info("临时文件删除成功");
+                    }else {
+                        log.warn("临时文件删除失败");
+                    }
                 } catch (IOException e) {
                     log.warn("文件拷贝失败");
                     throw new CopyFailedException("文件拷贝失败");
@@ -171,11 +175,11 @@ public class FileServiceImpl implements FileService {
                     throw new FailedSaveIntoDBException("记录存入数据库失败");
                 }
             } else {
-                log.warn("文件创建失败");
+                log.error("文件创建失败");
                 throw new FailedCreateFileException("文件创建失败");
             }
         } else {
-            log.info("该取件码已有对应文件，算法出现错误！");
+            log.error("该取件码已有对应文件，算法出现错误！");
             throw new AlogrithmException("该取件码已有对应文件，算法出现错误！");
         }
     }
@@ -312,7 +316,6 @@ public class FileServiceImpl implements FileService {
             try {
                 tempFile = File.createTempFile("tempFile", "temp");
                 FileUtils.copyFile(srcFile, tempFile);
-                log.info("保存到临时文件的文件大小为" + FileUtils.sizeOf(tempFile));
                 SFileWrapper sFileWrapper = SFileWrapper.builder().
                         file(tempFile).
                         sFile(SFile.builder().name(fileName).build()).
