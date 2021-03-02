@@ -60,12 +60,36 @@ public class FileServiceImpl implements FileService {
         File localTextFileDir = new File(textFilePath);
         File localImageFileDir = new File(imageFilePath);
 
-        if (!localFileDir.exists())
-            localFileDir.mkdirs();
-        if (!localTextFileDir.exists())
-            localTextFileDir.mkdirs();
-        if (!localImageFileDir.exists())
-            localImageFileDir.mkdirs();
+        if (!localFileDir.exists()){
+            log.warn("文件存放目录不存在，即将自动创建");
+            if (localFileDir.mkdirs())
+                log.info("创建成功");
+            else
+                log.error("创建失败");
+        }
+
+        if (!localTextFileDir.exists()){
+            log.warn("文本存放目录不存在，即将自动创建");
+            if (localTextFileDir.mkdirs())
+                log.info("创建成功");
+            else {
+                log.error("创建失败");
+                System.exit(0);
+            }
+
+        }
+
+        if (!localImageFileDir.exists()){
+            log.warn("图片存放目录不存在，即将自动创建");
+            if (localImageFileDir.mkdirs())
+                log.info("创建成功");
+            else {
+                log.error("创建失败");
+                System.exit(0);
+            }
+
+        }
+
 
         List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(localFileDir.list())));
         localCodes.addAll(new ArrayList<>(Arrays.asList(Objects.requireNonNull(localTextFileDir.list()))));
@@ -87,13 +111,17 @@ public class FileServiceImpl implements FileService {
             }
         }
 
-        if (!remoteCodes.isEmpty()) {
+        if (remoteCodes.isEmpty() && localCodes.isEmpty())
+            log.info("数据库取件码与本地文件一一对应，没有异常取件码！");
+        else{
+            if (!remoteCodes.isEmpty()) {
 //            数据库中有取件码但是本地没有
-            log.error("异常取件码: " + remoteCodes.toString() + " , 以上取件码的本地文件已丢失！");
-        }
-        if (!localCodes.isEmpty()) {
+                log.error("异常取件码: " + remoteCodes.toString() + " , 以上取件码的本地文件已丢失！");
+            }
+            if (!localCodes.isEmpty()) {
 //            本地中有取件码但是数据库没有记录
-            log.error("异常取件码: " + localCodes.toString() + " , 以上取件码的数据库记录已丢失！");
+                log.error("异常取件码: " + localCodes.toString() + " , 以上取件码的数据库记录已丢失！");
+            }
         }
 //        FIXME 这种方式要求三个文件夹不能有包含关系
     }

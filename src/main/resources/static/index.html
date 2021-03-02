@@ -18,12 +18,6 @@
             height: 100%;
         }
 
-        label.custom-file-label {
-            text-overflow: ellipsis; /*文字如果超出后，以省略号的形式展现*/
-            overflow: hidden; /*超出要裁掉*/
-            white-space: nowrap; /*文字不换行*/
-        }
-
         #toast4code {
             position: absolute;
             bottom: 0;
@@ -193,7 +187,9 @@
         <div class="modal-content">
             <form action="upload.do" method="post" enctype="multipart/form-data">
                 <!--                标记文本类型，file / text / image   -->
-                <input type="text" value="file" name="filetype" style="display: none"/>
+                <label>
+                    <input type="text" value="file" name="filetype" style="display: none"/>
+                </label>
                 <div class="modal-header">
                     <h5 class="modal-title" id="sendLabel">发送</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -265,7 +261,7 @@
             </div>
             <div class="modal-body">
                 <div>
-                    <textarea name="content" id="textarea" placeholder="输入文字"></textarea>
+                    <label for="textarea"></label><textarea name="content" id="textarea" placeholder="输入文字"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -281,7 +277,9 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="">
-                <input type="text" name="check" value="true" readonly style="display: none">
+                <label>
+                    <input type="text" name="check" value="true" readonly style="display: none"/>
+                </label>
                 <div class="modal-header">
                     <h5 class="modal-title" id="receiveLabel">接收</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -441,24 +439,30 @@
 <main class="container">
     <div class="row h-100 justify-content-center align-content-center">
         <div class="col-8 text-center">
-            <!--            <button type="button" class="btn btn-outline-primary px-5 mb-4" data-toggle="modal" data-target="#sendModal"-->
-            <!--                    id="send">发送-->
-            <!--            </button>-->
-            <div class="btn-group" role="group" aria-label="Basic example">
+            <div class="btn-group d-block" role="group">
                 <button type="button" class="btn btn-outline-primary  px-5 mb-4 d-none" id="text">文本</button>
                 <button type="button" class="btn btn-outline-primary  px-5 mb-4" id="send">发送</button>
                 <button type="button" class="btn btn-outline-primary  px-5 mb-4 d-none" id="image">图片</button>
             </div>
-            <br>
-            <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal" data-target="#receiveModal"
-                    id="receive">接收
-            </button>
+            <div class="btn-group d-block" role="group">
+                <button type="button" class="btn btn-outline-primary px-5" data-toggle="modal"
+                        data-target="#receiveModal" id="receive">接收
+                </button>
+            </div>
         </div>
     </div>
 </main>
-<footer>
-
+<footer class="position-absolute" style="bottom: 0">
+    <div class="card bg-light mb-3" style="max-width: 18rem;">
+        <div class="card-header">网站信息</div>
+        <div class="card-body">
+            <p class="card-text">©2020 Yionr</p>
+            <p class="card-text"><a href="https://beian.miit.gov.cn" target="_blank">浙ICP备19047112号-2</a></p>
+            <p class="card-text"><a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33102202000473"><img src="img/beian.png" alt="公安备案"/>浙公网安备 33102202000473号</a></p>
+        </div>
+    </div>
 </footer>
+
 
 <script src="js/jquery/jquery-3.5.1.js"></script>
 <script src="js/jquery/jquery.form.js"></script>
@@ -466,24 +470,265 @@
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
-    let toast4info = $('#toast4info');
-    let toast4code = $('#toast4code');
+    let toast4info = $('#toast4info')
+    let toast4code = $('#toast4code')
 
     let regeditModal = $('#regeditModal')
     let loginModal = $('#loginModal')
-
     let receiveModal = $('#receiveModal')
-    let optional = $('.optional')
-
     let sendModal = $('#sendModal')
-    let file = $('[name=file]');
+    let codeModal = $('#codeModal')
+    let QRCodeModal = $('#QRCodeModal')
+    let receiveTextModal = $('#receiveTextModal')
+    let sendTextModal = $('#sendTextModal')
+    let imageModal = $('#imageModal')
 
-    let codeModal = $('#codeModal');
+    let optional = $('.optional')
+    let file = $('[name=file]')
+    let check = $('[name=check]')
+    let send = $('#send')
+    let image = $('#image')
+    let text = $('#text')
+    let filetype = $('[name=filetype]');
+    let tempCode, tempContent
 
-    let tempCode;
-    let filetype = '';
-    let tempContent;
+    /**
+     * 当输入取件码时，同步改变action
+     */
+    $('#code').on('change', function () {
+        receiveModal.find('form').attr('action', 'download/' + $('#code').val())
+    })
 
+    /**
+     * 添加快捷键
+     */
+    $('.modal:not(#sendTextModal)').on('show.bs.modal', function () {
+        $(this)[0].addEventListener('keypress', kp)
+    }).on('hide.bs.modal', function () {
+        $(this)[0].removeEventListener('keypress', kp)
+    })
+
+    function kp(e) {
+        if (e.key === 'Enter') {
+            //    发送或者接收
+            console.log($(this))
+            $(this).find('.btn-primary').trigger('click')
+        }
+    }
+
+    /**
+     * 自动登录
+     */
+    $(function () {
+        $.ajax('login.do', {
+            method: 'POST',
+            success: function (data) {
+                switch (JSON.parse(data).status) {
+                    case 1:
+                        let email = localStorage.getItem('email');
+                        if (email !== null) {
+                            //    localStorage存在
+                            login(email);
+                        }
+                        break;
+                    case 0:
+                        toast4info.find('.toast-body').text('上次登录后密码已修改，请重新登录')
+                        toast4info.toast('show');
+                        //清空session和localStorage
+                        if (localStorage.getItem('email') !== null) {
+                            localStorage.removeItem('email')
+                        }
+                        break;
+                }
+            }
+        })
+    })
+
+    /**
+     * 带参url检测
+     */
+    $(function () {
+        let url = window.location.href;
+        let urlParam = url.split('\?')[1];
+        if (urlParam.startsWith('email')) {
+            let email = urlParam.split('&')[0];
+            let uuid = urlParam.split('&')[1];
+            $.ajax('active.do', {
+                method: 'POST',
+                data: {
+                    email: email.split('=')[1],
+                    uuid: uuid.split('=')[1]
+                },
+                success: function (data) {
+                    console.log(data)
+                    switch (JSON.parse(data).status) {
+                        case 1:
+                            //激活成功，提示并自动登录
+                            toast4code.find('.toast-body').text('激活成功，将为您自动登录')
+                            toast4code.toast('show');
+                            //将邮箱存入localStorage
+                            localStorage.setItem('email', email.split('=')[1])
+                            setTimeout(function () {
+                                window.location.href = url.split('\?')[0]
+                            }, 1000)
+                            break;
+                        case -1:
+                            toast4info.find('.toast-body').text('激活链接过期了，请重新注册！')
+                            toast4info.toast('show');
+                            setTimeout(function () {
+                                window.location.href = url.split('\?')[0]
+                            }, 3000)
+                            break;
+                        case 0:
+                        case -2:
+                        case -3:
+                            window.location.href = url.split('\?')[0]
+                            break;
+                    }
+                }
+            })
+        } else if (urlParam.startsWith('code')) {
+            let code = urlParam.split('=')[1];
+            $('#code').val(code);
+            receiveModal.find('form').attr('action', 'download/' + code)
+            receiveModal.find('form').submit();
+            history.pushState(null,'','/');
+        }
+    })
+
+    /**
+     * 初始化剪切板
+     **/
+    $(function () {
+        new ClipboardJS('#copyCode');
+        new ClipboardJS('#copyText');
+        new ClipboardJS('#directLink', {
+            container: codeModal[0],
+            text: function () {
+                return window.location.href.split('\?')[0] + $('#codeNumber').text();
+            }
+        });
+    })
+
+    /**
+     * 初始化发送框
+     * */
+    $(function () {
+        send.on('mouseover', function () {
+            $(this).text('文件')
+            text.removeClass('d-none');
+            image.removeClass('d-none');
+        })
+        send.parent().on('mouseleave', function () {
+            send.text('发送')
+            text.addClass('d-none');
+            image.addClass('d-none');
+        })
+        // 不同按钮点开，界面不一样。
+        //点击文本则展示一个文本域
+        text.on('click', function () {
+            filetype.attr('value', 'text');
+            sendTextModal.modal('show');
+        })
+        //点击文件则直接让用户选择文件
+        send.on('click', function () {
+            filetype.attr('value', 'file');
+            file.removeAttr('accept')
+            file.trigger('click')
+        })
+        image.on('click', function () {
+            filetype.attr('value', 'image');
+            file.attr('accept', 'image/*')
+            file.trigger('click')
+        })
+    })
+
+    $('#copyCode').on('click', function () {
+        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
+        $(this).text('复制成功').css('backgroundColor', "#28a745")
+    })
+    $('#copyText').on('click', function () {
+        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
+        $(this).text('复制成功').css('backgroundColor', "#28a745")
+    })
+    $('#directLink').on('click', function () {
+        toast4info.find('.toast-body').text('复制成功')
+        toast4info.toast('show');
+    })
+    $('#getQRCode').on('click', function () {
+        new QRCode($('#QRCode')[0], window.location.href.split('\?')[0] + $('#codeNumber').text());
+        codeModal.modal('hide');
+        QRCodeModal.modal('show');
+    })
+
+    $('#regPassword').on('blur', function () {
+        if (!$('#regPassword')[0].checkValidity()) {
+            $('#passwordHelpInline').removeClass('d-none')
+        } else {
+            $('#passwordHelpInline').addClass('d-none')
+        }
+    })
+
+
+    sendTextModal.find('.modal-footer').find('button').on('click', function () {
+        tempContent = sendTextModal.find('textarea').val();
+        if (tempContent.trim().length === 0) {
+            toast4info.find('.toast-body').text('内容请不要为空')
+            toast4info.toast('show');
+            return;
+        }
+        file.next('.fileGroup').append('<div class="fileItem">' + tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent + '</div>')
+        file.attr('disabled', 'true')
+        $('.fileGroup').append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
+        sendModal.modal('show');
+        sendTextModal.find('textarea').val('')
+    })
+    /**
+     * 选择文件后显示模态框，并显示文件名
+     */
+    file.on('change', function () {
+        //C:\fakepath\接收.png
+        let absoluteFileName = $(this).val().split('\\');
+        //接收.png
+        let fileName = absoluteFileName[absoluteFileName.length - 1]
+        if (filetype.attr('value') === 'image')
+            if (!/\.(gif|svg|bmp|png|jpeg|jpg|wepb|ico|tif)$/i.test(fileName)) {
+                //    警告不是图片文件，并return
+                toast4info.find('.toast-body').text('该文件不是图片，请重新选择，或使用‘文件’通道上传')
+                toast4info.toast('show');
+                return;
+            }
+        //当有文件之后，显示模态框，并将数据显示
+        $(this).next('.fileGroup').append($('<div class="fileItem">' + fileName + '</div>'));
+        sendModal.modal('show');
+    })
+
+    /**
+     * 退出登录
+     */
+    $('#exitLogin').on('click', function () {
+        //本地先执行退出的动作，和login相反，然后ajax给服务器发送请求，删除session，然后删除localStorage
+        $.ajax('exit.do', {
+            method: 'POST',
+            success: function (data) {
+                if (JSON.parse(data).status === 0) {
+                    toast4code.find('.toast-body').text('已退出登录')
+                    toast4code.toast('show');
+                    setTimeout(function () {
+                        exit()
+                    }, 1000);
+                    localStorage.removeItem('email');
+                }
+            }
+        })
+    })
+
+    /**
+     * 修改密码
+     */
+    $('#changePassword').on('click', function () {
+        $('#changePasswordModal').modal('show');
+    })
     $('#oldPassword').on('blue', function () {
         $('#passwordHelperForOldPassword').addClass('d-none')
     })
@@ -508,6 +753,23 @@
         return false;
     })
 
+    function login(email) {
+        //    移除按钮，替换为邮箱，带一个下拉框，内容包含两个按钮 修改密码和退出登录
+        $('#log-reg-btn').addClass('d-none');
+        $('#logged').removeClass('d-none').find('button').text(email);
+        //    让允许下载的次数范围变大
+        $('#allowTimes-input').attr('max', 99)
+    }
+
+    function exit() {
+        $('#log-reg-btn').removeClass('d-none');
+        $('#logged').addClass('d-none').find('button').text('');
+        $('#allowTimes-input').attr('max', 9)
+    }
+
+    /**
+     * ajax拦截表单提交
+     */
     regeditModal.find('form').submit(function () {
         $(this).ajaxSubmit({
             success: function (data) {
@@ -572,18 +834,16 @@
         })
         return false;
     })
-    //TODO 发送文本有最大字数限制，防止太大的文本
     sendModal.find('form').submit(function () {
         let data;
-        if (filetype === 'text'){
+        if (filetype.attr('value') === 'text') {
             data = {
-                size: tempContent.length*4,
+                size: tempContent.length * 4,
                 times: $('#allowTimes-input').val()
             }
-        }
-        else{
+        } else {
             data = {
-                size: $('[name=file]')[0].files[0].size,
+                size: file[0].files[0].size,
                 times: $('#allowTimes-input').val()
             }
         }
@@ -660,16 +920,8 @@
         })
         return false;   //阻止表单默认提交
     })
-    ;
-    /**
-     * 当输入取件码时，同步改变action
-     */
-    $('#code').on('change', function () {
-        receiveModal.find('form').attr('action', 'download/' + $('#code').val())
-    })
-
     receiveModal.find('form').submit(function () {
-        if ($('[name=check]').attr('value') === 'true') {
+        if (check.attr('value') === 'true') {
             $(this).ajaxSubmit({
                 success: function (data) {
                     switch (JSON.parse(data).status) {
@@ -683,20 +935,20 @@
                                 case 'text':
                                     //弹出一个显示框，将文本显示在里面
                                     $('#textContent').text(JSON.parse(data).content)
-                                    $('#receiveTextModal').modal('show')
+                                    receiveTextModal.modal('show')
                                     receiveModal.find('form')[0].reset();
                                     break;
                                 case 'image':
                                     $('.image').find('img').attr('src', 'data:image/png;base64,' + JSON.parse(data).content)
-                                    $('#imageModal').modal('show')
+                                    imageModal.modal('show')
                                     receiveModal.find('form')[0].reset();
                                     break;
                                 case 'file':
-                                    $('[name=check]').attr('value', 'false')
+                                    check.attr('value', 'false')
                                     receiveModal.find('form').submit();
                                     toast4code.find('.toast-body').text('取件成功')
                                     toast4code.toast('show');
-                                    $('[name=check]').attr('value', 'true')
+                                    check.attr('value', 'true')
                                     break;
                             }
                             receiveModal.find('.close').trigger('click');
@@ -738,255 +990,6 @@
     })
 
     /**
-     * 添加快捷键
-     */
-    $('.modal:not(#sendTextModal)').on('show.bs.modal', function () {
-        $(this)[0].addEventListener('keypress', kp)
-    }).on('hide.bs.modal', function () {
-        $(this)[0].removeEventListener('keypress', kp)
-    })
-
-    function kp(e) {
-        if (e.key === 'Enter') {
-            //    发送或者接收
-            console.log($(this))
-            $(this).find('.btn-primary').trigger('click')
-        }
-    }
-
-    /**
-     * 自动登录
-     */
-    $(function () {
-        $.ajax('login.do', {
-            method: 'POST',
-            success: function (data) {
-                switch (JSON.parse(data).status) {
-                    case 1:
-                        let email = localStorage.getItem('email');
-                        if (email !== null) {
-                            //    localStorage存在
-                            login(email);
-                        }
-                        break;
-                    case 0:
-                        toast4info.find('.toast-body').text('上次登录后密码已修改，请重新登录')
-                        toast4info.toast('show');
-                        //清空session和localStorage
-                        if (localStorage.getItem('email') !== null) {
-                            localStorage.removeItem('email')
-                        }
-                        break;
-                }
-            }
-        })
-    })
-
-    /**
-     * 带参url检测
-     */
-    $(function () {
-        let url = window.location.href;
-        let urlParam = url.split('\?')[1];
-        if (urlParam.startsWith('email')) {
-            let email = urlParam.split('&')[0];
-            let uuid = urlParam.split('&')[1];
-            $.ajax('active.do', {
-                method: 'POST',
-                data: {
-                    email: email.split('=')[1],
-                    uuid: uuid.split('=')[1]
-                },
-                success: function (data) {
-                    console.log(data)
-                    switch (JSON.parse(data).status) {
-
-                        case 1:
-                            //激活成功，提示并自动登录
-                            toast4code.find('.toast-body').text('激活成功，将为您自动登录')
-                            toast4code.toast('show');
-                            //将邮箱存入localStorage
-                            localStorage.setItem('email', email.split('=')[1])
-                            setTimeout(function () {
-                                window.location.href = url.split('\?')[0]
-                            }, 1000)
-                            break;
-                        case -1:
-                            toast4info.find('.toast-body').text('激活链接过期了，请重新注册！')
-                            toast4info.toast('show');
-                            setTimeout(function () {
-                                window.location.href = url.split('\?')[0]
-                            }, 3000)
-                            break;
-                        case 0:
-                        case -2:
-                        case -3:
-                            window.location.href = url.split('\?')[0]
-                            break;
-                    }
-                }
-            })
-        } else if (urlParam.startsWith('code')) {
-            let code = urlParam.split('=')[1];
-            $('#code').val(code);
-            receiveModal.find('form').attr('action', 'download/' + code)
-            receiveModal.find('form').submit();
-        }
-    })
-
-    /**
-     * 初始化剪切板
-     **/
-    $(function () {
-        new ClipboardJS('#copyCode');
-        new ClipboardJS('#copyText');
-        new ClipboardJS('#directLink', {
-            container: codeModal[0],
-            text: function () {
-                return window.location.href.split('\?')[0] + $('#codeNumber').text();
-            }
-        });
-    })
-    $('#copyCode').on('click', function () {
-        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
-        $(this).text('复制成功').css('backgroundColor', "#28a745")
-    })
-    $('#copyText').on('click', function () {
-        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
-        $(this).text('复制成功').css('backgroundColor', "#28a745")
-    })
-    $('#directLink').on('click', function () {
-        toast4info.find('.toast-body').text('复制成功')
-        toast4info.toast('show');
-    })
-    $('#getQRCode').on('click', function () {
-        new QRCode($('#QRCode')[0], window.location.href.split('\?')[0] + $('#codeNumber').text());
-        codeModal.modal('hide');
-        $('#QRCodeModal').modal('show');
-    })
-
-    $('#regPassword').on('blur', function () {
-        if (!$('#regPassword')[0].checkValidity()) {
-            $('#passwordHelpInline').removeClass('d-none')
-        } else {
-            $('#passwordHelpInline').addClass('d-none')
-        }
-    })
-
-    /**
-     * 初始化发送框
-     * */
-    $(function () {
-        $('#send').on('mouseover', function () {
-            $(this).text('文件')
-            $('#text').removeClass('d-none');
-            $('#image').removeClass('d-none');
-        })
-        $('#send').parent().on('mouseleave', function () {
-            $('#send').text('发送')
-            $('#text').addClass('d-none');
-            $('#image').addClass('d-none');
-        })
-        // 不同按钮点开，界面不一样。
-        //点击文本则展示一个文本域
-        $('#text').on('click', function () {
-            filetype = 'text';
-            $('#sendTextModal').modal('show');
-        })
-        //点击文件则直接让用户选择文件
-        $('#send').on('click', function () {
-            filetype = 'file'
-            file.removeAttr('accept')
-            file.trigger('click')
-        })
-        $('#image').on('click', function () {
-            filetype = 'image'
-            file.attr('accept', 'image/*')
-            file.trigger('click')
-        })
-    })
-    $('#sendTextModal').find('.modal-footer').find('button').on('click', function () {
-        tempContent = $('#sendTextModal').find('textarea').val();
-        if (tempContent.trim().length === 0) {
-            toast4info.find('.toast-body').text('内容请不要为空')
-            toast4info.toast('show');
-            return;
-        }
-        file.next('.fileGroup').append('<div class="fileItem">' + tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent + '</div>')
-        $('[name=file]').attr('disabled','true')
-        $('.fileGroup').append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
-        sendModal.modal('show');
-        $('#sendTextModal').find('textarea').val('')
-    })
-    /**
-     * 选择文件后显示模态框，并显示文件名
-     */
-    file.on('change', function () {
-        //C:\fakepath\接收.png
-        let absoluteFileName = $(this).val().split('\\');
-        //接收.png
-        let fileName = absoluteFileName[absoluteFileName.length - 1]
-        if (filetype === 'image')
-            if (!/\.(gif|svg|bmp|png|jpeg|jpg|wepb|ico|tif)$/i.test(fileName)) {
-                //    警告不是图片文件，并return
-                toast4info.find('.toast-body').text('该文件不是图片，请重新选择，或使用‘文件’通道上传')
-                toast4info.toast('show');
-                return;
-            }
-        //当有文件之后，显示模态框，并将数据显示
-        $(this).next('.fileGroup').append($('<div class="fileItem">' + fileName + '</div>'));
-        sendModal.modal('show');
-    })
-
-    /**
-     * 退出登录
-     */
-    $('#exitLogin').on('click', function () {
-        //本地先执行退出的动作，和login相反，然后ajax给服务器发送请求，删除session，然后删除localStorage
-        $.ajax('exit.do', {
-            method: 'POST',
-            success: function (data) {
-                if (JSON.parse(data).status === 0) {
-                    toast4code.find('.toast-body').text('已退出登录')
-                    toast4code.toast('show');
-                    setTimeout(function () {
-                        exit()
-                    }, 1000);
-                    localStorage.removeItem('email');
-                }
-            }
-        })
-    })
-
-    $('#changePassword').on('click', function () {
-        $('#changePasswordModal').modal('show');
-    })
-
-    function login(email) {
-        //    移除按钮，替换为邮箱，带一个下拉框，内容包含两个按钮 修改密码和退出登录
-        $('#log-reg-btn').addClass('d-none');
-        $('#logged').removeClass('d-none').find('button').text(email);
-        //    让允许下载的次数范围变大
-        $('#allowTimes-input').attr('max', 99)
-    }
-
-    function exit() {
-        $('#log-reg-btn').removeClass('d-none');
-        $('#logged').addClass('d-none').find('button').text('');
-        $('#allowTimes-input').attr('max', 9)
-    }
-
-    $('#send').on('click', function () {
-        $('[name=filetype]').val('file');
-    })
-    $('#text').on('click', function () {
-        $('[name=filetype]').val('text');
-    })
-    $('#image').on('click', function () {
-        $('[name=filetype]').val('image');
-    })
-
-    /**
      *关闭模态框的时候重置表单,清空所有内容
      */
     regeditModal.on('hidden.bs.modal', function () {
@@ -998,9 +1001,9 @@
     sendModal.on('hidden.bs.modal', function () {
         $(this).find('form')[0].reset();
         $(this).find('.fileGroup').html('')
-        $('[name=file]').removeAttr('disabled')
+        file.removeAttr('disabled')
     })
-    $('#sendTextModal').on('hidden.bs.modal', function () {
+    sendTextModal.on('hidden.bs.modal', function () {
         $(this).find('textarea').val('')
     })
     receiveModal.on('hidden.bs.modal', function () {
@@ -1015,11 +1018,11 @@
         $('.qrAndDl').addClass('d-none')
         $('#codeNumber').text('')
     })
-    $('#receiveTextModal').on('hidden.bs.modal', function () {
+    receiveTextModal.on('hidden.bs.modal', function () {
         $('#copy').text('复制').css('backgroundColor', "#007bff")
         $('#textContent').text('')
     })
-    $('#QRCodeModal').on('hidden.bs.modal', function () {
+    QRCodeModal.on('hidden.bs.modal', function () {
         $('#QRCode').html('');
         $('.qrAndDl').removeClass('d-none')
         $('#codeNumber').text(tempCode)
