@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
-import sun.security.util.Password;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -19,7 +18,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-@Slf4j @Service
+@Slf4j
+@Service
 public class UserServiceImpl implements UserService {
     UserMapper userMapper;
     MailTool mailTool;
@@ -50,8 +50,7 @@ public class UserServiceImpl implements UserService {
                     throw new UserNotActiveException("用户任在激活期间内，但还未激活");
                 }
             }
-        }
-        else{
+        } else {
 //        用户注册邮箱，有效性验证要在两天内完成，为此，数据库要添加几个字段 注册时间； 是否已经注册：已注册-待激活 两个状态；
 //        如果有新的注册请求，去查询用户的时候如果查到了但是发现是待激活状态的，判断日期是否超过两天，
 //        如果两天内则提醒用户去邮箱查看；
@@ -63,12 +62,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void login(User user) throws UserNotExsitException, WrongPasswordException {
+    public void login(User user) throws UserNotExsitException, WrongPasswordException, UserNotActiveException {
         User queryUser;
         queryUser = userMapper.queryUser(user.getEmail());
         if (queryUser == null)
             throw new UserNotExsitException("用户不存在");
-        else if (!queryUser.getPassword().equals(user.getPassword()))
+        else if (userMapper.queryActive(user.getEmail()) == 0) {
+            throw new UserNotActiveException("用户未激活");
+        } else if (!queryUser.getPassword().equals(user.getPassword()))
             throw new WrongPasswordException("密码错误");
     }
 

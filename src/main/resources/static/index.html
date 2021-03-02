@@ -405,7 +405,7 @@
 
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-info">
-        <a class="navbar-brand" href="#">风享站</a>
+        <a class="navbar-brand" href="javascript:0;">风享站</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -428,9 +428,9 @@
                 <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
                         aria-expanded="false"></button>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="#" id="changePassword">修改密码</a>
+                    <a class="dropdown-item" href="javascript:0;" id="changePassword">修改密码</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#" id="exitLogin">退出登录</a>
+                    <a class="dropdown-item" href="javascript:0;" id="exitLogin">退出登录</a>
                 </div>
             </div>
         </div>
@@ -458,7 +458,9 @@
         <div class="card-body">
             <p class="card-text">©2020 Yionr</p>
             <p class="card-text"><a href="https://beian.miit.gov.cn" target="_blank">浙ICP备19047112号-2</a></p>
-            <p class="card-text"><a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33102202000473"><img src="img/beian.png" alt="公安备案"/>浙公网安备 33102202000473号</a></p>
+            <p class="card-text"><a target="_blank"
+                                    href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33102202000473"><img
+                    src="img/beian.png" alt="公安备案"/>浙公网安备 33102202000473号</a></p>
         </div>
     </div>
 </footer>
@@ -592,7 +594,7 @@
             $('#code').val(code);
             receiveModal.find('form').attr('action', 'download/' + code)
             receiveModal.find('form').submit();
-            history.pushState(null,'','/');
+            history.pushState(null, '', '/');
         }
     })
 
@@ -713,11 +715,8 @@
             success: function (data) {
                 if (JSON.parse(data).status === 0) {
                     toast4code.find('.toast-body').text('已退出登录')
-                    toast4code.toast('show');
-                    setTimeout(function () {
-                        exit()
-                    }, 1000);
-                    localStorage.removeItem('email');
+                    toast4code.toast('show')
+                    exit()
                 }
             }
         })
@@ -765,6 +764,7 @@
         $('#log-reg-btn').removeClass('d-none');
         $('#logged').addClass('d-none').find('button').text('');
         $('#allowTimes-input').attr('max', 9)
+        localStorage.removeItem('email');
     }
 
     /**
@@ -780,7 +780,6 @@
                         regeditModal.find('.close').trigger('click');
                         break;
                     case 0:
-                        console.log('邮箱已注册');
                         toast4info.find('.toast-body').text('邮箱已注册')
                         toast4info.toast('show');
                         //清空表单
@@ -805,28 +804,28 @@
             success: function (data) {
                 switch (JSON.parse(data).status) {
                     case -1:
-                        console.log('邮箱不存在');
                         toast4info.find('.toast-body').text('邮箱不存在')
                         toast4info.toast('show');
                         //清空表单
                         loginModal.find('form')[0].reset();
                         break;
                     case 0:
-                        console.log('密码错误');
                         toast4info.find('.toast-body').text('密码错误')
                         toast4info.toast('show');
                         //清空密码框
                         $('#loginPassword').val('')
                         break;
                     case 1:
-                        console.log('登录成功');
-                        loginModal.find('.close').trigger('click');
+                        loginModal.modal('hide');
                         toast4code.find('.toast-body').text('登录成功')
                         toast4code.toast('show');
                         localStorage.setItem('email', email)
-                        setTimeout(function () {
-                            login(email)
-                        }, 1000)
+                        login(email)
+                        break;
+                    case 2:
+                        loginModal.modal('hide');
+                        toast4info.find('.toast-body').text('该邮箱未激活，请先前往邮箱激活')
+                        toast4info.toast('show');
                         break;
                 }
                 return false;
@@ -971,7 +970,6 @@
                             toast4info.toast('show');
                             //清空密码
                             receiveModal.find('[name=password]').val('')
-                            receiveModal.find('.close').trigger('click');
                             break;
                         case 4:
                             toast4info.find('.toast-body').text('十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！')
@@ -984,8 +982,6 @@
             });
             return false;
         }
-        //FIXME 之前为什么要在这里加这一句
-        // receiveModal.find('form')[0].reset();
         return true;
     })
 

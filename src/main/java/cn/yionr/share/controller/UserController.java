@@ -51,7 +51,7 @@ public class UserController {
     }
 
     /**
-     * @return -1： 邮箱不存在； 0： 密码错误； 1： 登陆成功
+     * @return -1： 邮箱不存在； 0： 密码错误； 1： 登陆成功； 2：用户未激活
      */
     @PostMapping("/login.do")
     public String login(User user, HttpSession session) throws JSONException {
@@ -77,6 +77,9 @@ public class UserController {
                 log.info("密码已修改，即将清除session");
                 session.invalidate();
                 json.put("status", 0);
+            } catch (UserNotActiveException e) {
+                log.info("用户未激活");
+                json.put("status", 2);
             }
 
         } else {
@@ -94,6 +97,9 @@ public class UserController {
             } catch (WrongPasswordException e) {
                 log.info("密码错误");
                 json.put("status", 0);
+            } catch (UserNotActiveException e) {
+                log.info("用户未激活");
+                json.put("status", 2);
             }
         }
         return json.toString();

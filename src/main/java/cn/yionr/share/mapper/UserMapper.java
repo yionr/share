@@ -18,4 +18,6 @@ public interface UserMapper {
     int updateActiveTime(User user);
     @Update("update user set password=#{newPassword} where email=#{email}")
     int changePassword(String email, String newPassword);
+    @Select("select active from user where email=#{email}")
+    int queryActive(String email);
 }

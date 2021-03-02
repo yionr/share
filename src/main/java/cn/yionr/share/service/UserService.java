@@ -7,7 +7,7 @@ public interface UserService {
 
     int regedit(User user) throws UserAlreadyExsitException, UserNotActiveException;
 
-    void login(User user) throws UserNotExsitException, WrongPasswordException;
+    void login(User user) throws UserNotExsitException, WrongPasswordException, UserNotActiveException;
 
     User active(String email, String uuid) throws ActiveLinkOutOfDateException, UserWaitToActiveNotFoundException, UUIDInvalidException, UserActivedException;
 
