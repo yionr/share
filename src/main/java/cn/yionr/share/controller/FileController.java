@@ -188,6 +188,7 @@ public class FileController {
         }
     }
 
+//    FIXME 隐患： 要求所有其他接口不能为四位，否则都会到这里
     @GetMapping("/????")
     public String redir(HttpServletRequest request) {
         log.info("redir!");

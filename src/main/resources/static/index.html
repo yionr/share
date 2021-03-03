@@ -18,20 +18,6 @@
             height: 100%;
         }
 
-        #toast4code {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-        }
-
-        #toast4info {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 80px;
-            margin: 0 auto;
-        }
-
         .optional {
             height: 0;
         }
@@ -40,6 +26,7 @@
             outline: red 1px dashed;
         }
 
+        /*TODO 这里放到优化密码那里做*/
         input:valid::after {
             /*做个勾的反馈*/
 
@@ -55,26 +42,51 @@
             font-size: 24px;
         }
 
-        /*    TODO 待补全*/
         .fileGroup {
-
+            display: block;
+            width: 100%;
+            text-align: left;
+            box-shadow: 0 0 5px 5px #ceecce;
+            padding: 3px;
+            border-radius: 5px;
+            font-size: 14px;
         }
 
         .fileItem {
+            display: block;
+            width: 97%;
+            border: 1px solid greenyellow;
+            background-color: #ceecce;
+            transition: .3s;
+            text-align: center;
+            border-radius: 3px;
+        }
 
+        .fileItem:hover {
+            background-color: #90EE90;
+            user-select: none;
         }
 
         #textarea {
             width: 100%;
             height: 300px;
-            border: 1px green solid;
             padding: 10px;
+            background-color: #c1c1c2;
+            transition: .3s;
             overflow: hidden;
+            border: none;
         }
 
         #textarea:focus {
+            background-color: #ffffff;
             outline: none;
         }
+
+        .toast-container-br {
+            bottom: 0;
+            right: 0;
+        }
+
     </style>
 </head>
 
@@ -202,7 +214,7 @@
                             <div class="input-group mb-3">
                                 <input type="file" class="custom-file-input d-none" id="submitFile"
                                        aria-describedby="inputGroupFileAddon01" name="file" required>
-                                <div class="fileGroup"></div>
+                                <div class="fileGroup">文件列表: <br></div>
                             </div>
 
                             <div class="form-group">
@@ -215,7 +227,7 @@
                                 <!--                                        密码只能由数字字母下划线组成-->
                                 <label for="secondryPassword">二级密码（可选）</label>
                                 <input type="password" id="secondryPassword" class="form-control"
-                                       aria-describedby="passwordHelpInline" name="password">
+                                       aria-describedby="passwordHelpInline" name="password" placeholder="(默认为空也就是没有密码)">
                             </div>
                         </div>
                     </div>
@@ -371,36 +383,8 @@
     </div>
 </div>
 
-<!--toast4code-->
-<div class="toast" id="toast4code" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
-    <div class="toast-header">
-        <img src="img/r.png" class="rounded" alt="" width="30" height="30">
-        <strong class="mr-auto">提示</strong>
-        <small class="ml-3">刚刚</small>
-        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="toast-body" id="code-info">
-        取件成功
-    </div>
-</div>
-
-<!--toast4info-->
-<div class="toast bg-warning" id="toast4info" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
-    <div class="toast-header bg-info">
-        <img src="img/e.png" class="rounded" alt="" width="30" height="30">
-        <strong class="mr-auto">提醒</strong>
-        <small>刚刚</small>
-        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="toast-body">
-        密码错误！
-    </div>
-</div>
-
+<!--toast-container-br-->
+<div class="position-fixed p-3 toast-container-br" style="bottom: 0;right: 0"></div>
 
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-info">
@@ -424,8 +408,7 @@
             </ul>
 
             <div class="btn-group d-none" id="logged">
-                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
-                        aria-expanded="false"></button>
+                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown"></button>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" href="javascript:0;" id="changePassword">修改密码</a>
                     <div class="dropdown-divider"></div>
@@ -471,10 +454,8 @@
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
-<!--    TODO 模态框的报错尽量不要用toast来做，因为有一层蒙版会导致看不清-->
+    <!--    TODO 模态框的报错尽量不要用toast来做，因为有一层蒙版会导致看不清-->
     //TODO 左下角网站信息可以做个动画，两秒钟后隐藏
-    let toast4info = $('#toast4info')
-    let toast4code = $('#toast4code')
 
     let regeditModal = $('#regeditModal')
     let loginModal = $('#loginModal')
@@ -494,7 +475,7 @@
     let text = $('#text')
     let filetype = $('[name=filetype]');
     let tempCode, tempContent
-
+    let toastContainerBR = $('.toast-container-br')
     /**
      * 当输入取件码时，同步改变action
      */
@@ -535,8 +516,7 @@
                         }
                         break;
                     case 0:
-                        toast4info.find('.toast-body').text('上次登录后密码已修改，请重新登录')
-                        toast4info.toast('show');
+                        newToast(false, '上次登录后密码已修改，请重新登录')
                         //清空session和localStorage
                         if (localStorage.getItem('email') !== null) {
                             localStorage.removeItem('email')
@@ -567,8 +547,7 @@
                     switch (JSON.parse(data).status) {
                         case 1:
                             //激活成功，提示并自动登录
-                            toast4code.find('.toast-body').text('激活成功，将为您自动登录')
-                            toast4code.toast('show');
+                            newToast(true, '激活成功，将为您自动登录');
                             //将邮箱存入localStorage
                             localStorage.setItem('email', email.split('=')[1])
                             setTimeout(function () {
@@ -576,8 +555,7 @@
                             }, 1000)
                             break;
                         case -1:
-                            toast4info.find('.toast-body').text('激活链接过期了，请重新注册！')
-                            toast4info.toast('show');
+                            newToast(false, '激活链接过期了，请重新注册！')
                             setTimeout(function () {
                                 window.location.href = url.split('\?')[0]
                             }, 3000)
@@ -655,8 +633,7 @@
         $(this).text('复制成功').css('backgroundColor', "#28a745")
     })
     $('#directLink').on('click', function () {
-        toast4info.find('.toast-body').text('复制成功')
-        toast4info.toast('show');
+        newToast(true, '复制成功')
     })
     $('#getQRCode').on('click', function () {
         new QRCode($('#QRCode')[0], window.location.href.split('\?')[0] + $('#codeNumber').text());
@@ -674,15 +651,19 @@
 
 
     sendTextModal.find('.modal-footer').find('button').on('click', function () {
+        let fileGroup = $('.fileGroup');
         tempContent = sendTextModal.find('textarea').val();
         if (tempContent.trim().length === 0) {
-            toast4info.find('.toast-body').text('内容请不要为空')
-            toast4info.toast('show');
-            return;
+            newToast(false, '内容请不要为空')
+            //TODO 拒绝关闭，抖动窗口
+            return false;
         }
-        file.next('.fileGroup').append('<div class="fileItem">' + tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent + '</div>')
+        let temp = tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent;
+        let fileItem = $('<div class="fileItem text-left"> ' + temp + '</div>')
+        fileGroup.html('文本内容: <br>')
+        fileGroup.append(fileItem)
         file.attr('disabled', 'true')
-        $('.fileGroup').append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
+        fileGroup.append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
         sendModal.modal('show');
         sendTextModal.find('textarea').val('')
     })
@@ -697,8 +678,7 @@
         if (filetype.attr('value') === 'image')
             if (!/\.(gif|svg|bmp|png|jpeg|jpg|wepb|ico|tif)$/i.test(fileName)) {
                 //    警告不是图片文件，并return
-                toast4info.find('.toast-body').text('该文件不是图片，请重新选择，或使用‘文件’通道上传')
-                toast4info.toast('show');
+                newToast(false, '该文件不是图片，请重新选择，或使用‘文件’通道上传')
                 return;
             }
         //当有文件之后，显示模态框，并将数据显示
@@ -706,22 +686,6 @@
         sendModal.modal('show');
     })
 
-    /**
-     * 退出登录
-     */
-    $('#exitLogin').on('click', function () {
-        //本地先执行退出的动作，和login相反，然后ajax给服务器发送请求，删除session，然后删除localStorage
-        $.ajax('exit.do', {
-            method: 'POST',
-            success: function (data) {
-                if (JSON.parse(data).status === 0) {
-                    toast4code.find('.toast-body').text('已退出登录')
-                    toast4code.toast('show')
-                    exit()
-                }
-            }
-        })
-    })
 
     /**
      * 修改密码
@@ -738,8 +702,7 @@
                 switch (JSON.parse(data).status) {
                     case 1:
                         $('#changePasswordModal').modal('hide');
-                        toast4info.find('.toast-body').text('密码已成功修改，请重新登录！')
-                        toast4info.toast('show');
+                        newToast(true, '密码已成功修改，请重新登录！')
                         exit();
                         break;
                     case -1:
@@ -754,19 +717,67 @@
     })
 
     function login(email) {
-        //    移除按钮，替换为邮箱，带一个下拉框，内容包含两个按钮 修改密码和退出登录
         $('#log-reg-btn').addClass('d-none');
         $('#logged').removeClass('d-none').find('button').text(email);
-        //    让允许下载的次数范围变大
         $('#allowTimes-input').attr('max', 99)
     }
 
     function exit() {
-        $('#log-reg-btn').removeClass('d-none');
-        $('#logged').addClass('d-none').find('button').text('');
-        $('#allowTimes-input').attr('max', 9)
-        localStorage.removeItem('email');
+        $.ajax('exit.do', {
+            method: 'POST',
+            success: function (data) {
+                if (JSON.parse(data).status === 0) {
+                    newToast(true, '已退出登录')
+                    $('#log-reg-btn').removeClass('d-none');
+                    $('#logged').addClass('d-none').find('button').text('');
+                    $('#allowTimes-input').attr('max', 9)
+                    localStorage.removeItem('email');
+                }
+            }
+        })
+
     }
+
+    /**
+     * 退出登录
+     */
+    //FIXME 如果exit不在function里面，就会打开页面直接运行，为什么？
+    $('#exitLogin').on('click', function(){
+        exit()
+    })
+
+
+    /**
+     * 第一个参数确定toast属于提示框还是警告框，第二个参数表示内容，提示框delay为5秒，警告框为15秒
+     */
+    function newToast(isOK, content) {
+        let title, img,delay;
+        if (isOK)
+            img = 'img/r.png'
+        else
+            img = 'img/e.png'
+        title = isOK ? '提示' : '警告';
+        delay = isOK ? 5000 : 15000;
+        //TODO 警告的toast不会自动关闭
+        let toast = $('<div class="toast" role="alert" data-delay="' + delay + '">\n' +
+            '        <div class="toast-header">\n' +
+            '            <img src="' + img + '" class="rounded" alt="" width="30" height="30">\n' +
+            '            <strong class="mr-auto">' + title + '</strong>\n' +
+            '            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">\n' +
+            '                <span aria-hidden="true">&times;</span>\n' +
+            '            </button>\n' +
+            '        </div>\n' +
+            '        <div class="toast-body">\n' +
+            '            ' + content + '\n' +
+            '        </div>\n' +
+            '    </div>')
+        toastContainerBR.append(toast);
+        toast.toast('show');
+        setTimeout(function () {
+            toast.remove()
+        }, delay + 1000)
+    }
+
 
     /**
      * ajax拦截表单提交
@@ -776,20 +787,17 @@
             success: function (data) {
                 switch (JSON.parse(data).status) {
                     case 1:
-                        toast4code.find('.toast-body').text('账号激活邮件已发送至您的邮箱，请及时点击激活！')
-                        toast4code.toast('show');
-                        regeditModal.find('.close').trigger('click');
+                        newToast(true, '账号激活邮件已发送至您的邮箱，请及时点击激活！')
+                        regeditModal.modal('hide')
                         break;
                     case 0:
-                        toast4info.find('.toast-body').text('邮箱已注册')
-                        toast4info.toast('show');
+                        newToast(false, '邮箱已注册')
                         //清空表单
                         regeditModal.find('form')[0].reset();
                         break;
                     case 2:
-                        toast4code.find('.toast-body').text('账号未激活，请及时到您的收件箱点击激活！')
-                        toast4code.toast('show');
-                        regeditModal.find('.close').trigger('click');
+                        newToast(false, '账号未激活，请及时到您的收件箱点击激活')
+                        regeditModal.modal('hide')
                         break;
 
                 }
@@ -805,28 +813,24 @@
             success: function (data) {
                 switch (JSON.parse(data).status) {
                     case -1:
-                        toast4info.find('.toast-body').text('邮箱不存在')
-                        toast4info.toast('show');
+                        newToast(false, '邮箱不存在')
                         //清空表单
                         loginModal.find('form')[0].reset();
                         break;
                     case 0:
-                        toast4info.find('.toast-body').text('密码错误')
-                        toast4info.toast('show');
+                        newToast(false, '密码错误')
                         //清空密码框
                         $('#loginPassword').val('')
                         break;
                     case 1:
                         loginModal.modal('hide');
-                        toast4code.find('.toast-body').text('登录成功')
-                        toast4code.toast('show');
+                        newToast(true, '登录成功')
                         localStorage.setItem('email', email)
                         login(email)
                         break;
                     case 2:
                         loginModal.modal('hide');
-                        toast4info.find('.toast-body').text('该邮箱未激活，请先前往邮箱激活')
-                        toast4info.toast('show');
+                        newToast(false, '该邮箱未激活，请先前往邮箱激活')
                         break;
                 }
                 return false;
@@ -859,7 +863,7 @@
                                 let status = JSON.parse(data).status;
                                 if (status.length === 4) {
                                     //    得到取件码
-                                    sendModal.find('.close').trigger('click');
+                                    sendModal.modal('hide')
                                     $('#codeNumber').text(status)
                                     tempCode = status;
                                     codeModal.find('h5').text('发送成功，您的取件码为')
@@ -871,19 +875,16 @@
                                         case 2:
                                         case 4:
                                         case 5:
-                                            sendModal.find('.close').trigger('click');
-                                            toast4info.find('.toast-body').text('服务器文件保存失败,请稍后重试')
-                                            toast4info.toast('show');
+                                            sendModal.modal('hide');
+                                            newToast(false, '服务器文件保存失败,请稍后重试')
                                             break;
                                         case 1:
-                                            sendModal.find('.close').trigger('click');
-                                            toast4info.find('.toast-body').text('服务器取件码获取失败，请稍后重试')
-                                            toast4info.toast('show');
+                                            sendModal.modal('hide');
+                                            newToast(false, '服务器取件码获取失败，请稍后重试')
                                             break;
                                         case 3:
-                                            sendModal.find('.close').trigger('click');
-                                            toast4info.find('.toast-body').text('数据库添加记录失败，请稍后重试')
-                                            toast4info.toast('show');
+                                            sendModal.modal('hide');
+                                            newToast(false, '数据库添加记录失败，请稍后重试')
                                             break;
                                     }
                                     return false;
@@ -892,27 +893,18 @@
                         });
                         break;
                     case -1:
-                        //非法篡改允许次数
-                        sendModal.find('.close').trigger('click');
-                        //警告
-                        toast4info.find('.toast-body').text('非法篡改允许次数，上传失败')
-                        toast4info.toast('show');
+                        sendModal.modal('hide');
+                        newToast(false, '非法篡改允许次数，上传失败')
                         break;
                     case -2 :
-                        //文件容量超出上限
-                        sendModal.find('.close').trigger('click');
-                        //警告
-                        toast4info.find('.toast-body').text('文件容量超出上限！')
-                        toast4info.toast('show');
+                        sendModal.modal('hide');
+                        newToast(false, '文件容量超出上限！')
                         break;
                     case -3:
-                        //    用户信息已过期
-                        sendModal.find('.close').trigger('click');
-                        //警告
-                        toast4info.find('.toast-body').text('用户信息已过期，请重新登录')
-                        toast4info.toast('show');
+                        sendModal.modal('hide');
+                        newToast(false, '用户信息已过期，请重新登录')
                         setTimeout(function () {
-                            $('#exitLogin').trigger('click');
+                            exit();
                         }, 827)
                         break;
                 }
@@ -927,8 +919,7 @@
                     switch (JSON.parse(data).status) {
                         case 0:
                             receiveModal.find('[name=password]').val('')
-                            toast4info.find('.toast-body').text('取件码不存在');
-                            toast4info.toast('show');
+                            newToast(false, '取件码不存在')
                             break;
                         case 1:
                             switch ((JSON.parse(data).filetype)) {
@@ -946,12 +937,11 @@
                                 case 'file':
                                     check.attr('value', 'false')
                                     receiveModal.find('form').submit();
-                                    toast4code.find('.toast-body').text('取件成功')
-                                    toast4code.toast('show');
+                                    newToast(true, '取件成功')
                                     check.attr('value', 'true')
                                     break;
                             }
-                            receiveModal.find('.close').trigger('click');
+                            receiveModal.modal('hide')
 
                             break;
                         case 2:
@@ -967,14 +957,12 @@
 
                             break;
                         case 3:
-                            toast4info.find('.toast-body').text('密码错误')
-                            toast4info.toast('show');
+                            newToast(false, '密码错误')
                             //清空密码
                             receiveModal.find('[name=password]').val('')
                             break;
                         case 4:
-                            toast4info.find('.toast-body').text('十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！')
-                            toast4info.toast('show');
+                            newToast(false, '十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！')
                             receiveModal.modal('hide');
                             break;
                     }
@@ -997,7 +985,7 @@
     })
     sendModal.on('hidden.bs.modal', function () {
         $(this).find('form')[0].reset();
-        $(this).find('.fileGroup').html('')
+        $(this).find('.fileGroup').html('文件列表: <br>')
         file.removeAttr('disabled')
     })
     sendTextModal.on('hidden.bs.modal', function () {
