@@ -476,11 +476,12 @@
     let filetype = $('[name=filetype]');
     let tempCode, tempContent
     let toastContainerBR = $('.toast-container-br')
+    let code = $('#code')
     /**
      * 当输入取件码时，同步改变action
      */
-    $('#code').on('change', function () {
-        receiveModal.find('form').attr('action', 'download/' + $('#code').val())
+    code.on('change', function () {
+        receiveModal.find('form').attr('action', 'download/' + code.val())
     })
 
     /**
@@ -570,7 +571,7 @@
             })
         } else if (urlParam.startsWith('code')) {
             let code = urlParam.split('=')[1];
-            $('#code').val(code);
+            code.val(code);
             receiveModal.find('form').attr('action', 'download/' + code)
             receiveModal.find('form').submit();
             history.pushState(null, '', '/');
@@ -858,6 +859,7 @@
             success: function (data) {
                 switch (data.status) {
                     case 1:
+                        $('#sendBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>发送中')
                         sendModal.find('form').ajaxSubmit({
                             success: function (data) {
                                 let status = JSON.parse(data).status;
@@ -918,8 +920,9 @@
                 success: function (data) {
                     switch (JSON.parse(data).status) {
                         case 0:
-                            receiveModal.find('[name=password]').val('')
+                            receiveModal.find('[name=password]').val('') //FIXME 这句好像有点多余。。。
                             newToast(false, '取件码不存在')
+                            code.val(''); //包括下面的这几个val作用是修复bug：通过直链下载后，第一次打开接收框会含有上次的取件码
                             break;
                         case 1:
                             switch ((JSON.parse(data).filetype)) {
@@ -941,12 +944,12 @@
                                     check.attr('value', 'true')
                                     break;
                             }
+                            code.val('');
                             receiveModal.modal('hide')
-
                             break;
                         case 2:
                             receiveModal.modal('show');
-                            $('#code').addClass('border-success').attr('readonly', 'true')
+                            code.addClass('border-success').attr('readonly', 'true')
                             $('#code_password').removeAttr('disabled')
                             //FIXME 如果不延迟一下的话，好像会被忽略掉，猜测和模态框的动画冲突了，动画一次只能执行一个
                             setTimeout(function () {
@@ -963,6 +966,7 @@
                             break;
                         case 4:
                             newToast(false, '十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！')
+                            code.val('');
                             receiveModal.modal('hide');
                             break;
                     }
@@ -987,6 +991,7 @@
         $(this).find('form')[0].reset();
         $(this).find('.fileGroup').html('文件列表: <br>')
         file.removeAttr('disabled')
+        $('#sendBtn').html('发送')
     })
     sendTextModal.on('hidden.bs.modal', function () {
         $(this).find('textarea').val('')
@@ -994,7 +999,7 @@
     receiveModal.on('hidden.bs.modal', function () {
         $(this).find('form')[0].reset();
         $(this).find('.optional').css('height', 0);
-        $('#code').removeClass('border-success').removeAttr('readonly');
+        code.removeClass('border-success').removeAttr('readonly');
         $('#code_password').attr('disabled', 'true')
         $(this).find('form').attr('action', '')
     })
