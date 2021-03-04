@@ -108,6 +108,17 @@ public class UserServiceImpl implements UserService {
         return userMapper.changePassword(email, newPassword);
     }
 
+//    太久没激活的应该让他注册，所以所有没激活的都让他注册，只是近期没激活的 会弹toast
+
+    /**
+     * @return true 代表 email还没被占用； false 代表 email已经被占用了
+     */
+    @Override
+    public boolean checkEmail(String email) {
+        User user = userMapper.queryUser(email);
+        return user == null || !user.isActive();
+    }
+
     public void sendMail(User user) {
         log.info("生成激活码为: " + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)));
         new Thread(() -> mailTool.sendMail(MailVo.builder().to(user.getEmail()).subject("账号激活").email(user.getEmail()).uuid(DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8))).build())).start();

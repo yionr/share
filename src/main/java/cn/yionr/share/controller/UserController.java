@@ -153,6 +153,15 @@ public class UserController {
 
     }
 
+    @PostMapping("/checkEmail")
+    public String checkEmail(String email){
+        return userService.checkEmail(email) ? "true" : "false";
+    }
+    @PostMapping("/checkPassword")
+    public String checkPassword(HttpSession session,String oldPassword){
+        return session.getAttribute("password").equals(oldPassword) ? "true" : "false";
+    }
+
     void addSession(HttpSession session, User user) {
         session.setAttribute("email", user.getEmail());
         session.setAttribute("password", user.getPassword());

@@ -12,4 +12,6 @@ public interface UserService {
     User active(String email, String uuid) throws ActiveLinkOutOfDateException, UserWaitToActiveNotFoundException, UUIDInvalidException, UserActivedException;
 
     int changePassword(String email, String newPassword);
+
+    boolean checkEmail(String email);
 }
