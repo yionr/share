@@ -14,19 +14,6 @@
             overflow: hidden;
         }
 
-        main {
-            height: 100%;
-        }
-
-        .optional {
-            height: 0;
-        }
-
-        input:invalid {
-            outline: red 1px dashed;
-        }
-
-        /*TODO 这里放到优化密码那里做*/
         input:valid::after {
             /*做个勾的反馈*/
 
@@ -35,11 +22,6 @@
         input:invalid::after {
             /*做个叉的反馈*/
 
-        }
-
-        #codeNumber {
-            letter-spacing: 10px;
-            font-size: 24px;
         }
 
         .fileGroup {
@@ -82,22 +64,34 @@
             outline: none;
         }
 
-        .toast-container-br {
-            bottom: 0;
-            right: 0;
+        .doublePassword, .doublePasswordV2 {
+            height: 0;
+            overflow: hidden;
         }
 
+        input.valid {
+            border: 1px solid darkseagreen;
+        }
+
+        input.error {
+            border: 1px solid orangered;
+        }
+
+        label.error {
+            color: #dc3545;
+            font-size: 14px;
+        }
     </style>
 </head>
 
 <body>
 <!-- loginModal -->
-<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+<div class="modal fade" id="loginModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="loginLabel">登录</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -106,11 +100,11 @@
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="loginEmail">邮箱</label>
-                            <input type="email" class="form-control" name="email" id="loginEmail" required>
+                            <input type="text" class="form-control" name="email" id="loginEmail">
                         </div>
                         <div class="form-group col-md-6">
                             <label for="loginPassword">密码</label>
-                            <input type="password" class="form-control" name="password" id="loginPassword" required>
+                            <input type="password" class="form-control" name="password" id="loginPassword">
                         </div>
                     </div>
                 </div>
@@ -124,7 +118,7 @@
 </div>
 
 <!-- regeditModal -->
-<div class="modal fade" id="regeditModal" tabindex="-1" role="dialog" aria-labelledby="regeditLabel" aria-hidden="true">
+<div class="modal fade" id="regeditModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -138,17 +132,24 @@
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="regEmail">邮箱</label>
-                            <input type="email" class="form-control" name="email" id="regEmail" required>
+                            <input type="text" class="form-control" name="email" id="regEmail">
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="regPassword">密码</label>
-                            <input type="password" class="form-control" name="password" id="regPassword" required
-                                   minlength="8" maxlength="20">
-                            <small id="passwordHelpInline" class="text-muted d-none">
-                                密码长度为8-20个字符
-                            </small>
+                        <div class="doublePassword col-md-6">
+                            <div class="form-group position-relative internalPassword" style="top: 0;">
+                                <label for="regPassword">密码</label>
+                                <input type="password" class="form-control" name="password"
+                                       id="regPassword" required
+                                       pattern="[_0-9a-zA-z]{8,20}">
+                                <br>
+                                <label for="confirmRegPassword" class="pos">确认密码</label>
+                                <input type="password" class="form-control" name="confirmPassword"
+                                       id="confirmRegPassword"
+                                       placeholder="确认密码" disabled>
+                            </div>
                         </div>
+
                     </div>
+                    <br>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">注册</button>
@@ -172,16 +173,19 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="oldPassword">旧密码</label>
-                        <input type="text" class="form-control" id="oldPassword"
-                               placeholder="输入旧密码" name="oldPassword" required minlength="8" maxlength="20">
+                        <input type="password" class="form-control" id="oldPassword"
+                               placeholder="输入旧密码" name="oldPassword">
                     </div>
-                    <small id="passwordHelperForOldPassword" class="text-muted d-none">
-                        旧密码不正确，请重新输入
-                    </small>
-                    <div class="form-group">
-                        <label for="newPassword">新密码</label>
-                        <input type="text" class="form-control" id="newPassword"
-                               placeholder="输入新密码" name="newPassword" required minlength="8" maxlength="20">
+                    <div class="doublePasswordV2">
+                        <div class="form-group position-relative internalPassword" style="top: 0;transition: .5s;">
+                            <label for="newPassword">新密码</label>
+                            <input type="password" class="form-control scrollPassword" id="newPassword"
+                                   placeholder="输入新密码" name="newPassword">
+                            <br>
+                            <label for="confirmNewPassword" class="pos">确认新密码</label>
+                            <input type="password" class="form-control" id="confirmNewPassword"
+                                   placeholder="确认新密码" name="confirmPassword" disabled>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -193,12 +197,10 @@
 </div>
 
 <!-- sendModal -->
-<div class="modal fade" id="sendModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+<div class="modal fade" id="sendModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="upload.do" method="post" enctype="multipart/form-data">
-                <!--                标记文本类型，file / text / image   -->
                 <label>
                     <input type="text" value="file" name="filetype" style="display: none"/>
                 </label>
@@ -213,21 +215,21 @@
                         <div class="card-body">
                             <div class="input-group mb-3">
                                 <input type="file" class="custom-file-input d-none" id="submitFile"
-                                       aria-describedby="inputGroupFileAddon01" name="file" required>
+                                       name="file" required>
                                 <div class="fileGroup">文件列表: <br></div>
                             </div>
 
                             <div class="form-group">
                                 <label for="allowTimes-input">允许下载次数</label>
                                 <input type="number" id="allowTimes-input" class="form-control"
-                                       aria-describedby="passwordHelpInline" name="times" value="1" min="1" max="9">
+                                       name="times" value="1">
                             </div>
 
                             <div class="form-group">
-                                <!--                                        密码只能由数字字母下划线组成-->
                                 <label for="secondryPassword">二级密码（可选）</label>
                                 <input type="password" id="secondryPassword" class="form-control"
-                                       aria-describedby="passwordHelpInline" name="password" placeholder="(默认为空也就是没有密码)">
+                                       name="password"
+                                       placeholder="(默认为空也就是没有密码)">
                             </div>
                         </div>
                     </div>
@@ -294,17 +296,16 @@
                 </label>
                 <div class="modal-header">
                     <h5 class="modal-title" id="receiveLabel">接收</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <label for="code">取件码</label>
-                    <input type="text" class="form-control" name="fid" id="code" minlength="4" maxlength="4" required
-                           pattern="\d{4}">
-                    <div class="optional overflow-hidden">
+                    <input type="text" class="form-control" name="fid" id="code" minlength="4" maxlength="4">
+                    <div class="pw overflow-hidden" style="height: 0">
                         <label for="code_password">密码</label>
-                        <input type="password" class="form-control" name="password" id="code_password" disabled>
+                        <input type="password" class="form-control" name="password" id="code_password">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -328,7 +329,8 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p id="codeNumber" class="text-center font-weight-bold "></p>
+                <p id="codeNumber" class="text-center font-weight-bold "
+                   style="letter-spacing: 10px;font-size: 24px;"></p>
                 <p class="qrAndDl text-center font-weight-lighter d-none">您也可以 <a href="javascript:0;" id="directLink">复制下载链接</a>或
                     <a href="javascript:0;" id="getQRCode">扫描二维码</a></p>
             </div>
@@ -410,7 +412,8 @@
             <div class="btn-group d-none" id="logged">
                 <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown"></button>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="javascript:0;" id="changePassword">修改密码</a>
+                    <a class="dropdown-item" href="javascript:0;" id="changePassword" data-toggle="modal"
+                       data-target="#changePasswordModal">修改密码</a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="javascript:0;" id="exitLogin">退出登录</a>
                 </div>
@@ -418,7 +421,7 @@
         </div>
     </nav>
 </header>
-<main class="container">
+<main class="container" style="height: 100%;">
     <div class="row h-100 justify-content-center align-content-center">
         <div class="col-8 text-center">
             <div class="btn-group d-block" role="group">
@@ -434,7 +437,7 @@
         </div>
     </div>
 </main>
-<footer class="position-absolute" style="bottom: 0">
+<footer class="position-absolute" style="bottom: 0;transition: .5s">
     <div class="card bg-light mb-3" style="max-width: 18rem;">
         <div class="card-header">网站信息</div>
         <div class="card-body">
@@ -448,14 +451,16 @@
 </footer>
 
 
-<script src="js/jquery/jquery-3.5.1.js"></script>
-<script src="js/jquery/jquery.form.js"></script>
+<script src="js/jquery-3.5.1.js"></script>
+<script src="js/jquery.form.js"></script>
+<script src="js/jquery.validate.js"></script>
+<script src="js/messages_zh.js"></script>
 <script src="js/clipboard.min.js"></script>
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
-    <!--    TODO 模态框的报错尽量不要用toast来做，因为有一层蒙版会导致看不清-->
-    //TODO 左下角网站信息可以做个动画，两秒钟后隐藏
+    //TODO 模态框的报错尽量不要用toast来做，因为有一层蒙版会导致看不清
+    //FIXME 移动端图片显示会有异常，排版也有问题，按键也有问题
 
     let regeditModal = $('#regeditModal')
     let loginModal = $('#loginModal')
@@ -466,8 +471,7 @@
     let receiveTextModal = $('#receiveTextModal')
     let sendTextModal = $('#sendTextModal')
     let imageModal = $('#imageModal')
-
-    let optional = $('.optional')
+    let pw = $('.pw')
     let file = $('[name=file]')
     let check = $('[name=check]')
     let send = $('#send')
@@ -477,34 +481,20 @@
     let tempCode, tempContent
     let toastContainerBR = $('.toast-container-br')
     let code = $('#code')
-    /**
-     * 当输入取件码时，同步改变action
-     */
-    code.on('change', function () {
-        receiveModal.find('form').attr('action', 'download/' + code.val())
-    })
+    let confirmRegPassword = $('#confirmRegPassword');
+    let regPassword = $('#regPassword')
+    let confirmNewPassword = $('#confirmNewPassword')
+    let newPassword = $('#newPassword');
+    let message = {}
+    let changePasswordModal = $('#changePasswordModal')
 
-    /**
-     * 添加快捷键
-     */
-    $('.modal:not(#sendTextModal)').on('show.bs.modal', function () {
-        $(this)[0].addEventListener('keypress', kp)
-    }).on('hide.bs.modal', function () {
-        $(this)[0].removeEventListener('keypress', kp)
-    })
-
-    function kp(e) {
-        if (e.key === 'Enter') {
-            //    发送或者接收
-            console.log($(this))
-            $(this).find('.btn-primary').trigger('click')
-        }
-    }
-
+    //一堆初始化
     /**
      * 自动登录
      */
     $(function () {
+        //TODO
+        // login('yionr99@gmail.com')
         $.ajax('login.do', {
             method: 'POST',
             success: function (data) {
@@ -529,11 +519,28 @@
     })
 
     /**
+     * 初始化footer
+     */
+    $(function () {
+        let rem = window.getComputedStyle(document.documentElement)["fontSize"];
+        let height = parseInt($('footer .card-body').css('height')) + parseInt(rem);
+        setTimeout(function () {
+            $('footer').css('bottom', -height + 'px').on('mouseover', function () {
+                $(this).css('bottom', 0)
+            }).on('mouseout', function () {
+                $(this).css('bottom', -height + 'px')
+            })
+        }, 2000)
+    })
+
+    /**
      * 带参url检测
      */
     $(function () {
         let url = window.location.href;
         let urlParam = url.split('\?')[1];
+        if (!urlParam)
+            return;
         if (urlParam.startsWith('email')) {
             let email = urlParam.split('&')[0];
             let uuid = urlParam.split('&')[1];
@@ -570,9 +577,9 @@
                 }
             })
         } else if (urlParam.startsWith('code')) {
-            let code = urlParam.split('=')[1];
-            code.val(code);
-            receiveModal.find('form').attr('action', 'download/' + code)
+            let tempCode = urlParam.split('=')[1];
+            code.val(tempCode);
+            receiveModal.find('form').attr('action', 'download/' + tempCode)
             receiveModal.find('form').submit();
             history.pushState(null, '', '/');
         }
@@ -625,134 +632,32 @@
         })
     })
 
-    $('#copyCode').on('click', function () {
-        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
-        $(this).text('复制成功').css('backgroundColor', "#28a745")
-    })
-    $('#copyText').on('click', function () {
-        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
-        $(this).text('复制成功').css('backgroundColor', "#28a745")
-    })
-    $('#directLink').on('click', function () {
-        newToast(true, '复制成功')
-    })
-    $('#getQRCode').on('click', function () {
-        new QRCode($('#QRCode')[0], window.location.href.split('\?')[0] + $('#codeNumber').text());
-        codeModal.modal('hide');
-        QRCodeModal.modal('show');
-    })
-
-    $('#regPassword').on('blur', function () {
-        if (!$('#regPassword')[0].checkValidity()) {
-            $('#passwordHelpInline').removeClass('d-none')
-        } else {
-            $('#passwordHelpInline').addClass('d-none')
-        }
-    })
-
-
-    sendTextModal.find('.modal-footer').find('button').on('click', function () {
-        let fileGroup = $('.fileGroup');
-        tempContent = sendTextModal.find('textarea').val();
-        if (tempContent.trim().length === 0) {
-            newToast(false, '内容请不要为空')
-            //TODO 拒绝关闭，抖动窗口
-            return false;
-        }
-        let temp = tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent;
-        let fileItem = $('<div class="fileItem text-left"> ' + temp + '</div>')
-        fileGroup.html('文本内容: <br>')
-        fileGroup.append(fileItem)
-        file.attr('disabled', 'true')
-        fileGroup.append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
-        sendModal.modal('show');
-        sendTextModal.find('textarea').val('')
-    })
     /**
-     * 选择文件后显示模态框，并显示文件名
+     * 初始化internalPsasword的高度
      */
-    file.on('change', function () {
-        //C:\fakepath\接收.png
-        let absoluteFileName = $(this).val().split('\\');
-        //接收.png
-        let fileName = absoluteFileName[absoluteFileName.length - 1]
-        if (filetype.attr('value') === 'image')
-            if (!/\.(gif|svg|bmp|png|jpeg|jpg|wepb|ico|tif)$/i.test(fileName)) {
-                //    警告不是图片文件，并return
-                newToast(false, '该文件不是图片，请重新选择，或使用‘文件’通道上传')
-                return;
-            }
-        //当有文件之后，显示模态框，并将数据显示
-        $(this).next('.fileGroup').append($('<div class="fileItem">' + fileName + '</div>'));
-        sendModal.modal('show');
+    let halfHeight;
+    regeditModal.on('shown.bs.modal', function () {
+        halfHeight = parseInt($('#regeditModal .internalPassword').css('height')) / 2
+        $('.doublePassword').css('height', halfHeight + 'px')
+    })
+    changePasswordModal.on('shown.bs.modal', function () {
+        halfHeight = parseInt($('#changePasswordModal .internalPassword').css('height')) / 2
+        $('.doublePasswordV2').css('height', halfHeight + 'px')
     })
 
-
     /**
-     * 修改密码
+     * 当输入取件码时，同步改变action
      */
-    $('#changePassword').on('click', function () {
-        $('#changePasswordModal').modal('show');
+    code.on('change', function () {
+        receiveModal.find('form').attr('action', 'download/' + code.val())
     })
-    $('#oldPassword').on('blue', function () {
-        $('#passwordHelperForOldPassword').addClass('d-none')
-    })
-    $('[action=changePassword]').submit(function () {
-        $(this).ajaxSubmit({
-            success: function (data) {
-                switch (JSON.parse(data).status) {
-                    case 1:
-                        $('#changePasswordModal').modal('hide');
-                        newToast(true, '密码已成功修改，请重新登录！')
-                        exit();
-                        break;
-                    case -1:
-                        $('#passwordHelperForOldPassword').removeClass('d-none');
-                        $('#oldPassword').val('')
-                        break;
-                }
-                return false;
-            }
-        })
-        return false;
-    })
-
-    function login(email) {
-        $('#log-reg-btn').addClass('d-none');
-        $('#logged').removeClass('d-none').find('button').text(email);
-        $('#allowTimes-input').attr('max', 99)
-    }
-
-    function exit() {
-        $.ajax('exit.do', {
-            method: 'POST',
-            success: function (data) {
-                if (JSON.parse(data).status === 0) {
-                    newToast(true, '已退出登录')
-                    $('#log-reg-btn').removeClass('d-none');
-                    $('#logged').addClass('d-none').find('button').text('');
-                    $('#allowTimes-input').attr('max', 9)
-                    localStorage.removeItem('email');
-                }
-            }
-        })
-
-    }
 
     /**
-     * 退出登录
-     */
-    //FIXME 如果exit不在function里面，就会打开页面直接运行，为什么？
-    $('#exitLogin').on('click', function(){
-        exit()
-    })
-
-
-    /**
+     * 新建一个toast
      * 第一个参数确定toast属于提示框还是警告框，第二个参数表示内容，提示框delay为5秒，警告框为15秒
      */
     function newToast(isOK, content) {
-        let title, img,delay;
+        let title, img, delay;
         if (isOK)
             img = 'img/r.png'
         else
@@ -779,33 +684,347 @@
         }, delay + 1000)
     }
 
+    //复制、QR码的点击
+    $('#copyCode,#copyText').on('click', function () {
+        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
+        $(this).text('复制成功').css('backgroundColor', "#28a745")
+    })
+    $('#directLink').on('click', function () {
+        newToast(true, '复制成功')
+    })
+    $('#getQRCode').on('click', function () {
+        new QRCode($('#QRCode')[0], window.location.href.split('\?')[0] + $('#codeNumber').text());
+        codeModal.modal('hide');
+        QRCodeModal.modal('show');
+    })
+
+    function login(email) {
+        $('#log-reg-btn').addClass('d-none');
+        $('#logged').removeClass('d-none').find('button').text(email);
+        $('#allowTimes-input').attr('max', 99)
+    }
+
+    function exit() {
+        $.ajax('exit.do', {
+            method: 'POST',
+            success: function (data) {
+                if (JSON.parse(data).status === 0) {
+                    newToast(true, '已退出登录')
+                    $('#log-reg-btn').removeClass('d-none');
+                    $('#logged').addClass('d-none').find('button').text('');
+                    $('#allowTimes-input').attr('max', 9)
+                    localStorage.removeItem('email');
+                }
+            }
+        })
+
+    }
+
+
+    //TODO 关闭模态框之后，清空表单验证消息
+    /**
+     * 初始化表单验证
+     */
+    $.validator.addMethod("checkPassword", function (value, element) {
+        let checkPwd = /[_0-9a-zA-z]{8,20}/;
+        //TODO optional 是什么
+        return this.optional(element) || (checkPwd.test(value));
+    }, "密码只能包含数字、字母、下划线，且长度区间为8-20");
+    $.validator.addMethod("checkCodePassword", function (value, element) {
+        let checkPwd = /[_0-9a-zA-z]{0,20}/;
+        return this.optional(element) || (checkPwd.test(value));
+    }, "密码只能包含数字、字母、下划线，且长度区间为1-20");
+    $(function () {
+        $('#loginModal form').validate({
+            rules: {
+                email: {
+                    required: true,
+                    email: true
+                },
+                password: {
+                    required: true,
+                    checkPassword: true
+                }
+            }
+        });
+        $('#regeditModal form').validate({
+            rules: {
+                email: {
+                    required: true,
+                    email: true,
+                    remote: {
+                        url: 'checkEmail',
+                        type: 'post'
+                    }
+                },
+                password: {
+                    required: true,
+                    checkPassword: true
+                },
+                confirmPassword: {
+                    checkPassword: true,
+                    equalTo: '#regPassword'
+                }
+            },
+            messages: {
+                email: {
+                    remote: '该邮箱已被注册，请重新注册'
+                }
+            }
+        });
+        $('#changePasswordModal form').validate({
+            rules: {
+                oldPassword: {
+                    required: true,
+                    checkPassword: true,
+                    remote: {
+                        url: 'checkPassword',
+                        type: 'post'
+                    }
+                },
+                newPassword: {
+                    required: true,
+                    checkPassword: true
+                },
+                confirmPassword: {
+                    checkPassword: true,
+                    equalTo: '#newPassword'
+                }
+            },
+            messages: {
+                oldPassword: {
+                    remote: '密码不正确'
+                }
+            }
+        });
+        $('#sendModal form').validate({
+            rules: {
+                times: {
+                    required: true,
+                    number: true,
+                    min: 1,
+                    max: 9
+                },
+                password: {
+                    checkCodePassword: true
+                }
+            },
+            messages: {
+                times: {
+                    max: '超出允许下载的范围，游客只允许范围为1-9，注册用户为1-99'
+                }
+            }
+        });
+        $('#receiveModal form').validate({
+            rules: {
+                fid: {
+                    required: true,
+                    number: true
+                },
+                password: {
+                    checkCodePassword: true
+                }
+            }
+        });
+    })
+
+    function correctWrapperHeight(wrapper) {
+        // console.log('纠正')
+        if ($(wrapper).find('[name=confirmPassword]').attr('disabled'))
+            $(wrapper).css('height', $(wrapper).find('.pos').position().top)
+        else
+            $(wrapper).css('height', parseInt($(wrapper).find('.internalPassword').css('height')) - parseInt($(wrapper).find('.pos').position().top) + 'px')
+    }
+
+    //输入密码后的向下滚动效果
+    //这个input bug还是挺大的，稍后再说
+    $('#regPassword,#regPassword [name=confirmPassword]').on('input', function () {
+        setTimeout(function () {
+            correctWrapperHeight('.doublePassword')
+        }, 400)
+    })
+
+    $('#newPassword,#newPassword [name=confirmPassword]').on('input', function () {
+        setTimeout(function () {
+            correctWrapperHeight('.doublePasswordV2')
+        }, 400)
+    })
+
+    $('#regeditModal input:not([name=confirmPassword])').on('blur', function () {
+        let valid = $(this).closest('form').valid();
+        correctWrapperHeight('.doublePassword')
+        if (valid) {
+            let height = $(this).closest($('.doublePassword,.doublePasswordV2')).css('height');
+            //拉高
+            $(this).closest('form').find('.internalPassword').animate({'top': '-' + height}, 500)
+            //email只读
+            $($(this).closest($('form')).find('input')[0]).attr('readOnly', 'true');
+            //移除disabled
+            // $(this).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
+            //获得焦点，添加required，加定时器是因为不延迟会导致滚动过高
+            setTimeout(function (e) {
+                $(e).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
+                $(e).closest('form').find('[name=confirmPassword]').focus()
+            }, 328, this)
+        }
+    })
+
+    $('#changePasswordModal input:not([name=confirmPassword])').on('blur', function () {
+        let valid = $(this).closest('form').valid();
+        correctWrapperHeight('.doublePasswordV2')
+        if (valid) {
+            let height = $(this).closest($('.doublePassword,.doublePasswordV2')).css('height');
+            //拉高
+            $(this).closest('form').find('.internalPassword').animate({'top': '-' + height}, 500)
+            //email只读
+            $($(this).closest($('form')).find('input')[0]).attr('readOnly', 'true');
+            //移除disabled
+            // $(this).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
+            //获得焦点，添加required，加定时器是因为不延迟会导致滚动过高,同时这个定时器的事件也要控制，太快会导致同样的问题
+            setTimeout(function (e) {
+                $(e).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
+                $(e).closest('form').find('[name=confirmPassword]').focus()
+            }, 800, this)
+        }
+    })
+
+    //看看这个和上面的能不能合并
+    /**
+     * 添加快捷键
+     */
+    $('.modal:not(#sendTextModal)').on('show.bs.modal', function () {
+        $(this).bind('keypress', this, function (e) {
+            if (e.key === 'Enter') {
+                //默认情况下，即使提交表单也不会让原本focus的input 失去焦点
+                $(e.data).find('input:focus').blur();
+                //默认情况下，表单里面enter会触发submit
+                //FIXME 奇了怪了，文本modal enter明明都不会啊
+                return true;
+            }
+        })
+    }).on('hide.bs.modal', function () {
+        $(this).off('keypress')
+    })
+
+    /**
+     * 选择文件后显示模态框，并显示文件名
+     */
+    file.on('change', function () {
+        //C:\fakepath\接收.png
+        let absoluteFileName = $(this).val().split('\\');
+        //接收.png
+        let fileName = absoluteFileName[absoluteFileName.length - 1]
+        if (filetype.attr('value') === 'image')
+            if (!/\.(gif|svg|bmp|png|jpeg|jpg|wepb|ico|tif)$/i.test(fileName)) {
+                //    警告不是图片文件，并return
+                newToast(false, '该文件不是图片，请重新选择，或使用‘文件’通道上传')
+                return;
+            }
+        //当有文件之后，显示模态框，并将数据显示
+        $(this).next('.fileGroup').append($('<div class="fileItem">' + fileName + '</div>'));
+        sendModal.modal('show');
+    })
+    /**
+     * 退出登录
+     */
+    //FIXME 如果exit不在function里面，就会打开页面直接运行，为什么？
+    $('#exitLogin').on('click', function () {
+        exit()
+    })
+
+
+    sendTextModal.find('.modal-footer').find('button').on('click', function () {
+        let fileGroup = $('.fileGroup');
+        tempContent = sendTextModal.find('textarea').val();
+        if (tempContent.trim().length === 0) {
+            newToast(false, '内容请不要为空')
+            //TODO 拒绝关闭，抖动窗口
+            return false;
+        }
+        let temp = tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent;
+        let fileItem = $('<div class="fileItem text-left"> ' + temp + '</div>')
+        fileGroup.html('文本内容: <br>')
+        fileGroup.append(fileItem)
+        file.attr('disabled', 'true')
+        fileGroup.append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
+        sendModal.modal('show');
+        sendTextModal.find('textarea').val('')
+    })
+
 
     /**
      * ajax拦截表单提交
      */
-    regeditModal.find('form').submit(function () {
+    changePasswordModal.find('form').submit(function () {
+        if (confirmNewPassword.val() !== newPassword.val()) {
+            if (!confirmNewPassword.attr('disabled')) {
+                //    两次密码输入不一致
+                confirmNewPassword.val('')
+                confirmNewPassword.attr('disabled','true')
+                newPassword.select()
+                confirmNewPassword.parent().animate({'top':0},500)
+                newToast(false, '两次输入的密码不一致！')
+            }
+            return false;
+        }
+        confirmNewPassword.attr('disabled', 'true')
         $(this).ajaxSubmit({
             success: function (data) {
                 switch (JSON.parse(data).status) {
                     case 1:
-                        newToast(true, '账号激活邮件已发送至您的邮箱，请及时点击激活！')
+                        changePasswordModal.modal('hide');
+                        newToast(true, '密码已成功修改，请重新登录！')
+                        exit();
+                        break;
+                    case -1:
+                        newToast('false', '旧密码错误')
+                        $('#oldPassword').removeAttr('readOnly');
+                        $('.internalPassword').animate({'top':0},500)
+                        confirmNewPassword.attr('disabled','true')
+                        changePasswordModal.find('form')[0].reset();
+                        $('#oldPassword').focus()
+                        break;
+                }
+                return false;
+            }
+        })
+        return false;
+    })
+
+    regeditModal.find('form').submit(function () {
+        if (confirmRegPassword.val() !== regPassword.val()) {
+            if (!confirmRegPassword.attr('disabled')) {
+                //    两次密码输入不一致
+                confirmRegPassword.val('')
+                confirmRegPassword.attr('disabled','true')
+                regPassword.select()
+                confirmRegPassword.parent().animate({'top':0},500)
+                newToast(false, '两次输入的密码不一致！')
+                $('#regEmail').removeAttr('readOnly');
+            }
+            return false;
+        }
+        confirmRegPassword.attr('disabled', 'true')
+        $(this).ajaxSubmit({
+            success: function (data) {
+                switch (JSON.parse(data).status) {
+                    case 1:
                         regeditModal.modal('hide')
+                        newToast(true, '账号激活邮件已发送至您的邮箱，请及时点击激活！')
                         break;
                     case 0:
                         newToast(false, '邮箱已注册')
-                        //清空表单
                         regeditModal.find('form')[0].reset();
                         break;
                     case 2:
-                        newToast(false, '账号未激活，请及时到您的收件箱点击激活')
                         regeditModal.modal('hide')
+                        newToast(false, '账号未激活，请及时到您的收件箱点击激活')
                         break;
 
                 }
                 return false;
             }
         })
-        //这个return不能不写
         return false;
     })
     loginModal.find('form').submit(function () {
@@ -953,8 +1172,8 @@
                             $('#code_password').removeAttr('disabled')
                             //FIXME 如果不延迟一下的话，好像会被忽略掉，猜测和模态框的动画冲突了，动画一次只能执行一个
                             setTimeout(function () {
-                                optional.animate({
-                                    'height': optional.closest('.modal-body').css('height')
+                                pw.animate({
+                                    'height': pw.closest('.modal-body').css('height')
                                 }, 472)
                             }, 300)
 
@@ -981,10 +1200,23 @@
     /**
      *关闭模态框的时候重置表单,清空所有内容
      */
+    $('.modal').on('hidden.bs.modal', function () {
+        $(this).find('label.error').remove()
+        $(this).find('input').removeClass('error')
+    })
     regeditModal.on('hidden.bs.modal', function () {
+        $(this).find('.internalPassword').css('top', '0')
+        confirmRegPassword.attr('disabled','true')
+        $(this).find('#regEmail').removeAttr('readOnly')
         $(this).find('form')[0].reset();
     })
     loginModal.on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+    })
+    changePasswordModal.on('hidden.bs.modal', function () {
+        $('#oldPassword').removeAttr('readOnly');
+        $(this).find('.internalPassword').css('top', '0')
+        confirmNewPassword.attr('disabled','true')
         $(this).find('form')[0].reset();
     })
     sendModal.on('hidden.bs.modal', function () {
@@ -998,7 +1230,7 @@
     })
     receiveModal.on('hidden.bs.modal', function () {
         $(this).find('form')[0].reset();
-        $(this).find('.optional').css('height', 0);
+        $(this).find('.pw').css('height', 0);
         code.removeClass('border-success').removeAttr('readonly');
         $('#code_password').attr('disabled', 'true')
         $(this).find('form').attr('action', '')
