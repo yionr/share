@@ -225,6 +225,8 @@ public class FileController {
             }
             return 1;
         } catch (IOException e) {
+//            TODO 下载连接被客户端中断则会在这里打印，并抛异常
+            log.info("???");
             return -1;
         }
     }
