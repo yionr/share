@@ -503,27 +503,28 @@
      * 自动登录
      */
     $(function () {
-        $.ajax('login.do', {
-            method: 'POST',
-            success: function (data) {
-                switch (JSON.parse(data).status) {
-                    case 1:
-                        let email = localStorage.getItem('email');
-                        if (email !== null) {
-                            //    localStorage存在
-                            login(email);
-                        }
-                        break;
-                    case 0:
-                        newToast(false, '上次登录后密码已修改，请重新登录')
-                        //清空session和localStorage
-                        if (localStorage.getItem('email') !== null) {
-                            localStorage.removeItem('email')
-                        }
-                        break;
+        if (document.cookie.indexOf('JSESSIONID') !== -1)
+            $.ajax('login.do', {
+                method: 'POST',
+                success: function (data) {
+                    switch (JSON.parse(data).status) {
+                        case 1:
+                            let email = localStorage.getItem('email');
+                            if (email !== null) {
+                                //    localStorage存在
+                                login(email);
+                            }
+                            break;
+                        case 0:
+                            newToast(false, '上次登录后密码已修改，请重新登录')
+                            //清空session和localStorage
+                            if (localStorage.getItem('email') !== null) {
+                                localStorage.removeItem('email')
+                            }
+                            break;
+                    }
                 }
-            }
-        })
+            })
     })
 
     /**
@@ -729,6 +730,7 @@
         })
 
     }
+
     /**
      * 初始化表单验证
      */

@@ -32,14 +32,12 @@ public class UserController {
      * @return 0: 邮箱已存在; 1： 注册成功,发送激活邮件; 2: 用户未激活
      */
     @PostMapping("/regedit.do")
-    public String regedit(User user, HttpSession session) throws JSONException {
+    public String regedit(User user) throws JSONException {
         log.info("邮箱： " + user.getEmail() + " 提交注册");
         JSONObject json = new JSONObject();
         int status;
         try {
             status = userService.regedit(user);
-            log.info("注册成功");
-            addSession(session, user);
             return json.put("status", status).toString();
         } catch (UserAlreadyExsitException e) {
             log.info("邮箱已被注册");

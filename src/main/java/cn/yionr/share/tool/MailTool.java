@@ -24,7 +24,7 @@ public class MailTool {
      * 发送邮件
      */
     public MailVo sendMail(MailVo mailVo) {
-        log.info("开始发送");
+        log.info("开始发送邮件");
         try {
             checkMail(mailVo); //1.检测邮件
             sendMimeMail(mailVo); //2.发送邮件
