@@ -471,6 +471,8 @@
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
+    //TODO 模态框的报错尽量不要用toast来做，因为有一层蒙版会导致看不清
+    //FIXME 移动端图片显示会有异常，排版也有问题，按键也有问题
 
     let regeditModal = $('#regeditModal')
     let loginModal = $('#loginModal')
@@ -730,6 +732,8 @@
 
     }
 
+
+    //TODO 关闭模态框之后，清空表单验证消息
     /**
      * 初始化表单验证
      */
