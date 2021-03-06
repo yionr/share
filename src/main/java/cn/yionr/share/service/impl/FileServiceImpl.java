@@ -60,7 +60,7 @@ public class FileServiceImpl implements FileService {
         File localTextFileDir = new File(textFilePath);
         File localImageFileDir = new File(imageFilePath);
 
-        if (!localFileDir.exists()){
+        if (!localFileDir.exists()) {
             log.warn("文件存放目录不存在，即将自动创建");
             if (localFileDir.mkdirs())
                 log.info("创建成功");
@@ -68,7 +68,7 @@ public class FileServiceImpl implements FileService {
                 log.error("创建失败");
         }
 
-        if (!localTextFileDir.exists()){
+        if (!localTextFileDir.exists()) {
             log.warn("文本存放目录不存在，即将自动创建");
             if (localTextFileDir.mkdirs())
                 log.info("创建成功");
@@ -79,7 +79,7 @@ public class FileServiceImpl implements FileService {
 
         }
 
-        if (!localImageFileDir.exists()){
+        if (!localImageFileDir.exists()) {
             log.warn("图片存放目录不存在，即将自动创建");
             if (localImageFileDir.mkdirs())
                 log.info("创建成功");
@@ -113,7 +113,7 @@ public class FileServiceImpl implements FileService {
 
         if (remoteCodes.isEmpty() && localCodes.isEmpty())
             log.info("数据库取件码与本地文件一一对应，没有异常取件码！");
-        else{
+        else {
             if (!remoteCodes.isEmpty()) {
 //            数据库中有取件码但是本地没有
                 log.error("异常取件码: " + remoteCodes.toString() + " , 以上取件码的本地文件已丢失！");
@@ -155,7 +155,7 @@ public class FileServiceImpl implements FileService {
                     log.info("文件保存成功,即将删除临时文件");
                     if (sfw.getFile().delete()) {
                         log.info("临时文件删除成功");
-                    }else {
+                    } else {
                         log.warn("临时文件删除失败");
                     }
                 } catch (IOException e) {
@@ -184,39 +184,35 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+//    TODO 要不要把check和download 分为两个方法呢
 
-    public Object download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, FileNotFoundException {
-        String[] result = new String[2];
-        if (sFileMapper.queryFile(code) != null) {
+    public Map<String, Object> download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, FileLostException {
+        Map<String, Object> result = new HashMap<>();
+        if (existsInDB(code)) {
             String realPassword = sFileMapper.queryPassword(code);
-            if (password == null) {
-                if (realPassword.equals("")) //FIXME 这里有瑕疵，不知道是null还是”“
-                    if (check) {
-                        String filetype = sFileMapper.queryFiletype(code);
-                        result[0] = filetype;
-                        if (!filetype.equals("file"))
-                            result[1] = getContent(code, filetype);
-                        return result;
-                    } else {
-                        return getSFileWrapper(code);
+            String filetype = sFileMapper.queryFiletype(code);
+            result.put("filetype", filetype);
+            boolean exists = existsInLocal(code, filetype);
+            result.put("exists", exists);
+            if (!exists)
+                throw new FileLostException("服务器文件已丢失");
+
+//            能执行到这里，说明文件一定是存在的
+            if (comparePassword(password, realPassword)) {
+                if (check) {
+                    if (!filetype.equals("file")) {
+                        result.put("content", getContent(code, filetype));
                     }
-                else {
-                    throw new NeedPasswordException("需要密码");
-                }
-            } else {
-                if (!password.equals(realPassword)) {
-                    throw new WrongPasswordException("密码错误");
                 } else {
-                    if (check) {
-                        String filetype = sFileMapper.queryFiletype(code);
-                        result[0] = filetype;
-                        if (!filetype.equals("file"))
-                            result[1] = getContent(code, filetype);
-                        return result;
-                    } else {
-                        return getSFileWrapper(code);
-                    }
+//                    下载
+                    result.put("content", getSFileWrapper(code));
                 }
+                return result;
+            } else {
+                if ("".equals(password))
+                    throw new NeedPasswordException("需要密码");
+                else
+                    throw new WrongPasswordException("密码错误");
             }
         } else {
             throw new CodeNotFoundException("取件码不存在");
@@ -224,9 +220,36 @@ public class FileServiceImpl implements FileService {
 
     }
 
+    public boolean comparePassword(String password1, String password2) {
+        if (password1 == null)
+            password1 = "";
+        if (password2 == null)
+            password2 = "";
+        return password1.equals(password2);
+    }
+
+    public boolean existsInDB(String code) {
+        String filename = sFileMapper.queryFile(code);
+        if (filename == null)
+            filename = "";
+        return !filename.equals("");
+
+    }
+
+    public boolean existsInLocal(String code, String filetype) {
+        switch (filetype) {
+            case "text":
+                return new File(textFilePath, code).exists();
+            case "image":
+                return new File(imageFilePath, code).exists();
+            default:
+                return new File(filePath, code).exists();
+        }
+    }
+
     @Override
     public boolean deleteInfo(String code) {
-        switch (sFileMapper.delete(code)){
+        switch (sFileMapper.delete(code)) {
             case 1:
                 log.info("数据库记录删除成功");
                 return true;
@@ -241,15 +264,13 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public boolean deleteFile(File file) throws FileNotFoundException {
-        if (!file.exists()){
+        if (!file.exists()) {
             throw new FileNotFoundException("要删除的文件不存在");
-        }
-        else{
+        } else {
             if (file.delete()) {
                 log.info("文件删除成功");
                 return true;
-            }
-            else{
+            } else {
                 log.error("文件删除失败");
                 return false;
             }
@@ -262,14 +283,11 @@ public class FileServiceImpl implements FileService {
     }
 
 
-    //    FIXME 需要检测文件是否存在，如果不存在给前端报错
-    public String getContent(String code, String filetype) throws FileNotFoundException {
+    public String getContent(String code, String filetype) {
         String fileName = sFileMapper.queryFile(code);
         if (fileName != null) {
             if (filetype.equals("text")) {
                 File file = new File(textFilePath, code);
-                if (!file.exists())
-                    throw new FileNotFoundException("文件丢失");
                 InputStreamReader reader;
                 try {
                     reader = new InputStreamReader(new FileInputStream(file));
@@ -305,13 +323,11 @@ public class FileServiceImpl implements FileService {
         return "";
     }
 
-    public SFileWrapper getSFileWrapper(String code) throws FileNotFoundException {
+    public SFileWrapper getSFileWrapper(String code) {
         String fileName = sFileMapper.queryFile(code);
         if (fileName != null) {
 //            取件码有效，文件在数据库中存在的话
             File srcFile = new File(filePath, code);
-            if (!srcFile.exists())
-                throw new FileNotFoundException("文件丢失");
             File tempFile;
             try {
                 tempFile = File.createTempFile("tempFile", "temp");
