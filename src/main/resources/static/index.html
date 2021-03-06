@@ -422,6 +422,18 @@
     </nav>
 </header>
 <main class="container" style="height: 100%;">
+    <div class="position-absolute hide m-2" id="info" style="left: 0;transition: .2s">
+        <div class="card bg-light mb-3" style="max-width: 18rem;">
+            <div class="card-header">本站说明</div>
+            <div class="card-body">
+                <p class="card-text">欢迎来到风享站，本站可用于临时匿名分享文件</p>
+                <p class="card-text"><strong>注册说明：</strong> 目前仅支持邮箱注册，且需要验证邮箱</p>
+                <p class="card-text"><strong>上传说明：</strong>
+                    非注册用户分享文件可设置允许10次以内的下载，且只限制100MB以内的文件；注册用户分享文件可供下载的次数提高到100次以内，且文件容量限制为1G以内</p>
+            </div>
+        </div>
+    </div>
+
     <div class="row h-100 justify-content-center align-content-center">
         <div class="col-8 text-center">
             <div class="btn-group d-block" role="group">
@@ -437,7 +449,7 @@
         </div>
     </div>
 </main>
-<footer class="position-absolute" style="bottom: 0;transition: .5s">
+<footer class="position-absolute ml-2" style="bottom: 0; left: 0;transition: .5s">
     <div class="card bg-light mb-3" style="max-width: 18rem;">
         <div class="card-header">网站信息</div>
         <div class="card-body">
@@ -450,7 +462,7 @@
     </div>
 </footer>
 
-
+<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279736126'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1279736126' type='text/javascript'%3E%3C/script%3E"));</script>
 <script src="js/jquery-3.5.1.js"></script>
 <script src="js/jquery.form.js"></script>
 <script src="js/jquery.validate.js"></script>
@@ -459,8 +471,6 @@
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
-    //TODO 模态框的报错尽量不要用toast来做，因为有一层蒙版会导致看不清
-    //FIXME 移动端图片显示会有异常，排版也有问题，按键也有问题
 
     let regeditModal = $('#regeditModal')
     let loginModal = $('#loginModal')
@@ -493,8 +503,6 @@
      * 自动登录
      */
     $(function () {
-        //TODO
-        // login('yionr99@gmail.com')
         $.ajax('login.do', {
             method: 'POST',
             success: function (data) {
@@ -519,7 +527,7 @@
     })
 
     /**
-     * 初始化footer
+     * 初始化网页元素摆放
      */
     $(function () {
         let rem = window.getComputedStyle(document.documentElement)["fontSize"];
@@ -531,6 +539,9 @@
                 $(this).css('bottom', -height + 'px')
             })
         }, 2000)
+
+        let headerHeight = $('header').css('height');
+        $('#info').css('top', headerHeight).fadeIn();
     })
 
     /**
@@ -664,7 +675,6 @@
             img = 'img/e.png'
         title = isOK ? '提示' : '警告';
         delay = isOK ? 5000 : 15000;
-        //TODO 警告的toast不会自动关闭
         let toast = $('<div class="toast" role="alert" data-delay="' + delay + '">\n' +
             '        <div class="toast-header">\n' +
             '            <img src="' + img + '" class="rounded" alt="" width="30" height="30">\n' +
@@ -719,9 +729,6 @@
         })
 
     }
-
-
-    //TODO 关闭模态框之后，清空表单验证消息
     /**
      * 初始化表单验证
      */
@@ -960,9 +967,9 @@
             if (!confirmNewPassword.attr('disabled')) {
                 //    两次密码输入不一致
                 confirmNewPassword.val('')
-                confirmNewPassword.attr('disabled','true')
+                confirmNewPassword.attr('disabled', 'true')
                 newPassword.select()
-                confirmNewPassword.parent().animate({'top':0},500)
+                confirmNewPassword.parent().animate({'top': 0}, 500)
                 newToast(false, '两次输入的密码不一致！')
             }
             return false;
@@ -979,8 +986,8 @@
                     case -1:
                         newToast('false', '旧密码错误')
                         $('#oldPassword').removeAttr('readOnly');
-                        $('.internalPassword').animate({'top':0},500)
-                        confirmNewPassword.attr('disabled','true')
+                        $('.internalPassword').animate({'top': 0}, 500)
+                        confirmNewPassword.attr('disabled', 'true')
                         changePasswordModal.find('form')[0].reset();
                         $('#oldPassword').focus()
                         break;
@@ -996,9 +1003,9 @@
             if (!confirmRegPassword.attr('disabled')) {
                 //    两次密码输入不一致
                 confirmRegPassword.val('')
-                confirmRegPassword.attr('disabled','true')
+                confirmRegPassword.attr('disabled', 'true')
                 regPassword.select()
-                confirmRegPassword.parent().animate({'top':0},500)
+                confirmRegPassword.parent().animate({'top': 0}, 500)
                 newToast(false, '两次输入的密码不一致！')
                 $('#regEmail').removeAttr('readOnly');
             }
@@ -1136,23 +1143,29 @@
     receiveModal.find('form').submit(function () {
         if (check.attr('value') === 'true') {
             $(this).ajaxSubmit({
+                dataType: 'json',
                 success: function (data) {
-                    switch (JSON.parse(data).status) {
+                    switch (data.status) {
                         case 0:
-                            receiveModal.find('[name=password]').val('') //FIXME 这句好像有点多余。。。
+                            receiveModal.find('[name=password]').val('')
                             newToast(false, '取件码不存在')
                             code.val(''); //包括下面的这几个val作用是修复bug：通过直链下载后，第一次打开接收框会含有上次的取件码
                             break;
                         case 1:
-                            switch ((JSON.parse(data).filetype)) {
+                            if (!data.exists) {
+                                newToast(false, '十分抱歉，因为一些预料不到的清空导致您在服务器临时存储的文件被异常删除，现已无法下载！')
+                                receiveModal.modal('hide')
+                                return false;
+                            }
+                            switch (data.filetype) {
                                 case 'text':
                                     //弹出一个显示框，将文本显示在里面
-                                    $('#textContent').text(JSON.parse(data).content)
+                                    $('#textContent').text(data.content)
                                     receiveTextModal.modal('show')
                                     receiveModal.find('form')[0].reset();
                                     break;
                                 case 'image':
-                                    $('.image').find('img').attr('src', 'data:image/png;base64,' + JSON.parse(data).content)
+                                    $('.image').find('img').attr('src', 'data:image/png;base64,' + data.content)
                                     imageModal.modal('show')
                                     receiveModal.find('form')[0].reset();
                                     break;
@@ -1160,10 +1173,9 @@
                                     check.attr('value', 'false')
                                     receiveModal.find('form').submit();
                                     newToast(true, '取件成功')
-                                    check.attr('value', 'true')
                                     break;
                             }
-                            code.val('');
+                            code.val('')
                             receiveModal.modal('hide')
                             break;
                         case 2:
@@ -1183,8 +1195,13 @@
                             //清空密码
                             receiveModal.find('[name=password]').val('')
                             break;
-                        case 4:
-                            newToast(false, '十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！')
+                        case -1:
+                            newToast(false, '十分抱歉，因为一些预料不到的清空导致您在服务器临时存储的文件被异常删除，现已无法下载！')
+                            code.val('');
+                            receiveModal.modal('hide');
+                            break;
+                        case -2:
+                            newToast(false, '违规操作！')
                             code.val('');
                             receiveModal.modal('hide');
                             break;
@@ -1206,7 +1223,7 @@
     })
     regeditModal.on('hidden.bs.modal', function () {
         $(this).find('.internalPassword').css('top', '0')
-        confirmRegPassword.attr('disabled','true')
+        confirmRegPassword.attr('disabled', 'true')
         $(this).find('#regEmail').removeAttr('readOnly')
         $(this).find('form')[0].reset();
     })
@@ -1216,7 +1233,7 @@
     changePasswordModal.on('hidden.bs.modal', function () {
         $('#oldPassword').removeAttr('readOnly');
         $(this).find('.internalPassword').css('top', '0')
-        confirmNewPassword.attr('disabled','true')
+        confirmNewPassword.attr('disabled', 'true')
         $(this).find('form')[0].reset();
     })
     sendModal.on('hidden.bs.modal', function () {
@@ -1234,6 +1251,8 @@
         code.removeClass('border-success').removeAttr('readonly');
         $('#code_password').attr('disabled', 'true')
         $(this).find('form').attr('action', '')
+        check.attr('value', 'true')
+        code.val('');
     })
     codeModal.on('hidden.bs.modal', function () {
         $('#copy').text('复制').css('backgroundColor', "#007bff")

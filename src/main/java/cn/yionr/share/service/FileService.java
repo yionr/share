@@ -6,12 +6,13 @@ import cn.yionr.share.service.exception.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 
 public interface FileService {
 
     String upload(SFileWrapper sfw,String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException;
 
-    Object download(String code,String password,Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, IOException;
+    Map<String,Object> download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, IOException, FileLostException;
 
     boolean deleteInfo(String code);
 

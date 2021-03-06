@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLEncoder;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -143,7 +144,7 @@ public class FileController {
     /**
      * 要做code下载文件的方式的话，得摒弃之前的下载方式，全权由这一种方式来下载
      *
-     * @return ”非法的下载请求“:非法的下载请求 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误 4: 服务器文件被异常删除，用户文件丢失
+     * @return -2： 用户跳过了check；-1:服务器文件丢了，而且是几乎不可能的情况下丢的 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
      */
     @GetMapping("/download/{code}")
     public String download(@PathVariable("code") String code, String password, boolean check, HttpServletResponse response) throws IOException, JSONException {
@@ -152,35 +153,38 @@ public class FileController {
             if (check) {
                 log.info("开始检查取件码");
                 try {
-                    String[] fileinfo = (String[]) fileService.download(code, password, true);
-                    log.info("取件码正常");
-                    return json.put("status", 1).put("filetype", fileinfo[0]).put("content", fileinfo[1]).toString();
+                    Map<String,Object> fileInfo =fileService.download(code, password, true);
+                    log.info("取件码正常，如果是及时展示的文件类型则会直接返回数据");
+                    for (Map.Entry<String, Object> entry : fileInfo.entrySet()) {
+                        json.put(entry.getKey(),entry.getValue());
+                    }
+                    return json.put("status", 1).toString();
+                } catch (CodeNotFoundException e) {
+                    log.info(e.getMessage());
+                    return json.put("status", 0).toString();
+                } catch (FileLostException e) {
+                    log.error(e.getMessage());
+                    fileService.deleteInfo(code);
+                    return json.put("status",-1).toString();
                 } catch (NeedPasswordException e) {
-                    log.info("该取件码需要密码");
+                    log.info(e.getMessage());
                     return json.put("status", 2).toString();
                 } catch (WrongPasswordException e) {
-                    log.info("取件码密码错误");
+                    log.info(e.getMessage());
                     return json.put("status", 3).toString();
-                } catch (CodeNotFoundException e) {
-                    log.info("取件码不存在");
-                    return json.put("status", 0).toString();
-                } catch (FileNotFoundException e) {
-                    log.info("取件码不存在");
-                    return "十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！";
                 }
             } else {
                 log.info("准备下载文件");
                 try {
-                    SFileWrapper sfw = (SFileWrapper) fileService.download(code, password, false);
-                    return sendFile(response, sfw) + "";
-                } catch (FileNotFoundException e) {
-                    log.info("服务器文件被其他动作删除，该用户文件丢失");
-//                    return json.put("status",4).toString();
-//                    FIXME 这里先临时用这种方法替代一下，如果要完善得把文件存在的校验放到check校验中去
-                    fileService.deleteInfo(code);
-                    return "十分抱歉，因为一些预料不到的动作导致您的文件被异常删除，现已无法下载！";
+                    SFileWrapper sfw = (SFileWrapper)(fileService.download(code, password, false).get("content"));
+                    return sendFile(response, sfw) + ""; //TODO 这里以后可以改动一下
                 } catch (CodeNotFoundException | WrongPasswordException | NeedPasswordException e) {
-                    return json.put("status", "非法的下载请求！").toString();
+                    log.error(e.getMessage());
+                    return json.put("status", -2).toString();
+                } catch (FileLostException e) {
+                    log.error(e.getMessage());
+                    fileService.deleteInfo(code);
+                    return json.put("status",-1).toString();
                 }
             }
         } else {
@@ -191,8 +195,6 @@ public class FileController {
 //    FIXME 隐患： 要求所有其他接口不能为四位，否则都会到这里
     @GetMapping("/????")
     public String redir(HttpServletRequest request) {
-        log.info("redir!");
-
         return "<meta http-equiv=\"Refresh\" content=\"0; URL=/?code=" + request.getRequestURI().substring(1) + "\" />";
     }
 
