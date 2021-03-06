@@ -1086,8 +1086,21 @@
             success: function (data) {
                 switch (data.status) {
                     case 1:
-                        $('#sendBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>发送中')
+                        $('#sendBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span id="process"></span>%')
+                        $('#sendBtn').attr('disabled','true');
                         sendModal.find('form').ajaxSubmit({
+                            xhr: function(){
+                                let myXhr = $.ajaxSettings.xhr();
+                                if(myXhr.upload){
+                                    myXhr.upload.addEventListener('progress',function(e) {
+                                        if (e.lengthComputable) {
+                                            let percent = Math.floor(e.loaded/e.total*100);
+                                                $("#process").html(percent);
+                                        }
+                                    }, false);
+                                }
+                                return myXhr;
+                            },
                             success: function (data) {
                                 let status = JSON.parse(data).status;
                                 if (status.length === 4) {
@@ -1242,6 +1255,7 @@
         $(this).find('.fileGroup').html('文件列表: <br>')
         file.removeAttr('disabled')
         $('#sendBtn').html('发送')
+        $('#sendBtn').removeAttr('disabled');
     })
     sendTextModal.on('hidden.bs.modal', function () {
         $(this).find('textarea').val('')
