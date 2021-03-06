@@ -503,28 +503,27 @@
      * 自动登录
      */
     $(function () {
-        if (document.cookie.indexOf('JSESSIONID') !== -1)
-            $.ajax('login.do', {
-                method: 'POST',
-                success: function (data) {
-                    switch (JSON.parse(data).status) {
-                        case 1:
-                            let email = localStorage.getItem('email');
-                            if (email !== null) {
-                                //    localStorage存在
-                                login(email);
-                            }
-                            break;
-                        case 0:
-                            newToast(false, '上次登录后密码已修改，请重新登录')
-                            //清空session和localStorage
-                            if (localStorage.getItem('email') !== null) {
-                                localStorage.removeItem('email')
-                            }
-                            break;
-                    }
+        $.ajax('login.do', {
+            method: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                switch (data.status) {
+                    case 1:
+                        let email = localStorage.getItem('email');
+                        if (email !== null) {
+                            login(email);
+                        }
+                        break;
+                    case 0:
+                        newToast(false, '上次登录后密码已修改，请重新登录')
+                        //清空session和localStorage
+                        if (localStorage.getItem('email') !== null) {
+                            localStorage.removeItem('email')
+                        }
+                        break;
                 }
-            })
+            }
+        })
     })
 
     /**
@@ -562,9 +561,9 @@
                     email: email.split('=')[1],
                     uuid: uuid.split('=')[1]
                 },
+                dataType: 'json',
                 success: function (data) {
-                    console.log(data)
-                    switch (JSON.parse(data).status) {
+                    switch (data.status) {
                         case 1:
                             //激活成功，提示并自动登录
                             newToast(true, '激活成功，将为您自动登录');

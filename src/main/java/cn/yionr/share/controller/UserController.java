@@ -161,6 +161,7 @@ public class UserController {
     }
 
     void addSession(HttpSession session, User user) {
+        session.setMaxInactiveInterval(60*60*24*30);
         session.setAttribute("email", user.getEmail());
         session.setAttribute("password", user.getPassword());
         log.info("session添加成功");
