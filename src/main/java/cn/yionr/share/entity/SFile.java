@@ -13,4 +13,5 @@ public class SFile {
     private int times;
     private String filetype;
     private int uid;
+    private long uploaded_time;
 }
