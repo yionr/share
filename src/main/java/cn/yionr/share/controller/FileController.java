@@ -164,7 +164,6 @@ public class FileController {
                     return json.put("status", 0).toString();
                 } catch (FileLostException e) {
                     log.error(e.getMessage());
-                    fileService.deleteInfo(code);
                     return json.put("status",-1).toString();
                 } catch (NeedPasswordException e) {
                     log.info(e.getMessage());
@@ -189,7 +188,6 @@ public class FileController {
                     return json.put("status", -2).toString();
                 } catch (FileLostException e) {
                     log.error(e.getMessage());
-                    fileService.deleteInfo(code);
                     return json.put("status",-1).toString();
                 } catch (FileOutOfDateException e) {
                     log.info(e.getMessage());
