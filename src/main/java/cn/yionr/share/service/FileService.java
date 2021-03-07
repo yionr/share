@@ -12,12 +12,11 @@ public interface FileService {
 
     String upload(SFileWrapper sfw,String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException;
 
-    Map<String,Object> download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, IOException, FileLostException;
+    Map<String,Object> download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, IOException, FileLostException, FileOutOfDateException, TimesRunOutException;
 
     boolean deleteInfo(String code);
 
-    boolean deleteFile(File file) throws FileNotFoundException;
+    boolean deleteFile(String code) throws FileNotFoundException;
 
-    boolean delete(File file,String code) throws FileNotFoundException;
-//    List<String> show();
+    boolean delete(String code) throws FileNotFoundException;
 }

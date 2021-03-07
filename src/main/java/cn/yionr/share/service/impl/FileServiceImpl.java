@@ -13,6 +13,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Slf4j
@@ -24,18 +28,27 @@ public class FileServiceImpl implements FileService {
     String filePath;
     String textFilePath;
     String imageFilePath;
+    String trashBinPath;
+
+    Map<String, Long> fileMap;
 
     public List<String> codePool = new ArrayList<>();
 
     @Autowired
-    public FileServiceImpl(SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath, @Value("${textFiles.dir}") String textFilePath, @Value("${imageFiles.dir}") String imageFilePath) {
+    public FileServiceImpl(SFileMapper sFileMapper, UserMapper userMapper, @Value("${files.dir}") String filePath, @Value("${textFiles.dir}") String textFilePath, @Value("${imageFiles.dir}") String imageFilePath,@Value("${trashBin.dir}") String trashBinPath) {
 
-        this.sFileMapper = sFileMapper;
         this.filePath = filePath;
         this.textFilePath = textFilePath;
         this.imageFilePath = imageFilePath;
+        this.trashBinPath = trashBinPath;
+
+        this.sFileMapper = sFileMapper;
         this.userMapper = userMapper;
-        //generate a codePool 4number from 0000-9999
+
+
+
+         // 构造一个包含0000~9999的List
+
         for (int i = 0; i < 10000; i++) {
             if (i < 10)
                 codePool.add("000" + i);
@@ -47,18 +60,12 @@ public class FileServiceImpl implements FileService {
                 codePool.add("" + i);
         }
 
-        //search in mysql , and exclude codes
-        codePool.removeAll(sFileMapper.listCodes());
-
-        //check local files mappered with database , first with database ,
-        // if database no some file remove them
-        // else show all loosed files in logger
-
         List<String> remoteCodes = sFileMapper.listCodes();
 
         File localFileDir = new File(filePath);
         File localTextFileDir = new File(textFilePath);
         File localImageFileDir = new File(imageFilePath);
+        File localTrashBinDir = new File(trashBinPath);
 
         if (!localFileDir.exists()) {
             log.warn("文件存放目录不存在，即将自动创建");
@@ -67,7 +74,6 @@ public class FileServiceImpl implements FileService {
             else
                 log.error("创建失败");
         }
-
         if (!localTextFileDir.exists()) {
             log.warn("文本存放目录不存在，即将自动创建");
             if (localTextFileDir.mkdirs())
@@ -78,7 +84,6 @@ public class FileServiceImpl implements FileService {
             }
 
         }
-
         if (!localImageFileDir.exists()) {
             log.warn("图片存放目录不存在，即将自动创建");
             if (localImageFileDir.mkdirs())
@@ -89,17 +94,38 @@ public class FileServiceImpl implements FileService {
             }
 
         }
+        if (!localTrashBinDir.exists()) {
+            log.warn("回收站不存在，即将自动创建");
+            if (localTrashBinDir.mkdirs())
+                log.info("创建成功");
+            else {
+                log.error("创建失败");
+                System.exit(0);
+            }
+
+        }
+
+        for (File file : localTrashBinDir.listFiles()) {
+            if (!file.delete()) {
+                log.warn("回收站文件"+ file.getName() +"删除失败");
+            }
+        }
+        log.info("其余回收站文件已清空");
 
 
         List<String> localCodes = new ArrayList<>(Arrays.asList(Objects.requireNonNull(localFileDir.list())));
         localCodes.addAll(new ArrayList<>(Arrays.asList(Objects.requireNonNull(localTextFileDir.list()))));
         localCodes.addAll(new ArrayList<>(Arrays.asList(Objects.requireNonNull(localImageFileDir.list()))));
 
+
+        List<String> localCodesClone = new ArrayList<>(localCodes);
+
         String[] remoteCodeArr = remoteCodes.toArray(new String[0]);
 
         log.info("服务器文件存储路径为： " + filePath);
         log.info("服务器文本存储路径为： " + textFilePath);
         log.info("服务器图片存储路径为： " + imageFilePath);
+        log.info("服务器回收站路径为： " + trashBinPath);
         log.info("=====================================");
         log.info("数据库现有取件码: " + remoteCodes.toString());
         log.info("本地现有取件码: " + localCodes.toString());
@@ -108,6 +134,7 @@ public class FileServiceImpl implements FileService {
             if (localCodes.contains(code)) {
                 remoteCodes.remove(code);
                 localCodes.remove(code);
+                codePool.remove(code);
             }
         }
 
@@ -116,14 +143,103 @@ public class FileServiceImpl implements FileService {
         else {
             if (!remoteCodes.isEmpty()) {
 //            数据库中有取件码但是本地没有
-                log.error("异常取件码: " + remoteCodes.toString() + " , 以上取件码的本地文件已丢失！");
+                log.error("异常取件码: " + remoteCodes.toString() + " , 以上取件码的本地文件已丢失！即将删除记录。。。");
+                for (String code : remoteCodes)
+                    deleteInfo(code);
             }
             if (!localCodes.isEmpty()) {
 //            本地中有取件码但是数据库没有记录
-                log.error("异常取件码: " + localCodes.toString() + " , 以上取件码的数据库记录已丢失！");
+                log.error("异常取件码: " + localCodes.toString() + " , 以上取件码的数据库记录已丢失！即将删除文件。。。");
+                List<File> fileList = new ArrayList<>();
+                for (String code : localCodes) {
+                    fileList.add(new File(filePath,code));
+                    fileList.add(new File(textFilePath,code));
+                    fileList.add(new File(imageFilePath,code));
+                }
+                for (File item :
+                        fileList) {
+                    if (item.exists()){
+                        if (item.delete()) {
+                            log.info("文件 " + item.getName() + " 删除成功");
+                        }
+                        else{
+                            log.warn("文件 " + item.getName() + " 删除失败");
+                        }
+                    }
+
+                }
             }
         }
 //        FIXME 这种方式要求三个文件夹不能有包含关系
+
+//TODO 所有 和文件删除有关的都交给线程去做。 其他地方不能删除的话，直接去掉会有bug，之前为了图方便，下载部分没做次数的校验，只是文件存在就能下载，之后吧这个改了
+
+        Thread t = new Thread(() -> {
+            while (true) {
+//                将文件删除至trash文件夹，且在服务器容量不足或其他条件下清空该文件夹
+                log.info("开始定期检查并删除过期文件、次数为0的文件（保留数据库记录）");
+                log.debug("fileMap内容为：" + fileMap.toString());
+//                遍历map,将outofdate的file delete
+                Iterator<Map.Entry<String, Long>> iterator = fileMap.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, Long> entry = iterator.next();
+                    String code = entry.getKey();
+                    boolean visitor = sFileMapper.queryUID(code) == -1;
+                    int deadTime = visitor ? 7 : 30;
+                    if (Duration.between(LocalDateTime.ofInstant(Instant.ofEpochMilli(entry.getValue()), ZoneId.systemDefault()), LocalDateTime.now()).toDays() > deadTime) {
+                        log.info("文件 " + code + " 已过期，即将删除(移至回收站)");
+                        try {
+                            deleteFile(code);
+                            iterator.remove();
+                            log.info("删除成功，同时删除fileMap记录");
+                        } catch (FileNotFoundException e) {
+                            log.warn(e.getMessage());
+                            iterator.remove();
+                            log.info("已在fileMap中移除维护！");
+                        }
+                    }
+//                    过期文件移至回收站，在前端会显示过期。那数据库记录什么时候删掉？
+//                    既过期又没次数的文件，优先显示哪个？ a: 过期文件
+//                    没次数的文件移至回收站，在前端显示没次数，那数据库记录什么时候删掉？
+//                    之所以移至回收站，是为以后的额外功能做准备，所以现在回收站的作用就是，让过期以及没次数的文件在前端能给用户显示，同时一直占用着数据库，在下次启动的时候删掉数据库冗余（暂时），并删掉回收站
+                    else{
+                        if (sFileMapper.queryTimes(code) <= 0){
+                            log.info("文件 " + code + " 下载次数已用完，即将删除(移至回收站)");
+                            try {
+                                deleteFile(code);
+                                iterator.remove();
+                                log.info("删除成功，同时删除fileMap记录");
+                            } catch (FileNotFoundException e) {
+                                log.warn(e.getMessage());
+                                iterator.remove();
+                                log.info("已在fileMap中移除维护！");
+                            }
+                        }
+
+                    }
+
+                }
+                try {
+                    Thread.sleep(1000 * 10);
+                } catch (InterruptedException e) {
+                    log.error("线程sleep出问题了");
+                }
+
+            }
+        });
+
+        Thread t1 = new Thread(() -> {
+//            获取所有的本地文件，放入fileMap
+//            当文件被删除时，同时remove mapitem 添加文件也要additem
+            for (String fid : localCodesClone)
+                fileMap.put(fid, sFileMapper.queryFile(fid).getUploaded_time());
+            log.info("fileMap建立完成，内容为：" + fileMap.toString());
+            log.info("接下来开始定时任务");
+            t.start();
+        });
+
+        fileMap = new HashMap<>();
+        t1.start();
     }
 
     public String upload(SFileWrapper sfw, String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException {
@@ -136,8 +252,11 @@ public class FileServiceImpl implements FileService {
             log.info("设置uid为: " + uid);
         }
 
+        sfw.getSFile().setUploaded_time(new Date().getTime());
+
         String fid = codePool.remove((int) (Math.random() * (codePool.size() + 1)));
         log.info("从池中随到取件码: " + fid);
+        log.info("池剩余取件码个数: " + (10000 - codePool.size()));
         sfw.getSFile().setFid(fid);
         File dstFile;
         if (sfw.getSFile().getFiletype().equals("text")) {
@@ -158,6 +277,8 @@ public class FileServiceImpl implements FileService {
                     } else {
                         log.warn("临时文件删除失败");
                     }
+                    fileMap.put(fid, sfw.getSFile().getUploaded_time());
+
                 } catch (IOException e) {
                     log.warn("文件拷贝失败");
                     throw new CopyFailedException("文件拷贝失败");
@@ -168,7 +289,8 @@ public class FileServiceImpl implements FileService {
                 } else {
                     log.warn("记录存入数据库失败,准备删除仓库文件");
                     if (dstFile.delete()) {
-                        log.info("文件删除成功");
+                        log.info("文件删除成功,并同步删除fileMap的记录");
+                        fileMap.remove(sfw.getSFile().getFid());
                     } else {
                         log.warn("文件删除失败");
                     }
@@ -186,16 +308,20 @@ public class FileServiceImpl implements FileService {
 
 //    TODO 要不要把check和download 分为两个方法呢
 
-    public Map<String, Object> download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, FileLostException {
+    public Map<String, Object> download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, FileLostException, FileOutOfDateException, TimesRunOutException {
         Map<String, Object> result = new HashMap<>();
+
         if (existsInDB(code)) {
-            String realPassword = sFileMapper.queryPassword(code);
+//            先测试过期，再测试丢失
+            if (outOfDate(code))
+                throw new FileOutOfDateException("文件已过期");
+            if (sFileMapper.queryTimes(code) <= 0)
+                throw new TimesRunOutException("下载次数已用完");
             String filetype = sFileMapper.queryFiletype(code);
-            result.put("filetype", filetype);
-            boolean exists = existsInLocal(code, filetype);
-            result.put("exists", exists);
-            if (!exists)
+            if (!existsInLocal(code, filetype))
                 throw new FileLostException("服务器文件已丢失");
+            String realPassword = sFileMapper.queryPassword(code);
+            result.put("filetype", filetype);
 
 //            能执行到这里，说明文件一定是存在的
             if (comparePassword(password, realPassword)) {
@@ -229,7 +355,7 @@ public class FileServiceImpl implements FileService {
     }
 
     public boolean existsInDB(String code) {
-        String filename = sFileMapper.queryFile(code);
+        String filename = sFileMapper.queryFile(code).getName();
         if (filename == null)
             filename = "";
         return !filename.equals("");
@@ -247,11 +373,21 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    @Override
+    public boolean outOfDate(String code) {
+        int uid = sFileMapper.queryUID(code);
+        long during = Duration.between(LocalDateTime.ofInstant(Instant.ofEpochMilli(sFileMapper.queryFile(code).getUploaded_time()), ZoneId.systemDefault()), LocalDateTime.now()).toDays();
+        if (uid != -1) {
+            return during > 30;
+        } else {
+            return during > 7;
+        }
+
+    }
+
     public boolean deleteInfo(String code) {
         switch (sFileMapper.delete(code)) {
             case 1:
-                log.info("数据库记录删除成功");
+                log.info("数据库记录" + code + "删除成功");
                 return true;
             case 0:
                 log.warn("数据库没有记录被删除");
@@ -262,29 +398,46 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    @Override
-    public boolean deleteFile(File file) throws FileNotFoundException {
-        if (!file.exists()) {
-            throw new FileNotFoundException("要删除的文件不存在");
+    /**
+     * 移至回收站
+     * @param code
+     * @return
+     * @throws FileNotFoundException
+     */
+    public boolean deleteFile(String code) throws FileNotFoundException {
+        String filetype = sFileMapper.queryFiletype(code);
+        String path;
+        switch (filetype){
+            case "text":
+                path = textFilePath;
+                break;
+            case "image":
+                path = imageFilePath;
+                break;
+            default:
+                path = filePath;
+                break;
+        }
+        File target = new File(path, code);
+        if (!target.exists()) {
+            throw new FileNotFoundException("文件不存在");
         } else {
-            if (file.delete()) {
-                log.info("文件删除成功");
+            try {
+                FileUtils.moveFileToDirectory(target,new File(trashBinPath),false);
                 return true;
-            } else {
-                log.error("文件删除失败");
+            } catch (IOException e) {
                 return false;
             }
         }
     }
 
-    @Override
-    public boolean delete(File file, String code) throws FileNotFoundException {
-        return deleteInfo(code) && deleteFile(file);
+    public boolean delete(String code) throws FileNotFoundException {
+        return deleteFile(code) && deleteInfo(code);
     }
 
 
     public String getContent(String code, String filetype) {
-        String fileName = sFileMapper.queryFile(code);
+        String fileName = sFileMapper.queryFile(code).getName();
         if (fileName != null) {
             if (filetype.equals("text")) {
                 File file = new File(textFilePath, code);
@@ -324,7 +477,7 @@ public class FileServiceImpl implements FileService {
     }
 
     public SFileWrapper getSFileWrapper(String code) {
-        String fileName = sFileMapper.queryFile(code);
+        String fileName = sFileMapper.queryFile(code).getName();
         if (fileName != null) {
 //            取件码有效，文件在数据库中存在的话
             File srcFile = new File(filePath, code);
@@ -354,9 +507,7 @@ public class FileServiceImpl implements FileService {
         int times = sFileMapper.queryTimes(code);
 //            如果取件次数上限，则删掉数据库记录，并删掉文件
         log.info("该文件剩余下载次数：" + times);
-        if (times <= 0) {
-            log.info("该文件下载次数已用完，即将删除数据库和仓库数据");
-            delete(file, code);
-        }
+        if (times <= 0)
+            log.info("该文件下载次数已用完");
     }
 }
