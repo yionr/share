@@ -4,18 +4,11 @@ import cn.yionr.share.entity.User;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.ResultMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @Slf4j @RestController
@@ -161,7 +154,6 @@ public class UserController {
     }
 
     void addSession(HttpSession session, User user) {
-        session.setMaxInactiveInterval(60*60*24*30);
         session.setAttribute("email", user.getEmail());
         session.setAttribute("password", user.getPassword());
         log.info("session添加成功");
