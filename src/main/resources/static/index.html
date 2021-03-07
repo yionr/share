@@ -423,13 +423,16 @@
 </header>
 <main class="container" style="height: 100%;">
     <div class="position-absolute hide m-2" id="info" style="left: 0;transition: .2s">
-        <div class="card bg-light mb-3" style="max-width: 18rem;">
-            <div class="card-header">本站说明</div>
-            <div class="card-body">
+        <div class="card bg-light mb-3" id="siteInfo" style="max-width: 18rem;">
+            <div class="card-header">本站说明
+                <button type="button" class="close">
+                <span>&times;</span>
+            </button></div>
+            <div class="card-body pre-scrollable" style="height: 15rem">
                 <p class="card-text">欢迎来到风享站，本站可用于临时匿名分享文件</p>
                 <p class="card-text"><strong>注册说明：</strong> 目前仅支持邮箱注册，且需要验证邮箱</p>
                 <p class="card-text"><strong>上传说明：</strong>
-                    非注册用户分享文件可设置允许10次以内的下载，且只限制100MB以内的文件；注册用户分享文件可供下载的次数提高到100次以内，且文件容量限制为1G以内</p>
+                    非注册用户分享文件仅允许10次以内的下载，限制上传容量为100MB以内的文件，且有效期为7天；注册用户分享文件可供下载的次数提高到100次以内，且文件容量限制为1G以内，有效期为30天</p>
             </div>
         </div>
     </div>
@@ -532,6 +535,10 @@
      * 初始化网页元素摆放
      */
     $(function () {
+        $('.card .close').on('click',function(){
+            $(this).closest('.card').fadeOut();
+        })
+
         let rem = window.getComputedStyle(document.documentElement)["fontSize"];
         let height = parseInt($('footer .card-body').css('height')) + parseInt(rem);
         setTimeout(function () {
@@ -1091,15 +1098,15 @@
                 switch (data.status) {
                     case 1:
                         $('#sendBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span id="process"></span>%')
-                        $('#sendBtn').attr('disabled','true');
+                        $('#sendBtn').attr('disabled', 'true');
                         sendModal.find('form').ajaxSubmit({
-                            xhr: function(){
+                            xhr: function () {
                                 let myXhr = $.ajaxSettings.xhr();
-                                if(myXhr.upload){
-                                    myXhr.upload.addEventListener('progress',function(e) {
+                                if (myXhr.upload) {
+                                    myXhr.upload.addEventListener('progress', function (e) {
                                         if (e.lengthComputable) {
-                                            let percent = Math.floor(e.loaded/e.total*100);
-                                                $("#process").html(percent);
+                                            let percent = Math.floor(e.loaded / e.total * 100);
+                                            $("#process").html(percent);
                                         }
                                     }, false);
                                 }
@@ -1170,11 +1177,6 @@
                             code.val(''); //包括下面的这几个val作用是修复bug：通过直链下载后，第一次打开接收框会含有上次的取件码
                             break;
                         case 1:
-                            if (!data.exists) {
-                                newToast(false, '十分抱歉，因为一些预料不到的清空导致您在服务器临时存储的文件被异常删除，现已无法下载！')
-                                receiveModal.modal('hide')
-                                return false;
-                            }
                             switch (data.filetype) {
                                 case 'text':
                                     //弹出一个显示框，将文本显示在里面
@@ -1213,6 +1215,10 @@
                             //清空密码
                             receiveModal.find('[name=password]').val('')
                             break;
+                        case 4:
+                            newToast(false, '文件过期了')
+                            receiveModal.modal('hide')
+                            break;
                         case -1:
                             newToast(false, '十分抱歉，因为一些预料不到的清空导致您在服务器临时存储的文件被异常删除，现已无法下载！')
                             code.val('');
@@ -1220,6 +1226,11 @@
                             break;
                         case -2:
                             newToast(false, '违规操作！')
+                            code.val('');
+                            receiveModal.modal('hide');
+                            break;
+                        case 5:
+                            newToast(false, '文件下载次数已用完')
                             code.val('');
                             receiveModal.modal('hide');
                             break;
