@@ -144,7 +144,7 @@ public class FileController {
     /**
      * 要做code下载文件的方式的话，得摒弃之前的下载方式，全权由这一种方式来下载
      *
-     * @return -2： 用户跳过了check；-1:服务器文件丢了，而且是几乎不可能的情况下丢的 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误
+     * @return -2： 用户跳过了check；-1:服务器文件丢了，而且是几乎不可能的情况下丢的 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误; 4: 文件过期;5: 文件下载次数用完了
      */
     @GetMapping("/download/{code}")
     public String download(@PathVariable("code") String code, String password, boolean check, HttpServletResponse response) throws IOException, JSONException {
@@ -172,6 +172,12 @@ public class FileController {
                 } catch (WrongPasswordException e) {
                     log.info(e.getMessage());
                     return json.put("status", 3).toString();
+                } catch (FileOutOfDateException e) {
+                    log.info(e.getMessage());
+                    return json.put("status",4).toString();
+                } catch (TimesRunOutException e) {
+                    log.info(e.getMessage());
+                    return json.put("status",5).toString();
                 }
             } else {
                 log.info("准备下载文件");
@@ -185,6 +191,12 @@ public class FileController {
                     log.error(e.getMessage());
                     fileService.deleteInfo(code);
                     return json.put("status",-1).toString();
+                } catch (FileOutOfDateException e) {
+                    log.info(e.getMessage());
+                    return json.put("status",4).toString();
+                } catch (TimesRunOutException e) {
+                    log.info(e.getMessage());
+                    return json.put("status",5).toString();
                 }
             }
         } else {
