@@ -81,10 +81,15 @@
             color: #dc3545;
             font-size: 14px;
         }
+
+        canvas {display: block;
+            z-index: 0;pointer-events: none;position: fixed;top: 0;}
     </style>
 </head>
 
 <body>
+<!--<canvas id="canvas" width="1920" height="950"></canvas>-->
+
 <!-- loginModal -->
 <div class="modal fade" id="loginModal" tabindex="-1">
     <div class="modal-dialog">
@@ -234,7 +239,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer"><small class="d-none">云端正在进行安全备份，请耐心等待！</small>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                     <button type="submit" class="btn btn-primary" id="sendBtn">发送</button>
                 </div>
@@ -388,8 +393,19 @@
 <!--toast-container-br-->
 <div class="position-fixed p-3 toast-container-br" style="bottom: 0;right: 0"></div>
 
+
+
+
+
+
+
+
+
+
+
+
 <header>
-    <nav class="navbar navbar-expand-lg navbar-light bg-info">
+    <nav class="navbar navbar-expand-lg navbar-light bg-danger">
         <a class="navbar-brand" href="javascript:0;">风享站</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -422,17 +438,24 @@
     </nav>
 </header>
 <main class="container" style="height: 100%;">
+
+    <!--    TODO 建立开发板，放上一些tip和未来要加入的功能-->
+    <!--    TODO 网页可以设置文件不用存入hdfs，缩短上传时间-->
+
+
     <div class="position-absolute hide m-2" id="info" style="left: 0;transition: .2s">
         <div class="card bg-light mb-3" id="siteInfo" style="max-width: 18rem;">
-            <div class="card-header">本站说明
+            <div class="card-header bg-danger">本站说明
                 <button type="button" class="close">
-                <span>&times;</span>
-            </button></div>
+                    <span>&times;</span>
+                </button>
+            </div>
             <div class="card-body pre-scrollable" style="height: 15rem">
                 <p class="card-text">欢迎来到风享站，本站可用于临时匿名分享文件</p>
-                <p class="card-text"><strong>注册说明：</strong> 目前仅支持邮箱注册，且需要验证邮箱</p>
-                <p class="card-text"><strong>上传说明：</strong>
-                    非注册用户分享文件仅允许10次以内的下载，限制上传容量为100MB以内的文件，且有效期为7天；注册用户分享文件可供下载的次数提高到100次以内，且文件容量限制为1G以内，有效期为30天(图片的容量上限统一为7MB)</p>
+                <p class="card-text"><strong>注册说明:</strong> <br>目前仅支持邮箱注册，且需要验证邮箱</p>
+                <p class="card-text"><strong>上传说明:</strong> <br>
+                    游客上传文件仅允许10次以内、容量上限为100MB的文件，且最长有效期为7天；注册用户上传文件可享受100次以内、容量上限1G的特权，最长有效期为30天(图片的容量上限游客和注册用户统一为7MB)
+                </p>
             </div>
         </div>
     </div>
@@ -454,7 +477,7 @@
 </main>
 <footer class="position-absolute ml-2" style="bottom: 0; left: 0;transition: .5s">
     <div class="card bg-light mb-3" style="max-width: 18rem;">
-        <div class="card-header">网站信息</div>
+        <div class="card-header bg-info">网站信息</div>
         <div class="card-body">
             <p class="card-text">©2020 Yionr</p>
             <p class="card-text"><a href="https://beian.miit.gov.cn" target="_blank">浙ICP备19047112号-2</a></p>
@@ -464,7 +487,7 @@
         </div>
     </div>
 </footer>
-
+</body>
 <script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279736126'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1279736126' type='text/javascript'%3E%3C/script%3E"));</script>
 <script src="js/jquery-3.5.1.js"></script>
 <script src="js/jquery.form.js"></script>
@@ -473,825 +496,11 @@
 <script src="js/clipboard.min.js"></script>
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
-<script>
-
-    //TODO 建立开发板，放上一些tip和未来要加入的功能
-    //TODO 网页可以设置文件不用存入hdfs，缩短上传时间
-
-    let regeditModal = $('#regeditModal')
-    let loginModal = $('#loginModal')
-    let receiveModal = $('#receiveModal')
-    let sendModal = $('#sendModal')
-    let codeModal = $('#codeModal')
-    let QRCodeModal = $('#QRCodeModal')
-    let receiveTextModal = $('#receiveTextModal')
-    let sendTextModal = $('#sendTextModal')
-    let imageModal = $('#imageModal')
-    let pw = $('.pw')
-    let file = $('[name=file]')
-    let check = $('[name=check]')
-    let send = $('#send')
-    let image = $('#image')
-    let text = $('#text')
-    let filetype = $('[name=filetype]');
-    let tempCode, tempContent
-    let toastContainerBR = $('.toast-container-br')
-    let code = $('#code')
-    let confirmRegPassword = $('#confirmRegPassword');
-    let regPassword = $('#regPassword')
-    let confirmNewPassword = $('#confirmNewPassword')
-    let newPassword = $('#newPassword');
-    let message = {}
-    let changePasswordModal = $('#changePasswordModal')
-
-    //一堆初始化
-    /**
-     * 自动登录
-     */
-    $(function () {
-        $.ajax('login.do', {
-            method: 'POST',
-            dataType: 'json',
-            success: function (data) {
-                switch (data.status) {
-                    case 1:
-                        let email = localStorage.getItem('email');
-                        if (email !== null) {
-                            login(email);
-                        }
-                        break;
-                    case 0:
-                        newToast(false, '上次登录后密码已修改，请重新登录')
-                        //清空session和localStorage
-                        if (localStorage.getItem('email') !== null) {
-                            localStorage.removeItem('email')
-                        }
-                        break;
-                }
-            }
-        })
-    })
-
-    /**
-     * 初始化网页元素摆放
-     */
-    $(function () {
-        $('.card .close').on('click',function(){
-            $(this).closest('.card').fadeOut();
-        })
-
-        let rem = window.getComputedStyle(document.documentElement)["fontSize"];
-        let height = parseInt($('footer .card-body').css('height')) + parseInt(rem);
-        setTimeout(function () {
-            $('footer').css('bottom', -height + 'px').on('mouseover', function () {
-                $(this).css('bottom', 0)
-            }).on('mouseout', function () {
-                $(this).css('bottom', -height + 'px')
-            })
-        }, 2000)
-
-        let headerHeight = $('header').css('height');
-        $('#info').css('top', headerHeight).fadeIn();
-    })
-
-    /**
-     * 带参url检测
-     */
-    $(function () {
-        let url = window.location.href;
-        let urlParam = url.split('\?')[1];
-        if (!urlParam)
-            return;
-        if (urlParam.startsWith('email')) {
-            let email = urlParam.split('&')[0];
-            let uuid = urlParam.split('&')[1];
-            $.ajax('active.do', {
-                method: 'POST',
-                data: {
-                    email: email.split('=')[1],
-                    uuid: uuid.split('=')[1]
-                },
-                dataType: 'json',
-                success: function (data) {
-                    switch (data.status) {
-                        case 1:
-                            //激活成功，提示并自动登录
-                            newToast(true, '激活成功，将为您自动登录');
-                            //将邮箱存入localStorage
-                            localStorage.setItem('email', email.split('=')[1])
-                            setTimeout(function () {
-                                window.location.href = url.split('\?')[0]
-                            }, 1000)
-                            break;
-                        case -1:
-                            newToast(false, '激活链接过期了，请重新注册！')
-                            setTimeout(function () {
-                                window.location.href = url.split('\?')[0]
-                            }, 3000)
-                            break;
-                        case 0:
-                        case -2:
-                        case -3:
-                            window.location.href = url.split('\?')[0]
-                            break;
-                    }
-                }
-            })
-        } else if (urlParam.startsWith('code')) {
-            let tempCode = urlParam.split('=')[1];
-            code.val(tempCode);
-            receiveModal.find('form').attr('action', 'download/' + tempCode)
-            receiveModal.find('form').submit();
-            history.pushState(null, '', '/');
-        }
-    })
-
-    /**
-     * 初始化剪切板
-     **/
-    $(function () {
-        new ClipboardJS('#copyCode');
-        new ClipboardJS('#copyText');
-        new ClipboardJS('#directLink', {
-            container: codeModal[0],
-            text: function () {
-                return window.location.href.split('\?')[0] + $('#codeNumber').text();
-            }
-        });
-    })
-
-    /**
-     * 初始化发送框
-     * */
-    $(function () {
-        send.on('mouseover', function () {
-            $(this).text('文件')
-            text.removeClass('d-none');
-            image.removeClass('d-none');
-        })
-        send.parent().on('mouseleave', function () {
-            send.text('发送')
-            text.addClass('d-none');
-            image.addClass('d-none');
-        })
-        // 不同按钮点开，界面不一样。
-        //点击文本则展示一个文本域
-        text.on('click', function () {
-            filetype.attr('value', 'text');
-            sendTextModal.modal('show');
-        })
-        //点击文件则直接让用户选择文件
-        send.on('click', function () {
-            filetype.attr('value', 'file');
-            file.removeAttr('accept')
-            file.trigger('click')
-        })
-        image.on('click', function () {
-            filetype.attr('value', 'image');
-            file.attr('accept', 'image/*')
-            file.trigger('click')
-        })
-    })
-
-    /**
-     * 初始化internalPsasword的高度
-     */
-    let halfHeight;
-    regeditModal.on('shown.bs.modal', function () {
-        halfHeight = parseInt($('#regeditModal .internalPassword').css('height')) / 2
-        $('.doublePassword').css('height', halfHeight + 'px')
-    })
-    changePasswordModal.on('shown.bs.modal', function () {
-        halfHeight = parseInt($('#changePasswordModal .internalPassword').css('height')) / 2
-        $('.doublePasswordV2').css('height', halfHeight + 'px')
-    })
-
-    /**
-     * 当输入取件码时，同步改变action
-     */
-    code.on('change', function () {
-        receiveModal.find('form').attr('action', 'download/' + code.val())
-    })
-
-    /**
-     * 新建一个toast
-     * 第一个参数确定toast属于提示框还是警告框，第二个参数表示内容，提示框delay为5秒，警告框为15秒
-     */
-    function newToast(isOK, content) {
-        let title, img, delay;
-        if (isOK)
-            img = 'img/r.png'
-        else
-            img = 'img/e.png'
-        title = isOK ? '提示' : '警告';
-        delay = isOK ? 5000 : 15000;
-        let toast = $('<div class="toast" role="alert" data-delay="' + delay + '">\n' +
-            '        <div class="toast-header">\n' +
-            '            <img src="' + img + '" class="rounded" alt="" width="30" height="30">\n' +
-            '            <strong class="mr-auto">' + title + '</strong>\n' +
-            '            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">\n' +
-            '                <span aria-hidden="true">&times;</span>\n' +
-            '            </button>\n' +
-            '        </div>\n' +
-            '        <div class="toast-body">\n' +
-            '            ' + content + '\n' +
-            '        </div>\n' +
-            '    </div>')
-        toastContainerBR.append(toast);
-        toast.toast('show');
-        setTimeout(function () {
-            toast.remove()
-        }, delay + 1000)
-    }
-
-    //复制、QR码的点击
-    $('#copyCode,#copyText').on('click', function () {
-        //    文本变为复制成功，颜色变为绿success 然后渐变回原本的颜色
-        $(this).text('复制成功').css('backgroundColor', "#28a745")
-    })
-    $('#directLink').on('click', function () {
-        newToast(true, '复制成功')
-    })
-    $('#getQRCode').on('click', function () {
-        new QRCode($('#QRCode')[0], window.location.href.split('\?')[0] + $('#codeNumber').text());
-        codeModal.modal('hide');
-        QRCodeModal.modal('show');
-    })
-
-    function login(email) {
-        $('#log-reg-btn').addClass('d-none');
-        $('#logged').removeClass('d-none').find('button').text(email);
-        $('#allowTimes-input').attr('max', 99)
-    }
-
-    function exit() {
-        $.ajax('exit.do', {
-            method: 'POST',
-            success: function (data) {
-                if (JSON.parse(data).status === 0) {
-                    newToast(true, '已退出登录')
-                    $('#log-reg-btn').removeClass('d-none');
-                    $('#logged').addClass('d-none').find('button').text('');
-                    $('#allowTimes-input').attr('max', 9)
-                    localStorage.removeItem('email');
-                }
-            }
-        })
-
-    }
-
-
-    //TODO 关闭模态框之后，清空表单验证消息
-    /**
-     * 初始化表单验证
-     */
-    $.validator.addMethod("checkPassword", function (value, element) {
-        let checkPwd = /[_0-9a-zA-z]{8,20}/;
-        //TODO optional 是什么
-        return this.optional(element) || (checkPwd.test(value));
-    }, "密码只能包含数字、字母、下划线，且长度区间为8-20");
-    $.validator.addMethod("checkCodePassword", function (value, element) {
-        let checkPwd = /[_0-9a-zA-z]{0,20}/;
-        return this.optional(element) || (checkPwd.test(value));
-    }, "密码只能包含数字、字母、下划线，且长度区间为1-20");
-    $(function () {
-        $('#loginModal form').validate({
-            rules: {
-                email: {
-                    required: true,
-                    email: true
-                },
-                password: {
-                    required: true,
-                    checkPassword: true
-                }
-            }
-        });
-        $('#regeditModal form').validate({
-            rules: {
-                email: {
-                    required: true,
-                    email: true,
-                    remote: {
-                        url: 'checkEmail',
-                        type: 'post'
-                    }
-                },
-                password: {
-                    required: true,
-                    checkPassword: true
-                },
-                confirmPassword: {
-                    checkPassword: true,
-                    equalTo: '#regPassword'
-                }
-            },
-            messages: {
-                email: {
-                    remote: '该邮箱已被注册，请重新注册'
-                }
-            }
-        });
-        $('#changePasswordModal form').validate({
-            rules: {
-                oldPassword: {
-                    required: true,
-                    checkPassword: true,
-                    remote: {
-                        url: 'checkPassword',
-                        type: 'post'
-                    }
-                },
-                newPassword: {
-                    required: true,
-                    checkPassword: true
-                },
-                confirmPassword: {
-                    checkPassword: true,
-                    equalTo: '#newPassword'
-                }
-            },
-            messages: {
-                oldPassword: {
-                    remote: '密码不正确'
-                }
-            }
-        });
-        $('#sendModal form').validate({
-            rules: {
-                times: {
-                    required: true,
-                    number: true,
-                    min: 1,
-                    max: 9
-                },
-                password: {
-                    checkCodePassword: true
-                }
-            },
-            messages: {
-                times: {
-                    max: '超出允许下载的范围，游客只允许范围为1-9，注册用户为1-99'
-                }
-            }
-        });
-        $('#receiveModal form').validate({
-            rules: {
-                fid: {
-                    required: true,
-                    number: true
-                },
-                password: {
-                    checkCodePassword: true
-                }
-            }
-        });
-    })
-
-    function correctWrapperHeight(wrapper) {
-        // console.log('纠正')
-        if ($(wrapper).find('[name=confirmPassword]').attr('disabled'))
-            $(wrapper).css('height', $(wrapper).find('.pos').position().top)
-        else
-            $(wrapper).css('height', parseInt($(wrapper).find('.internalPassword').css('height')) - parseInt($(wrapper).find('.pos').position().top) + 'px')
-    }
-
-    //输入密码后的向下滚动效果
-    //这个input bug还是挺大的，稍后再说
-    $('#regPassword,#regPassword [name=confirmPassword]').on('input', function () {
-        setTimeout(function () {
-            correctWrapperHeight('.doublePassword')
-        }, 400)
-    })
-
-    $('#newPassword,#newPassword [name=confirmPassword]').on('input', function () {
-        setTimeout(function () {
-            correctWrapperHeight('.doublePasswordV2')
-        }, 400)
-    })
-
-    $('#regeditModal input:not([name=confirmPassword])').on('blur', function () {
-        let valid = $(this).closest('form').valid();
-        correctWrapperHeight('.doublePassword')
-        if (valid) {
-            let height = $(this).closest($('.doublePassword,.doublePasswordV2')).css('height');
-            //拉高
-            $(this).closest('form').find('.internalPassword').animate({'top': '-' + height}, 500)
-            //email只读
-            $($(this).closest($('form')).find('input')[0]).attr('readOnly', 'true');
-            //移除disabled
-            // $(this).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
-            //获得焦点，添加required，加定时器是因为不延迟会导致滚动过高
-            setTimeout(function (e) {
-                $(e).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
-                $(e).closest('form').find('[name=confirmPassword]').focus()
-            }, 328, this)
-        }
-    })
-
-    $('#changePasswordModal input:not([name=confirmPassword])').on('blur', function () {
-        let valid = $(this).closest('form').valid();
-        correctWrapperHeight('.doublePasswordV2')
-        if (valid) {
-            let height = $(this).closest($('.doublePassword,.doublePasswordV2')).css('height');
-            //拉高
-            $(this).closest('form').find('.internalPassword').animate({'top': '-' + height}, 500)
-            //email只读
-            $($(this).closest($('form')).find('input')[0]).attr('readOnly', 'true');
-            //移除disabled
-            // $(this).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
-            //获得焦点，添加required，加定时器是因为不延迟会导致滚动过高,同时这个定时器的事件也要控制，太快会导致同样的问题
-            setTimeout(function (e) {
-                $(e).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
-                $(e).closest('form').find('[name=confirmPassword]').focus()
-            }, 800, this)
-        }
-    })
-
-    //看看这个和上面的能不能合并
-    /**
-     * 添加快捷键
-     */
-    $('.modal:not(#sendTextModal)').on('show.bs.modal', function () {
-        $(this).bind('keypress', this, function (e) {
-            if (e.key === 'Enter') {
-                //默认情况下，即使提交表单也不会让原本focus的input 失去焦点
-                $(e.data).find('input:focus').blur();
-                //默认情况下，表单里面enter会触发submit
-                //FIXME 奇了怪了，文本modal enter明明都不会啊
-                return true;
-            }
-        })
-    }).on('hide.bs.modal', function () {
-        $(this).off('keypress')
-    })
-
-    /**
-     * 选择文件后显示模态框，并显示文件名
-     */
-    file.on('change', function () {
-        //C:\fakepath\接收.png
-        let absoluteFileName = $(this).val().split('\\');
-        //接收.png
-        let fileName = absoluteFileName[absoluteFileName.length - 1]
-        if (filetype.attr('value') === 'image')
-            if (!/\.(gif|svg|bmp|png|jpeg|jpg|wepb|ico|tif)$/i.test(fileName)) {
-                //    警告不是图片文件，并return
-                newToast(false, '该文件不是图片，请重新选择，或使用‘文件’通道上传')
-                return;
-            }
-        //当有文件之后，显示模态框，并将数据显示
-        $(this).next('.fileGroup').append($('<div class="fileItem">' + fileName + '</div>'));
-        sendModal.modal('show');
-    })
-    /**
-     * 退出登录
-     */
-    //FIXME 如果exit不在function里面，就会打开页面直接运行，为什么？
-    $('#exitLogin').on('click', function () {
-        exit()
-    })
-
-
-    sendTextModal.find('.modal-footer').find('button').on('click', function () {
-        let fileGroup = $('.fileGroup');
-        tempContent = sendTextModal.find('textarea').val();
-        if (tempContent.trim().length === 0) {
-            newToast(false, '内容请不要为空')
-            //TODO 拒绝关闭，抖动窗口
-            return false;
-        }
-        let temp = tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent;
-        let fileItem = $('<div class="fileItem text-left"> ' + temp + '</div>')
-        fileGroup.html('文本内容: <br>')
-        fileGroup.append(fileItem)
-        file.attr('disabled', 'true')
-        fileGroup.append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
-        sendModal.modal('show');
-        sendTextModal.find('textarea').val('')
-    })
-
-
-    /**
-     * ajax拦截表单提交
-     */
-    changePasswordModal.find('form').submit(function () {
-        if (confirmNewPassword.val() !== newPassword.val()) {
-            if (!confirmNewPassword.attr('disabled')) {
-                //    两次密码输入不一致
-                confirmNewPassword.val('')
-                confirmNewPassword.attr('disabled', 'true')
-                newPassword.select()
-                confirmNewPassword.parent().animate({'top': 0}, 500)
-                newToast(false, '两次输入的密码不一致！')
-            }
-            return false;
-        }
-        confirmNewPassword.attr('disabled', 'true')
-        $(this).ajaxSubmit({
-            success: function (data) {
-                switch (JSON.parse(data).status) {
-                    case 1:
-                        changePasswordModal.modal('hide');
-                        newToast(true, '密码已成功修改，请重新登录！')
-                        exit();
-                        break;
-                    case -1:
-                        newToast('false', '旧密码错误')
-                        $('#oldPassword').removeAttr('readOnly');
-                        $('.internalPassword').animate({'top': 0}, 500)
-                        confirmNewPassword.attr('disabled', 'true')
-                        changePasswordModal.find('form')[0].reset();
-                        $('#oldPassword').focus()
-                        break;
-                }
-                return false;
-            }
-        })
-        return false;
-    })
-
-    regeditModal.find('form').submit(function () {
-        if (confirmRegPassword.val() !== regPassword.val()) {
-            if (!confirmRegPassword.attr('disabled')) {
-                //    两次密码输入不一致
-                confirmRegPassword.val('')
-                confirmRegPassword.attr('disabled', 'true')
-                regPassword.select()
-                confirmRegPassword.parent().animate({'top': 0}, 500)
-                newToast(false, '两次输入的密码不一致！')
-                $('#regEmail').removeAttr('readOnly');
-            }
-            return false;
-        }
-        confirmRegPassword.attr('disabled', 'true')
-        $(this).ajaxSubmit({
-            success: function (data) {
-                switch (JSON.parse(data).status) {
-                    case 1:
-                        regeditModal.modal('hide')
-                        newToast(true, '账号激活邮件已发送至您的邮箱，请及时点击激活！')
-                        break;
-                    case 0:
-                        newToast(false, '邮箱已注册')
-                        regeditModal.find('form')[0].reset();
-                        break;
-                    case 2:
-                        regeditModal.modal('hide')
-                        newToast(false, '账号未激活，请及时到您的收件箱点击激活')
-                        break;
-
-                }
-                return false;
-            }
-        })
-        return false;
-    })
-    loginModal.find('form').submit(function () {
-        let email = $('#loginEmail').val();
-        $(this).ajaxSubmit({
-            success: function (data) {
-                switch (JSON.parse(data).status) {
-                    case -1:
-                        newToast(false, '邮箱不存在')
-                        //清空表单
-                        loginModal.find('form')[0].reset();
-                        break;
-                    case 0:
-                        newToast(false, '密码错误')
-                        //清空密码框
-                        $('#loginPassword').val('')
-                        break;
-                    case 1:
-                        loginModal.modal('hide');
-                        newToast(true, '登录成功')
-                        localStorage.setItem('email', email)
-                        login(email)
-                        break;
-                    case 2:
-                        loginModal.modal('hide');
-                        newToast(false, '该邮箱未激活，请先前往邮箱激活')
-                        break;
-                }
-                return false;
-            }
-        })
-        return false;
-    })
-    sendModal.find('form').submit(function () {
-        let data;
-        if (filetype.attr('value') === 'text') {
-            data = {
-                size: tempContent.length * 4,
-                times: $('#allowTimes-input').val(),
-                filetype: filetype.attr('value')
-            }
-        } else {
-            data = {
-                size: file[0].files[0].size,
-                times: $('#allowTimes-input').val(),
-                filetype: filetype.attr('value')
-            }
-        }
-        $.ajax('checkFile', {
-            data: data,
-            type: 'post',
-            dataType: 'json',
-            success: function (data) {
-                switch (data.status) {
-                    case 1:
-                        $('#sendBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span id="process"></span>%')
-                        $('#sendBtn').attr('disabled', 'true');
-                        sendModal.find('form').ajaxSubmit({
-                            dataType: 'json',
-                            xhr: function () {
-                                let myXhr = $.ajaxSettings.xhr();
-                                if (myXhr.upload) {
-                                    myXhr.upload.addEventListener('progress', function (e) {
-                                        if (e.lengthComputable) {
-                                            let percent = Math.floor(e.loaded / e.total * 100);
-                                            $("#process").html(percent);
-                                            newToast(true,"由于文件保存采用了更安全的方案，所以大文件的保存需要更多时间，100%之后如没弹出取件码请耐心等待。。。请勿关闭浏览器！")
-                                        }
-                                    }, false);
-                                }
-                                return myXhr;
-                            },
-                            success: function (data) {
-                                if (data.status.length === 4) {
-                                    //    得到取件码
-                                    sendModal.modal('hide')
-                                    $('#codeNumber').text(data.status)
-                                    tempCode = data.status;
-                                    codeModal.find('h5').text('发送成功，您的取件码为')
-                                    $('.qrAndDl').removeClass('d-none');
-                                    codeModal.modal('show')
-                                } else {
-                                    if (parseInt(data.status)===0)
-                                        newToast(false, '服务器文件保存失败,请稍后重试')
-                                    else if (parseInt(data.status)===-1)
-                                        newToast(false, '本系统目前已没有空余取件码！暂停上传服务。。。感谢支持')
-                                    sendModal.modal('hide');
-                                    return false;
-                                }
-                            }
-                        });
-                        break;
-                    case -1:
-                        sendModal.modal('hide');
-                        newToast(false, '非法篡改允许次数，上传失败')
-                        break;
-                    case -2 :
-                        sendModal.modal('hide');
-                        newToast(false, '文件容量超出上限！')
-                        break;
-                    case -3:
-                        sendModal.modal('hide');
-                        newToast(false, '用户信息已过期，请重新登录')
-                        setTimeout(function () {
-                            exit();
-                        }, 827)
-                        break;
-                }
-            }
-        })
-        return false;   //阻止表单默认提交
-    })
-    receiveModal.find('form').submit(function () {
-        if (check.attr('value') === 'true') {
-            $(this).ajaxSubmit({
-                dataType: 'json',
-                success: function (data) {
-                    switch (data.status) {
-                        case 0:
-                            receiveModal.find('[name=password]').val('')
-                            newToast(false, '取件码不存在')
-                            code.val(''); //包括下面的这几个val作用是修复bug：通过直链下载后，第一次打开接收框会含有上次的取件码
-                            break;
-                        case 1:
-                            switch (data.filetype) {
-                                case 'text':
-                                    //弹出一个显示框，将文本显示在里面
-                                    $('#textContent').text(data.content)
-                                    receiveTextModal.modal('show')
-                                    receiveModal.find('form')[0].reset();
-                                    break;
-                                case 'image':
-                                    $('.image').find('img').attr('src', 'data:image/png;base64,' + data.content)
-                                    imageModal.modal('show')
-                                    receiveModal.find('form')[0].reset();
-                                    break;
-                                case 'file':
-                                    check.attr('value', 'false')
-                                    receiveModal.find('form').submit();
-                                    newToast(true, '取件成功')
-                                    newToast(true,'由于文件存储采用了更安全的架构，所以如果待取文件比较大时，响应时间也会比较久，请耐心等待至多30秒，浏览器会自动开始下载！')
-                                    break;
-                            }
-                            code.val('')
-                            receiveModal.modal('hide')
-                            break;
-                        case 2:
-                            receiveModal.modal('show');
-                            code.addClass('border-success').attr('readonly', 'true')
-                            $('#code_password').removeAttr('disabled')
-                            //FIXME 如果不延迟一下的话，好像会被忽略掉，猜测和模态框的动画冲突了，动画一次只能执行一个
-                            setTimeout(function () {
-                                pw.animate({
-                                    'height': pw.closest('.modal-body').css('height')
-                                }, 472)
-                            }, 300)
-
-                            break;
-                        case 3:
-                            newToast(false, '密码错误')
-                            //清空密码
-                            receiveModal.find('[name=password]').val('')
-                            break;
-                        case 4:
-                            newToast(false, '文件过期了')
-                            receiveModal.modal('hide')
-                            break;
-                        case -1:
-                            newToast(false, '十分抱歉，因为一些预料不到的清空导致您在服务器临时存储的文件被异常删除，现已无法下载！')
-                            code.val('');
-                            receiveModal.modal('hide');
-                            break;
-                        case -2:
-                            newToast(false, '违规操作！')
-                            code.val('');
-                            receiveModal.modal('hide');
-                            break;
-                        case 5:
-                            newToast(false, '文件下载次数已用完')
-                            code.val('');
-                            receiveModal.modal('hide');
-                            break;
-                    }
-                    return false;
-                }
-            });
-            return false;
-        }
-        return true;
-    })
-
-    /**
-     *关闭模态框的时候重置表单,清空所有内容
-     */
-    $('.modal').on('hidden.bs.modal', function () {
-        $(this).find('label.error').remove()
-        $(this).find('input').removeClass('error')
-    })
-    regeditModal.on('hidden.bs.modal', function () {
-        $(this).find('.internalPassword').css('top', '0')
-        confirmRegPassword.attr('disabled', 'true')
-        $(this).find('#regEmail').removeAttr('readOnly')
-        $(this).find('form')[0].reset();
-    })
-    loginModal.on('hidden.bs.modal', function () {
-        $(this).find('form')[0].reset();
-    })
-    changePasswordModal.on('hidden.bs.modal', function () {
-        $('#oldPassword').removeAttr('readOnly');
-        $(this).find('.internalPassword').css('top', '0')
-        confirmNewPassword.attr('disabled', 'true')
-        $(this).find('form')[0].reset();
-    })
-    sendModal.on('hidden.bs.modal', function () {
-        $(this).find('form')[0].reset();
-        $(this).find('.fileGroup').html('文件列表: <br>')
-        file.removeAttr('disabled')
-        $('#sendBtn').html('发送')
-        $('#sendBtn').removeAttr('disabled');
-    })
-    sendTextModal.on('hidden.bs.modal', function () {
-        $(this).find('textarea').val('')
-    })
-    receiveModal.on('hidden.bs.modal', function () {
-        $(this).find('form')[0].reset();
-        $(this).find('.pw').css('height', 0);
-        code.removeClass('border-success').removeAttr('readonly');
-        $('#code_password').attr('disabled', 'true')
-        $(this).find('form').attr('action', '')
-        check.attr('value', 'true')
-        code.val('');
-    })
-    codeModal.on('hidden.bs.modal', function () {
-        $('#copy').text('复制').css('backgroundColor', "#007bff")
-        $('.qrAndDl').addClass('d-none')
-        $('#codeNumber').text('')
-    })
-    receiveTextModal.on('hidden.bs.modal', function () {
-        $('#copy').text('复制').css('backgroundColor', "#007bff")
-        $('#textContent').text('')
-    })
-    QRCodeModal.on('hidden.bs.modal', function () {
-        $('#QRCode').html('');
-        $('.qrAndDl').removeClass('d-none')
-        $('#codeNumber').text(tempCode)
-        codeModal.modal('show');
-    })
-</script>
-</body>
+<script src="js/variable.js"></script>
+<script src="js/init.js"></script>
+<script src="js/validate.js"></script>
+<script src="js/tools.js"></script>
+<script src="js/modalEvent.js"></script>
+<script src="js/submit.js"></script>
+<script src="js/confetti.js"></script>
 </html>
