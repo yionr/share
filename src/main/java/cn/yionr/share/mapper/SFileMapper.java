@@ -20,11 +20,17 @@ public interface SFileMapper {
     @Select("select * from sfile where fid=#{code}")
     SFile queryFile(String code);
 
+    @Select("select name from sfile where fid=#{code}")
+    String queryFileName(String code);
+
     @Update("update sfile set times = times - 1 where fid=#{code}")
     void decreaseTime(String code);
 
     @Select("select times from sfile where fid=#{code}")
     int queryTimes(String code);
+
+    @Select("select uploaded_time from sfile where fid=#{code}")
+    long queryUploaded_time(String code);
 
     @Select("select password from sfile where fid=#{code}")
     String queryPassword(String code);
