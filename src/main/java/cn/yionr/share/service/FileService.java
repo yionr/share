@@ -10,13 +10,11 @@ import java.util.Map;
 
 public interface FileService {
 
-    String upload(SFileWrapper sfw,String email) throws IOException, AlogrithmException, FailedCreateFileException, FailedSaveIntoDBException, CopyFailedException;
+    String upload(SFileWrapper sfw,String email) throws IOException, NoLastsCodeException;
 
-    Map<String,Object> download(String code, String password, Boolean check) throws NeedPasswordException, WrongPasswordException, CodeNotFoundException, IOException, FileLostException, FileOutOfDateException, TimesRunOutException;
+    Map<String, Object> check(String code, String password) throws FileOutOfDateException, TimesRunOutException, IOException, FileLostException, NeedPasswordException, WrongPasswordException, CodeNotFoundException;
 
-    boolean deleteInfo(String code);
+    SFileWrapper download(String code, String password) throws IOException, IllegalOperationException;
 
-    boolean deleteFile(String code) throws FileNotFoundException;
-
-    boolean delete(String code) throws FileNotFoundException;
+    int release() throws IOException;
 }
