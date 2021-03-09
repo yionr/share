@@ -432,7 +432,7 @@
                 <p class="card-text">欢迎来到风享站，本站可用于临时匿名分享文件</p>
                 <p class="card-text"><strong>注册说明：</strong> 目前仅支持邮箱注册，且需要验证邮箱</p>
                 <p class="card-text"><strong>上传说明：</strong>
-                    非注册用户分享文件仅允许10次以内的下载，限制上传容量为100MB以内的文件，且有效期为7天；注册用户分享文件可供下载的次数提高到100次以内，且文件容量限制为1G以内，有效期为30天</p>
+                    非注册用户分享文件仅允许10次以内的下载，限制上传容量为100MB以内的文件，且有效期为7天；注册用户分享文件可供下载的次数提高到100次以内，且文件容量限制为1G以内，有效期为30天(图片的容量上限统一为7MB)</p>
             </div>
         </div>
     </div>
@@ -474,8 +474,9 @@
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script>
-    //TODO 模态框的报错尽量不要用toast来做，因为有一层蒙版会导致看不清
-    //FIXME 移动端图片显示会有异常，排版也有问题，按键也有问题
+
+    //TODO 建立开发板，放上一些tip和未来要加入的功能
+    //TODO 网页可以设置文件不用存入hdfs，缩短上传时间
 
     let regeditModal = $('#regeditModal')
     let loginModal = $('#loginModal')
@@ -1082,12 +1083,14 @@
         if (filetype.attr('value') === 'text') {
             data = {
                 size: tempContent.length * 4,
-                times: $('#allowTimes-input').val()
+                times: $('#allowTimes-input').val(),
+                filetype: filetype.attr('value')
             }
         } else {
             data = {
                 size: file[0].files[0].size,
-                times: $('#allowTimes-input').val()
+                times: $('#allowTimes-input').val(),
+                filetype: filetype.attr('value')
             }
         }
         $.ajax('checkFile', {
@@ -1100,6 +1103,7 @@
                         $('#sendBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span id="process"></span>%')
                         $('#sendBtn').attr('disabled', 'true');
                         sendModal.find('form').ajaxSubmit({
+                            dataType: 'json',
                             xhr: function () {
                                 let myXhr = $.ajaxSettings.xhr();
                                 if (myXhr.upload) {
@@ -1107,39 +1111,27 @@
                                         if (e.lengthComputable) {
                                             let percent = Math.floor(e.loaded / e.total * 100);
                                             $("#process").html(percent);
+                                            newToast(true,"由于文件保存采用了更安全的方案，所以大文件的保存需要更多时间，100%之后如没弹出取件码请耐心等待。。。请勿关闭浏览器！")
                                         }
                                     }, false);
                                 }
                                 return myXhr;
                             },
                             success: function (data) {
-                                let status = JSON.parse(data).status;
-                                if (status.length === 4) {
+                                if (data.status.length === 4) {
                                     //    得到取件码
                                     sendModal.modal('hide')
-                                    $('#codeNumber').text(status)
-                                    tempCode = status;
+                                    $('#codeNumber').text(data.status)
+                                    tempCode = data.status;
                                     codeModal.find('h5').text('发送成功，您的取件码为')
                                     $('.qrAndDl').removeClass('d-none');
                                     codeModal.modal('show')
                                 } else {
-                                    switch (parseInt(status)) {
-                                        case 0:
-                                        case 2:
-                                        case 4:
-                                        case 5:
-                                            sendModal.modal('hide');
-                                            newToast(false, '服务器文件保存失败,请稍后重试')
-                                            break;
-                                        case 1:
-                                            sendModal.modal('hide');
-                                            newToast(false, '服务器取件码获取失败，请稍后重试')
-                                            break;
-                                        case 3:
-                                            sendModal.modal('hide');
-                                            newToast(false, '数据库添加记录失败，请稍后重试')
-                                            break;
-                                    }
+                                    if (parseInt(data.status)===0)
+                                        newToast(false, '服务器文件保存失败,请稍后重试')
+                                    else if (parseInt(data.status)===-1)
+                                        newToast(false, '本系统目前已没有空余取件码！暂停上传服务。。。感谢支持')
+                                    sendModal.modal('hide');
                                     return false;
                                 }
                             }
@@ -1193,6 +1185,7 @@
                                     check.attr('value', 'false')
                                     receiveModal.find('form').submit();
                                     newToast(true, '取件成功')
+                                    newToast(true,'由于文件存储采用了更安全的架构，所以如果待取文件比较大时，响应时间也会比较久，请耐心等待至多30秒，浏览器会自动开始下载！')
                                     break;
                             }
                             code.val('')
