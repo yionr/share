@@ -37,4 +37,4 @@ build/
 /src/main/resources/application-mail.properties
 /src/main/resources/application-database.properties
 
-/src/main/resources/trashBin/
+/src/main/resources/tempFiles
