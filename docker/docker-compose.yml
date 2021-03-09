@@ -14,8 +14,7 @@ services:
       - CLUSTER_NAME=test
     env_file:
       - ./hadoop.env
-    extra_hosts:
-      - "docker-namenode:127.0.0.1"
+    hostname: 'docker-namenode'
 
   datanode:
     image: bde2020/hadoop-datanode
@@ -30,8 +29,7 @@ services:
       SERVICE_PRECONDITION: "namenode:9870"
     env_file:
       - ./hadoop.env
-    extra_hosts:
-      - "docker-datanode:127.0.0.1"
+    hostname: 'docker-datanode'
   
   resourcemanager:
     image: bde2020/hadoop-resourcemanager
@@ -68,8 +66,9 @@ services:
     restart: always
     ports:
       - 2181:2181
-    extra_hosts:
-      - "docker-hbase:127.0.0.1"
+      - 16000:16000
+      - 16020:16020
+    hostname: 'docker-hbase'
   
 volumes:
   hadoop_namenode:
