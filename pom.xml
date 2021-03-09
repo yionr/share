@@ -10,7 +10,7 @@
     </parent>
     <groupId>cn.yionr</groupId>
     <artifactId>share</artifactId>
-    <version>0.9.7</version>
+    <version>1.0.0</version>
     <name>share</name>
     <description>文件分享项目</description>
 
