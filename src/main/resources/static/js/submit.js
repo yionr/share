@@ -17,8 +17,9 @@ regeditModal.find('form').submit(function () {
     confirmRegPassword.attr('disabled', 'true')
     $('#regPassword').val(CryptoJS.MD5($('#regPassword').val()))
     $(this).ajaxSubmit({
+        dataType: 'json',
         success: function (data) {
-            switch (JSON.parse(data).status) {
+            switch (data.status) {
                 case 1:
                     regeditModal.modal('hide')
                     newToast(true, '账号激活邮件已发送至您的邮箱，请及时点击激活！')
@@ -42,8 +43,9 @@ loginModal.find('form').submit(function () {
     let email = $('#loginEmail').val();
     $('#loginPassword').val(CryptoJS.MD5($('#loginPassword').val()))
     $(this).ajaxSubmit({
+        dataType: 'json',
         success: function (data) {
-            switch (JSON.parse(data).status) {
+            switch (data.status) {
                 case -1:
                     newToast(false, '邮箱不存在')
                     //清空表单
@@ -87,8 +89,9 @@ changePasswordModal.find('form').submit(function () {
     $("#oldPassword").val(CryptoJS.MD5($('#oldPassword').val()))
     $('#newPassword').val(CryptoJS.MD5($('#newPassword').val()))
     $(this).ajaxSubmit({
+        dataType: 'json',
         success: function (data) {
-            switch (JSON.parse(data).status) {
+            switch (data.status) {
                 case 1:
                     changePasswordModal.modal('hide');
                     newToast(true, '密码已成功修改，请重新登录！')
