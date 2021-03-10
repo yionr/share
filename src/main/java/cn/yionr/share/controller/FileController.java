@@ -31,7 +31,7 @@ public class FileController {
     /**
      * @return xxxx: 取件码; 0: IO异常; -1:本系统暂时没有空余取件码
      */
-    @PostMapping("/upload.do")
+    @PostMapping("/upload")
     public String upload(MultipartFile file, SFile sFile, HttpSession session, String text) throws JSONException {
         JSONObject json = new JSONObject();
         SFileWrapper sfw = new SFileWrapper();
@@ -134,7 +134,7 @@ public class FileController {
     /**
      * @return -3: IO异常; -2：客户端非法操作(改逻辑) -1:服务器文件丢了 0: 取件码不存在; 1: 取件码正常; 2: 需要密码; 3: 密码错误; 4: 文件过期;5: 文件下载次数用完了
      */
-    @GetMapping("/download/{code}")
+    @PostMapping("/download/{code:\\d+}")
     public String download(@PathVariable("code") String code, String password, boolean check, HttpServletResponse response) throws JSONException {
         JSONObject json = new JSONObject();
         if (code.trim().matches("\\d{4}")) {
@@ -200,8 +200,7 @@ public class FileController {
             return "您没有该权限!";
     }
 
-    //    FIXME 隐患： 要求所有其他接口不能为四位，否则都会到这里
-    @GetMapping("/????")
+    @GetMapping("/{code:\\d+}")
     public String redir(HttpServletRequest request) {
         return "<meta http-equiv=\"Refresh\" content=\"0; URL=/?code=" + request.getRequestURI().substring(1) + "\" />";
     }

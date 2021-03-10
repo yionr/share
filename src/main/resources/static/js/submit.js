@@ -15,6 +15,7 @@ regeditModal.find('form').submit(function () {
         return false;
     }
     confirmRegPassword.attr('disabled', 'true')
+    $('#regPassword').val(CryptoJS.MD5($('#regPassword').val()))
     $(this).ajaxSubmit({
         success: function (data) {
             switch (JSON.parse(data).status) {
@@ -39,6 +40,7 @@ regeditModal.find('form').submit(function () {
 })
 loginModal.find('form').submit(function () {
     let email = $('#loginEmail').val();
+    $('#loginPassword').val(CryptoJS.MD5($('#loginPassword').val()))
     $(this).ajaxSubmit({
         success: function (data) {
             switch (JSON.parse(data).status) {
@@ -68,6 +70,7 @@ loginModal.find('form').submit(function () {
     })
     return false;
 })
+
 changePasswordModal.find('form').submit(function () {
     if (confirmNewPassword.val() !== newPassword.val()) {
         if (!confirmNewPassword.attr('disabled')) {
@@ -81,6 +84,8 @@ changePasswordModal.find('form').submit(function () {
         return false;
     }
     confirmNewPassword.attr('disabled', 'true')
+    $("#oldPassword").val(CryptoJS.MD5($('#oldPassword').val()))
+    $('#newPassword').val(CryptoJS.MD5($('#newPassword').val()))
     $(this).ajaxSubmit({
         success: function (data) {
             switch (JSON.parse(data).status) {

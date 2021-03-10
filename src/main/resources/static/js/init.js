@@ -2,7 +2,7 @@
  * 自动登录
  */
 $(function () {
-    $.ajax('login.do', {
+    $.ajax('login', {
         method: 'POST',
         dataType: 'json',
         success: function (data) {
@@ -58,7 +58,7 @@ $(function () {
     if (urlParam.startsWith('email')) {
         let email = urlParam.split('&')[0];
         let uuid = urlParam.split('&')[1];
-        $.ajax('active.do', {
+        $.ajax('active', {
             method: 'POST',
             data: {
                 email: email.split('=')[1],

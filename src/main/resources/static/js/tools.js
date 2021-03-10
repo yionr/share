@@ -37,7 +37,7 @@ function login(email) {
 }
 
 function exit() {
-    $.ajax('exit.do', {
+    $.ajax('exit', {
         method: 'POST',
         success: function (data) {
             if (JSON.parse(data).status === 0) {

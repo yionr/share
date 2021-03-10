@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpSession;
 
-@Slf4j @RestController
+@Slf4j
+@RestController
 public class UserController {
 
     UserService userService;
@@ -24,7 +25,7 @@ public class UserController {
     /**
      * @return 0: 邮箱已存在; 1： 注册成功,发送激活邮件; 2: 用户未激活
      */
-    @PostMapping("/regedit.do")
+    @PostMapping("/regedit")
     public String regedit(User user) throws JSONException {
         log.info("邮箱： " + user.getEmail() + " 提交注册");
         JSONObject json = new JSONObject();
@@ -44,7 +45,7 @@ public class UserController {
     /**
      * @return -1： 邮箱不存在； 0： 密码错误； 1： 登陆成功； 2：用户未激活
      */
-    @PostMapping("/login.do")
+    @PostMapping("/login")
     public String login(User user, HttpSession session) throws JSONException {
         JSONObject json = new JSONObject();
         String email = (String) session.getAttribute("email");
@@ -114,7 +115,7 @@ public class UserController {
     /**
      * @return 0: 退出登录并清除session成功
      */
-    @PostMapping("/exit.do")
+    @PostMapping("/exit")
     public String exit(HttpSession session) throws JSONException {
         log.info("客户端发起了退出登录的请求");
         session.invalidate();
@@ -125,7 +126,7 @@ public class UserController {
     /**
      * @return 1:激活成功；0：未发现该激活用户；-1：激活链接过期了，请在两天内激活哦； -2：激活码无效!； -3：该用户已激活，请不要重复激活
      */
-    @PostMapping("/active.do")
+    @PostMapping("/active")
     public String active(String email, String uuid, HttpSession session) throws JSONException {
             JSONObject json = new JSONObject();
             try {

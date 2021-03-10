@@ -55,7 +55,12 @@ $(function () {
                 checkPassword: true,
                 remote: {
                     url: 'checkPassword',
-                    type: 'post'
+                    type: 'post',
+                    data: {
+                        oldPassword: function (){
+                            return CryptoJS.MD5($('#oldPassword').val())
+                        }
+                    }
                 }
             },
             newPassword: {

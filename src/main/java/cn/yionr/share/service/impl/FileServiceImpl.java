@@ -97,7 +97,7 @@ public class FileServiceImpl implements FileService {
                     } else
                         log.warn("{}为什么正常的文件会在回收站？",code);
                 } else {
-                    log.warn("本地文件 {} 丢失...\n 数据库信息为:{}",code,sFileMapper.queryFile(code).toString());
+                    log.warn("本地文件 {} 丢失...\t数据库信息为:{},删除该记录",code,sFileMapper.queryFile(code).toString());
                     sFileMapper.delete(code);
                 }
             }

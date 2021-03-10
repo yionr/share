@@ -14,7 +14,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 @Slf4j
-@WebFilter(filterName = "permissionFilter", urlPatterns = {"/upload.do","/checkFile"})
+@WebFilter(filterName = "permissionFilter", urlPatterns = {"/upload","/checkFile"})
 public class PermissionFilter implements Filter {
 
     UserMapper userMapper;
