@@ -40,7 +40,7 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`  (
   `uid` int(11) NOT NULL AUTO_INCREMENT,
   `email` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_time` bigint(14) NOT NULL DEFAULT 0,
   `active` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`uid`) USING BTREE,
