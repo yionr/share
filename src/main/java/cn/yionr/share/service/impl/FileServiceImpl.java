@@ -191,7 +191,7 @@ public class FileServiceImpl implements FileService {
                     result.put("content", getContent(code, filetype));
                 return result;
             } else {
-                if (password.isEmpty())
+                if (password == null || password.isEmpty())
                     throw new NeedPasswordException("需要密码");
                 else
                     throw new WrongPasswordException("密码错误");
