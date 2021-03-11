@@ -38,16 +38,49 @@ function login(email) {
 
 function exit() {
     $.ajax('exit', {
+        dataType: 'json',
         method: 'POST',
         success: function (data) {
-            if (JSON.parse(data).status === 0) {
+            if (data.status === 0) {
                 newToast(true, '已退出登录')
                 $('#log-reg-btn').removeClass('d-none');
-                $('#logged').addClass('d-none').find('button').text('');
+                $('#logged').addClass('d-none').find('button').text('')
                 $('#allowTimes-input').attr('max', 9)
                 localStorage.removeItem('email');
             }
+        },
+        error: function (){
+            newToast(false,'网络连接异常')
         }
     })
 
+}
+
+function showConfirmPassword(e,readonly) {
+    moving = true;
+    let height = $(e).find($('.doublePassword,.doublePasswordV2')).css('height');
+    //拉高
+    $(e).find('.internalPassword').animate({'top': '-' + height}, 328,'linear')
+    if (readonly)
+    $(e).find('#regEmail,#oldPassword').attr('readOnly', 'true');
+    //获得焦点，添加required，加定时器是因为不延迟会导致滚动过高
+    setTimeout(function (e) {
+        $(e).find('[name=confirmPassword]').removeAttr('disabled')
+        $(e).find('[name=confirmPassword]').focus()
+        moving = false;
+    //    timeout 必须比上面拉高速度慢，否则修改密码时会出问题
+    }, 600, e)
+}
+
+function rollback (elem,select,message) {
+    moving = true;
+    elem.val('')
+    elem.attr('disabled', 'true')
+    select.select()
+    elem.parent().animate({'top': 0}, 328)
+    if (message)
+    newToast(false, message)
+    setTimeout(function () {
+        moving = false;
+    },328)
 }

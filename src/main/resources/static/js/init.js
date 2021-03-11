@@ -188,63 +188,19 @@ $('#getQRCode').on('click', function () {
 })
 
 function correctWrapperHeight(wrapper) {
-    // console.log('纠正')
     if ($(wrapper).find('[name=confirmPassword]').attr('disabled'))
         $(wrapper).css('height', $(wrapper).find('.pos').position().top)
     else
         $(wrapper).css('height', parseInt($(wrapper).find('.internalPassword').css('height')) - parseInt($(wrapper).find('.pos').position().top) + 'px')
 }
 
-//输入密码后的向下滚动效果
-//这个input bug还是挺大的，稍后再说
-$('#regPassword,#regPassword [name=confirmPassword]').on('input', function () {
-    setTimeout(function () {
-        correctWrapperHeight('.doublePassword')
-    }, 400)
-})
-
-$('#newPassword,#newPassword [name=confirmPassword]').on('input', function () {
-    setTimeout(function () {
-        correctWrapperHeight('.doublePasswordV2')
-    }, 400)
-})
-
-$('#regeditModal input:not([name=confirmPassword])').on('blur', function () {
-    let valid = $(this).closest('form').valid();
+//表单校验是在blur的时候进行的，同时会跳转可视窗口的高度，以免看不到label
+$('#regeditModal input').on('blur', function () {
     correctWrapperHeight('.doublePassword')
-    if (valid) {
-        let height = $(this).closest($('.doublePassword,.doublePasswordV2')).css('height');
-        //拉高
-        $(this).closest('form').find('.internalPassword').animate({'top': '-' + height}, 500)
-        //email只读
-        $($(this).closest($('form')).find('input')[0]).attr('readOnly', 'true');
-        //移除disabled
-        // $(this).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
-        //获得焦点，添加required，加定时器是因为不延迟会导致滚动过高
-        setTimeout(function (e) {
-            $(e).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
-            $(e).closest('form').find('[name=confirmPassword]').focus()
-        }, 328, this)
-    }
 })
 
-$('#changePasswordModal input:not([name=confirmPassword])').on('blur', function () {
-    let valid = $(this).closest('form').valid();
+$('#changePasswordModal input').on('blur', function () {
     correctWrapperHeight('.doublePasswordV2')
-    if (valid) {
-        let height = $(this).closest($('.doublePassword,.doublePasswordV2')).css('height');
-        //拉高
-        $(this).closest('form').find('.internalPassword').animate({'top': '-' + height}, 500)
-        //email只读
-        $($(this).closest($('form')).find('input')[0]).attr('readOnly', 'true');
-        //移除disabled
-        // $(this).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
-        //获得焦点，添加required，加定时器是因为不延迟会导致滚动过高,同时这个定时器的事件也要控制，太快会导致同样的问题
-        setTimeout(function (e) {
-            $(e).closest('form').find('[name=confirmPassword]').removeAttr('disabled')
-            $(e).closest('form').find('[name=confirmPassword]').focus()
-        }, 800, this)
-    }
 })
 
 /**
@@ -268,7 +224,6 @@ file.on('change', function () {
 /**
  * 退出登录
  */
-//FIXME 如果exit不在function里面，就会打开页面直接运行，为什么？
 $('#exitLogin').on('click', function () {
     exit()
 })

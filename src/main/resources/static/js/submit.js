@@ -1,56 +1,21 @@
 /**
  * ajax拦截表单提交
  */
-regeditModal.find('form').submit(function () {
-    if (confirmRegPassword.val() !== regPassword.val()) {
-        if (!confirmRegPassword.attr('disabled')) {
-            //    两次密码输入不一致
-            confirmRegPassword.val('')
-            confirmRegPassword.attr('disabled', 'true')
-            regPassword.select()
-            confirmRegPassword.parent().animate({'top': 0}, 500)
-            newToast(false, '两次输入的密码不一致！')
-            $('#regEmail').removeAttr('readOnly');
-        }
-        return false;
-    }
-    confirmRegPassword.attr('disabled', 'true')
-    $('#regPassword').val(CryptoJS.MD5($('#regPassword').val()))
-    $(this).ajaxSubmit({
-        dataType: 'json',
-        success: function (data) {
-            switch (data.status) {
-                case 1:
-                    regeditModal.modal('hide')
-                    newToast(true, '账号激活邮件已发送至您的邮箱，请及时点击激活！')
-                    break;
-                case 0:
-                    newToast(false, '邮箱已注册')
-                    regeditModal.find('form')[0].reset();
-                    break;
-                case 2:
-                    regeditModal.modal('hide')
-                    newToast(false, '账号未激活，请及时到您的收件箱点击激活')
-                    break;
 
-            }
-            return false;
-        },
-        error: function () {
-            newToast(false,'网络连接异常')
-            return false;
-        }
-    })
-    return false;
-})
 loginModal.find('form').submit(function () {
+    if (!$(this).valid())
+        return false;
     let email = $('#loginEmail').val();
-    $('#loginPassword').val(CryptoJS.MD5($('#loginPassword').val()))
+    loginPassword.attr('disabled','true')
     $(this).ajaxSubmit({
+        data: {
+            password: CryptoJS.MD5(loginPassword.val()).toString()
+        },
         dataType: 'json',
         success: function (data) {
             switch (data.status) {
                 case -1:
+                    loginModal.modal('hide');
                     newToast(false, '邮箱不存在')
                     //清空表单
                     loginModal.find('form')[0].reset();
@@ -59,6 +24,7 @@ loginModal.find('form').submit(function () {
                     newToast(false, '密码错误')
                     //清空密码框
                     $('#loginPassword').val('')
+                    loginPassword.removeAttr('disabled')
                     break;
                 case 1:
                     loginModal.modal('hide');
@@ -75,28 +41,78 @@ loginModal.find('form').submit(function () {
         },
         error: function () {
             newToast(false,'网络连接异常')
+            loginPassword.removeAttr('disabled')
             return false;
         }
     })
     return false;
 })
 
-changePasswordModal.find('form').submit(function () {
-    if (confirmNewPassword.val() !== newPassword.val()) {
-        if (!confirmNewPassword.attr('disabled')) {
-            //    两次密码输入不一致
-            confirmNewPassword.val('')
-            confirmNewPassword.attr('disabled', 'true')
-            newPassword.select()
-            confirmNewPassword.parent().animate({'top': 0}, 500)
-            newToast(false, '两次输入的密码不一致！')
-        }
+regeditModal.find('form').submit(function () {
+    if (moving)
+        return false;
+    if (!$(this).valid())
+        return false;
+    if ($('#confirmRegPassword').attr('disabled')){
+        if (!moving)
+            showConfirmPassword(this,true)
         return false;
     }
-    confirmNewPassword.attr('disabled', 'true')
-    $("#oldPassword").val(CryptoJS.MD5($('#oldPassword').val()))
-    $('#newPassword').val(CryptoJS.MD5($('#newPassword').val()))
+
+    confirmRegPassword.attr('disabled', 'true')
+    regPassword.attr('disabled','true')
     $(this).ajaxSubmit({
+        data: {
+            password: CryptoJS.MD5(regPassword.val()).toString()
+        },
+        dataType: 'json',
+        success: function (data) {
+            switch (data.status) {
+                case 1:
+                    regeditModal.modal('hide')
+                    newToast(true, '账号激活邮件已发送至您的邮箱，请及时点击激活！')
+                    break;
+                case 0:
+                    regeditModal.modal('hide')
+                    newToast(false, '邮箱已注册')
+                    regeditModal.find('form')[0].reset();
+                    break;
+                case 2:
+                    regeditModal.modal('hide')
+                    newToast(false, '账号未激活，请及时到您的收件箱点击激活')
+                    break;
+
+            }
+            return false;
+        },
+        error: function () {
+            newToast(false,'网络连接异常')
+            regPassword.removeAttr('disabled')
+            rollback(confirmRegPassword,regPassword)
+            return false;
+        }
+    })
+    return false;
+})
+
+
+changePasswordModal.find('form').submit(function () {
+    if (moving)
+        return false;
+    if (!$(this).valid())
+        return false;
+    if ($('#confirmNewPassword').attr('disabled')){
+        if (!moving)
+            showConfirmPassword(this,false)
+        return false;
+    }
+
+    $(this).find('[type=password]').attr('disabled','true')
+    $(this).ajaxSubmit({
+        data: {
+            oldPassword: CryptoJS.MD5(oldPassword.val()).toString(),
+            newPassword: CryptoJS.MD5(newPassword.val()).toString()
+        },
         dataType: 'json',
         success: function (data) {
             switch (data.status) {
@@ -117,13 +133,26 @@ changePasswordModal.find('form').submit(function () {
             return false;
         },
         error: function () {
+            changePasswordModal.modal('hide');
             newToast(false,'网络连接异常')
             return false;
         }
     })
     return false;
 })
+
+
+
+
+
+
+
+
+
+
 sendModal.find('form').submit(function () {
+    if (!$(this).valid())
+        return false;
     let data;
     if (filetype.attr('value') === 'text') {
         data = {
@@ -213,6 +242,8 @@ sendModal.find('form').submit(function () {
     return false;   //阻止表单默认提交
 })
 receiveModal.find('form').submit(function () {
+    if (!$(this).valid())
+        return false;
     if (check.attr('value') === 'true') {
         $(this).ajaxSubmit({
             dataType: 'json',

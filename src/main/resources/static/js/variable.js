@@ -21,7 +21,10 @@ let confirmRegPassword = $('#confirmRegPassword');
 let regPassword = $('#regPassword')
 let confirmNewPassword = $('#confirmNewPassword')
 let newPassword = $('#newPassword');
+let oldPassword = $('#oldPassword');
 let message = {}
 let changePasswordModal = $('#changePasswordModal')
 let halfHeight
 let title = $('#title')
+let loginPassword = $('#loginPassword')
+let moving = false;
