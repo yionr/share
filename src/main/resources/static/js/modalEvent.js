@@ -36,15 +36,19 @@ $('.modal').on('hidden.bs.modal', function () {
 regeditModal.on('hidden.bs.modal', function () {
     $(this).find('.internalPassword').css('top', '0')
     confirmRegPassword.attr('disabled', 'true')
+    regPassword.removeAttr('disabled')
     $(this).find('#regEmail').removeAttr('readOnly')
     $(this).find('form')[0].reset();
 })
 loginModal.on('hidden.bs.modal', function () {
     $(this).find('form')[0].reset();
+    loginPassword.removeAttr('disabled')
 })
 changePasswordModal.on('hidden.bs.modal', function () {
-    $('#oldPassword').removeAttr('readOnly');
     $(this).find('.internalPassword').css('top', '0')
+    oldPassword.removeAttr('readOnly');
+    oldPassword.removeAttr('disabled')
+    newPassword.removeAttr('disabled')
     confirmNewPassword.attr('disabled', 'true')
     $(this).find('form')[0].reset();
 })

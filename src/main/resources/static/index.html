@@ -71,17 +71,24 @@
             font-size: 14px;
         }
 
-        canvas {display: block;
-            z-index: 0;pointer-events: none;position: fixed;top: 0;}
+        canvas {
+            display: block;
+            z-index: 0;
+            pointer-events: none;
+            position: fixed;
+            top: 0;
+        }
 
-        footer p,footer div{
+        footer p, footer div {
             display: inline-block;
         }
-        footer,footer a{
+
+        footer, footer a {
             font-size: 12px;
             color: gray;
         }
-        footer a:hover{
+
+        footer a:hover {
             text-decoration: none;
         }
     </style>
@@ -221,7 +228,7 @@
                             <div class="form-group">
                                 <label for="allowTimes-input">允许下载次数</label>
                                 <input type="number" id="allowTimes-input" class="form-control"
-                                       name="times" value="1">
+                                       name="times" value="1" min="1" max="9">
                             </div>
 
                             <div class="form-group">
@@ -381,16 +388,6 @@
 <div class="position-fixed p-3 toast-container-br" style="bottom: 30px;right: 0"></div>
 
 
-
-
-
-
-
-
-
-
-
-
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-danger">
         <a class="navbar-brand" href="javascript:0;" id="title">风享站</a>
@@ -429,42 +426,63 @@
         <div class="deng">
             <div class="xian"></div>
             <div class="deng-a">
-                <div class="deng-b"><div class="deng-t">2</div></div>
+                <div class="deng-b">
+                    <div class="deng-t">2</div>
+                </div>
             </div>
-            <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+            <div class="shui shui-a">
+                <div class="shui-c"></div>
+                <div class="shui-b"></div>
+            </div>
         </div>
     </div>
     <div class="deng-box2">
         <div class="deng">
             <div class="xian"></div>
             <div class="deng-a">
-                <div class="deng-b"><div class="deng-t">0</div></div>
+                <div class="deng-b">
+                    <div class="deng-t">0</div>
+                </div>
             </div>
-            <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+            <div class="shui shui-a">
+                <div class="shui-c"></div>
+                <div class="shui-b"></div>
+            </div>
         </div>
     </div>
     <div class="deng-box3">
         <div class="deng">
             <div class="xian"></div>
             <div class="deng-a">
-                <div class="deng-b"><div class="deng-t">2</div></div>
+                <div class="deng-b">
+                    <div class="deng-t">2</div>
+                </div>
             </div>
-            <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+            <div class="shui shui-a">
+                <div class="shui-c"></div>
+                <div class="shui-b"></div>
+            </div>
         </div>
     </div>
     <div class="deng-box4">
         <div class="deng">
             <div class="xian"></div>
             <div class="deng-a">
-                <div class="deng-b"><div class="deng-t">1</div></div>
+                <div class="deng-b">
+                    <div class="deng-t">1</div>
+                </div>
             </div>
-            <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+            <div class="shui shui-a">
+                <div class="shui-c"></div>
+                <div class="shui-b"></div>
+            </div>
         </div>
     </div>
 
     <!--    TODO 建立开发板，放上一些tip和未来要加入的功能-->
     <!--    TODO 网页可以设置文件不用存入hdfs，缩短上传时间-->
-
+    <!--    TODO 用户上传时点取消可以取消下载，并给出提示-->
+    <!--    TODO 上传比较慢的时候给出提示，位置和hdfs存储提示那个位置一样-->
 
     <div class="position-absolute d-none m-2" id="info" style="left: 0">
         <div class="card bg-light mb-3" id="siteInfo" style="max-width: 18rem;">
@@ -501,7 +519,8 @@
 <footer class="position-absolute px-4 d-flex justify-content-between" style="bottom: 0; left: 0;width: 100%;">
     <div>
         <p class="mr-3"><a href="https://beian.miit.gov.cn">浙ICP备19047112号-2</a></p>
-        <p><a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33102202000473"><img src="img/beian.png" alt="公安备案"/>浙公网安备 33102202000473号</a></p>
+        <p><a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33102202000473"><img
+                src="img/beian.png" alt="公安备案"/>浙公网安备 33102202000473号</a></p>
     </div>
     <div class="ml-auto">
         <p>©2020 Yionr</p>

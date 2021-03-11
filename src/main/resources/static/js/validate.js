@@ -7,28 +7,39 @@ $.validator.addMethod("checkPassword", function (value, element) {
 }, "密码只能包含数字、字母、下划线，长度为8~16位");
 $.validator.addMethod("checkCodePassword", function (value, element) {
     let checkPwd = /^[_0-9a-zA-z]{0,16}$/;
-    return (checkPwd.test(value));
+    return this.optional(element) || (checkPwd.test(value));
 }, "密码只能包含数字、字母、下划线，最长长度为16位");
 $(function () {
     $('#loginModal form').validate({
-        rules: {
-            email: {
-                required: true,
-                email: true
-            },
-            password: {
-                required: true,
-                checkPassword: true
-            }
-        }
-    });
-    $('#regeditModal form').validate({
+        onkeyup: false,
         rules: {
             email: {
                 required: true,
                 email: true,
                 remote: {
-                    url: 'checkEmail',
+                    url: 'checkLogEmail',
+                    type: 'post'
+                }
+            },
+            password: {
+                required: true,
+                checkPassword: true
+            }
+        },
+        messages: {
+            email: {
+                remote: '该账号不存在或未激活'
+            }
+        }
+    });
+    $('#regeditModal form').validate({
+        onkeyup: false,
+        rules: {
+            email: {
+                required: true,
+                email: true,
+                remote: {
+                    url: 'checkRegEmail',
                     type: 'post'
                 }
             },
@@ -37,6 +48,7 @@ $(function () {
                 checkPassword: true
             },
             confirmPassword: {
+                required: true,
                 checkPassword: true,
                 equalTo: '#regPassword'
             }
@@ -44,10 +56,18 @@ $(function () {
         messages: {
             email: {
                 remote: '该邮箱已被注册，请重新注册'
+            },
+            confirmPassword: {
+                equalTo: function () {
+                    rollback(confirmRegPassword,regPassword,'两次输入的密码不一致')
+                    $('#regEmail').removeAttr('readOnly')
+                    return null
+                }
             }
         }
     });
     $('#changePasswordModal form').validate({
+        onkeyup: false,
         rules: {
             oldPassword: {
                 required: true,
@@ -56,8 +76,8 @@ $(function () {
                     url: 'checkPassword',
                     type: 'post',
                     data: {
-                        oldPassword: function (){
-                            return CryptoJS.MD5($('#oldPassword').val())
+                        oldPassword: function () {
+                            return CryptoJS.MD5($('#oldPassword').val()).toString()
                         }
                     }
                 }
@@ -67,13 +87,22 @@ $(function () {
                 checkPassword: true
             },
             confirmPassword: {
+                required: true,
                 checkPassword: true,
                 equalTo: '#newPassword'
             }
         },
         messages: {
             oldPassword: {
-                remote: '密码不正确'
+                remote: function () {
+                    return '密码不正确'
+                }
+            },
+            confirmPassword: {
+                equalTo: function () {
+                    rollback(confirmNewPassword,newPassword,'两次输入的密码不一致')
+                    return null
+                }
             }
         }
     });
@@ -82,8 +111,6 @@ $(function () {
             times: {
                 required: true,
                 number: true,
-                min: 1,
-                max: 9
             },
             password: {
                 checkCodePassword: true
