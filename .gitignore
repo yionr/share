@@ -38,3 +38,7 @@ build/
 /src/main/resources/application-database.properties
 
 /src/main/resources/tempFiles
+/src/main/resources/text/
+/src/main/resources/trash/
+/src/main/resources/image/
+/src/main/resources/file/

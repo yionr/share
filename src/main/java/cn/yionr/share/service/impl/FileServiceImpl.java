@@ -6,11 +6,8 @@ import cn.yionr.share.mapper.SFileMapper;
 import cn.yionr.share.mapper.UserMapper;
 import cn.yionr.share.service.FileService;
 import cn.yionr.share.service.exception.*;
-import cn.yionr.share.tool.HBaseUtils;
-import cn.yionr.share.tool.HadoopUtils;
+import cn.yionr.share.tool.LocalFileUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.hbase.client.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,20 +24,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FileServiceImpl implements FileService {
     SFileMapper sFileMapper;
     UserMapper userMapper;
-
-    HBaseUtils hBaseUtils;
-    HadoopUtils hadoopUtils;
+    LocalFileUtils localFileUtils;
 
     Map<String, Long> fileMap = new ConcurrentHashMap<>();
 
     List<String> codePool = new ArrayList<>();
 
     @Autowired
-    public FileServiceImpl(SFileMapper sFileMapper, UserMapper userMapper, HBaseUtils hBaseUtils, HadoopUtils hadoopUtils) throws IOException {
+    public FileServiceImpl(SFileMapper sFileMapper, UserMapper userMapper,LocalFileUtils localFileUtils) throws IOException {
         this.sFileMapper = sFileMapper;
         this.userMapper = userMapper;
-        this.hBaseUtils = hBaseUtils;
-        this.hadoopUtils = hadoopUtils;
+        this.localFileUtils = localFileUtils;
 
         // 构造一个包含0000~9999的List
 
@@ -56,8 +50,7 @@ public class FileServiceImpl implements FileService {
         }
         log.info("codePoll一共{}",codePool.size());
 
-        List<String> localCodes = hBaseUtils.scanRowKey();
-        localCodes.addAll(hadoopUtils.listFiles());
+        List<String> localCodes = localFileUtils.listFiles();
         List<String> remoteCodes = sFileMapper.listCodes();
 
         log.info("数据库现有取件码: {}", remoteCodes.toString());
@@ -208,12 +201,10 @@ public class FileServiceImpl implements FileService {
     }
 
     public int release() throws IOException {
-        hBaseUtils.releaseTrash();
-        hadoopUtils.releaseTrash();
+        localFileUtils.releaseTrash();
         log.info("已清空回收站");
         List<String> codes = sFileMapper.listCodes();
-        codes.removeAll(hBaseUtils.scanRowKey());
-        codes.removeAll(hadoopUtils.listFiles());
+        codes.removeAll(localFileUtils.listFiles());
         for (String code : codes) {
             sFileMapper.delete(code);
             codePool.add(code);
@@ -239,10 +230,10 @@ public class FileServiceImpl implements FileService {
     }
 
     public boolean existsInLocal(String code) throws IOException {
-        return hBaseUtils.exists(code) || hadoopUtils.exists(code);
+        return localFileUtils.exists(code);
     }
     public boolean existsInTrash(String code) throws IOException {
-        return hBaseUtils.inTrash(code) || hadoopUtils.inTrash(code);
+        return localFileUtils.inTrash(code);
     }
 
     public boolean outOfDate(String code) {
@@ -263,41 +254,32 @@ public class FileServiceImpl implements FileService {
     public void save(SFileWrapper sFileWrapper) throws IOException {
         SFile sFile = sFileWrapper.getSFile();
         String filetype = sFile.getFiletype();
-        if ("file".equals(filetype)) {
-            File file = new File(sFile.getFid());
-            file.createNewFile();
-            FileUtils.copyFile(sFileWrapper.getFile(), file);
-            hadoopUtils.save(file);
-            file.delete();
-        } else if ("text".equals(filetype)) {
-            hBaseUtils.insertOne(sFile.getFid(), filetype, new String(FileUtils.readFileToByteArray(sFileWrapper.getFile())));
-        } else {
-            String s = Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(sFileWrapper.getFile()));
-            hBaseUtils.insertOne(sFile.getFid(), filetype, s);
-        }
+//        if ("file".equals(filetype)) {
+//            File file = new File(sFile.getFid());
+//            file.createNewFile();
+//            FileUtils.copyFile(sFileWrapper.getFile(), file);
+//            hadoopUtils.save(file);
+//            file.delete();
+//        } else if ("text".equals(filetype)) {
+//            hBaseUtils.insertOne(sFile.getFid(), filetype, new String(FileUtils.readFileToByteArray(sFileWrapper.getFile())));
+//        } else {
+//            String s = Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(sFileWrapper.getFile()));
+//            hBaseUtils.insertOne(sFile.getFid(), filetype, s);
+//        }
+        localFileUtils.save(sFile.getFid(),filetype,sFileWrapper.getFile());
+
         sFileMapper.addSFile(sFile);
         fileMap.put(sFile.getFid(), sFile.getUploaded_time());
         sFileWrapper.getFile().delete();
     }
 
     public void removeToTrash(String code, String filetype) throws IOException {
-        if ("file".equals(filetype)) {
-            hadoopUtils.moveToTrash(code);
-        } else {
-            Result select = hBaseUtils.select(code);
-            byte[] value = select.getValue(hBaseUtils.dataColumnFamily.getBytes(), filetype.getBytes());
-            hBaseUtils.delete(code, filetype);
-            hBaseUtils.insertOne(code,"trash",new String(value));
-        }
-
+        localFileUtils.moveToTrash(code,filetype);
         fileMap.remove(code);
     }
 
     public void removeInLocal(String code) throws IOException {
-        if (hadoopUtils.exists(code))
-            hadoopUtils.delete(code);
-        else
-            hBaseUtils.delete(code);
+        localFileUtils.delete(code);
     }
 
 
@@ -310,8 +292,7 @@ public class FileServiceImpl implements FileService {
 
 
     public byte[] readContent(String code, String filetype) throws IOException {
-        Result select = hBaseUtils.select(code);
-        byte[] value = select.getValue(hBaseUtils.dataColumnFamily.getBytes(), filetype.getBytes());
+        byte[] value = localFileUtils.read(code,filetype);
         decreaseTimes(code);
         return value;
     }
@@ -324,7 +305,7 @@ public class FileServiceImpl implements FileService {
     }
 
     public SFileWrapper getSFileWrapper(String code) throws IOException {
-        File file = hadoopUtils.get(code);
+        File file = localFileUtils.get(code);
         decreaseTimes(code);
         return SFileWrapper.builder().file(file).sFile(SFile.builder().name(sFileMapper.queryFileName(code)).build()).build();
     }
