@@ -88,7 +88,9 @@ public class HadoopUtils {
     }
 
     public void moveToTrash(String code) throws IOException {
-        save(get(code), hadoopTrashPath);
+        File file = get(code);
+        save(file, hadoopTrashPath);
+        file.delete();
         delete(code);
     }
 
