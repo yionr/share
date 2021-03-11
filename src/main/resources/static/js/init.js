@@ -29,23 +29,24 @@ $(function () {
  * 初始化网页元素摆放
  */
 $(function () {
+    if (!window.localStorage.getItem('readed')) {
+        title.html('风享站<span class="badge badge-dark">New</span>')
+    }
+    title.on('click',function () {
+        $('#info').toggleClass('d-none')
+    })
+
+    $('#info .card-body').on('scroll',function () {
+        if($(this)[0].scrollHeight === $(this)[0].offsetHeight + $(this).scrollTop()){
+            window.localStorage.setItem('readed','true')
+            title.html('风享站')
+        }
+    })
     $('.card .close').on('click',function(){
         $(this).closest('.card').fadeOut();
     })
-
-    let rem = window.getComputedStyle(document.documentElement)["fontSize"];
-    let height = parseInt($('footer .card-body').css('height')) + parseInt(rem);
-    setTimeout(function () {
-        $('footer').css('bottom', -height + 'px').on('mouseover', function () {
-            $(this).css('bottom', 0)
-        }).on('mouseout', function () {
-            $(this).css('bottom', -height + 'px')
-        })
-    }, 2000)
-
-    let headerHeight = $('header').css('height');
-    $('#info').css('top', headerHeight).fadeIn();
 })
+
 
 /**
  * 带参url检测

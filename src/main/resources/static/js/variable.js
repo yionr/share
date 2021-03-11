@@ -23,4 +23,5 @@ let confirmNewPassword = $('#confirmNewPassword')
 let newPassword = $('#newPassword');
 let message = {}
 let changePasswordModal = $('#changePasswordModal')
-let halfHeight;
+let halfHeight
+let title = $('#title')

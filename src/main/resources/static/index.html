@@ -84,6 +84,17 @@
 
         canvas {display: block;
             z-index: 0;pointer-events: none;position: fixed;top: 0;}
+
+        footer p,footer div{
+            display: inline-block;
+        }
+        footer,footer a{
+            font-size: 12px;
+            color: gray;
+        }
+        footer a:hover{
+            text-decoration: none;
+        }
     </style>
 </head>
 
@@ -406,7 +417,7 @@
 
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-danger">
-        <a class="navbar-brand" href="javascript:0;">风享站</a>
+        <a class="navbar-brand" href="javascript:0;" id="title">风享站</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -443,7 +454,7 @@
     <!--    TODO 网页可以设置文件不用存入hdfs，缩短上传时间-->
 
 
-    <div class="position-absolute hide m-2" id="info" style="left: 0;transition: .2s">
+    <div class="position-absolute d-none m-2" id="info" style="left: 0">
         <div class="card bg-light mb-3" id="siteInfo" style="max-width: 18rem;">
             <div class="card-header bg-danger">本站说明
                 <button type="button" class="close">
@@ -475,17 +486,15 @@
         </div>
     </div>
 </main>
-<footer class="position-absolute ml-2" style="bottom: 0; left: 0;transition: .5s">
-    <div class="card bg-light mb-3" style="max-width: 18rem;">
-        <div class="card-header bg-info">网站信息</div>
-        <div class="card-body">
-            <p class="card-text">©2020 Yionr</p>
-            <p class="card-text"><a href="https://beian.miit.gov.cn" target="_blank">浙ICP备19047112号-2</a></p>
-            <p class="card-text"><a target="_blank"
-                                    href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33102202000473"><img
-                    src="img/beian.png" alt="公安备案"/>浙公网安备 33102202000473号</a></p>
-        </div>
+<footer class="position-absolute p-2 d-flex justify-content-between" style="bottom: 0; left: 0;width: 100%;">
+    <div>
+        <p class="mr-3"><a href="https://beian.miit.gov.cn">浙ICP备19047112号-2</a></p>
+        <p><a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33102202000473"><img src="img/beian.png" alt="公安备案"/>浙公网安备 33102202000473号</a></p>
     </div>
+    <div class="ml-auto">
+        <p>©2020 Yionr</p>
+    </div>
+
 </footer>
 </body>
 <script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1279736126'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1279736126' type='text/javascript'%3E%3C/script%3E"));</script>
@@ -497,6 +506,7 @@
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
 <script src="js/crypto-js.js"></script>
+<script src="js/jquery.cookie.js"></script>
 <script src="js/variable.js"></script>
 <script src="js/init.js"></script>
 <script src="js/validate.js"></script>
