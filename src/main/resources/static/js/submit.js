@@ -188,9 +188,6 @@ sendModal.find('form').submit(function () {
                                     if (e.lengthComputable) {
                                         let percent = Math.floor(e.loaded / e.total * 100);
                                         $("#process").html(percent);
-                                        if (percent === 100){
-                                            sendModal.find('.modal-footer small').removeClass('d-none')
-                                        }
                                     }
                                 }, false);
                             }
@@ -274,7 +271,6 @@ receiveModal.find('form').submit(function () {
                                 check.attr('value', 'false')
                                 receiveModal.find('form').submit();
                                 newToast(true, '取件成功')
-                                newToast(true,'请耐心等待云端处理数据，根据待取文件大小的不同，这个时间至多为30秒！')
                                 break;
                         }
                         code.val('')
