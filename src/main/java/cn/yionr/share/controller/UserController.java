@@ -145,10 +145,16 @@ public class UserController {
 
     }
 
-    @PostMapping("/checkEmail")
-    public String checkEmail(String email){
+    @PostMapping("/checkRegEmail")
+    public String checkRegEmail(String email){
         return userService.checkEmail(email) ? "true" : "false";
     }
+
+    @PostMapping("/checkLogEmail")
+    public String checkLogEmail(String email){
+        return userService.checkEmail(email) ? "false" : "true";
+    }
+
     @PostMapping("/checkPassword")
     public String checkPassword(HttpSession session,String oldPassword){
         return session.getAttribute("password").equals(oldPassword) ? "true" : "false";
