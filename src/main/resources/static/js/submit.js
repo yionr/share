@@ -35,6 +35,10 @@ regeditModal.find('form').submit(function () {
 
             }
             return false;
+        },
+        error: function () {
+            newToast(false,'网络连接异常')
+            return false;
         }
     })
     return false;
@@ -67,6 +71,10 @@ loginModal.find('form').submit(function () {
                     newToast(false, '该邮箱未激活，请先前往邮箱激活')
                     break;
             }
+            return false;
+        },
+        error: function () {
+            newToast(false,'网络连接异常')
             return false;
         }
     })
@@ -106,6 +114,10 @@ changePasswordModal.find('form').submit(function () {
                     $('#oldPassword').focus()
                     break;
             }
+            return false;
+        },
+        error: function () {
+            newToast(false,'网络连接异常')
             return false;
         }
     })
@@ -169,6 +181,10 @@ sendModal.find('form').submit(function () {
                                 sendModal.modal('hide');
                                 return false;
                             }
+                        },
+                        error: function () {
+                            newToast(false,'网络连接异常')
+                            return false;
                         }
                     });
                     break;
@@ -188,6 +204,10 @@ sendModal.find('form').submit(function () {
                     }, 827)
                     break;
             }
+        },
+        error: function () {
+            newToast(false,'网络连接异常')
+            return false;
         }
     })
     return false;   //阻止表单默认提交
@@ -263,6 +283,10 @@ receiveModal.find('form').submit(function () {
                         receiveModal.modal('hide');
                         break;
                 }
+                return false;
+            },
+            error: function () {
+                newToast(false,'网络连接异常')
                 return false;
             }
         });

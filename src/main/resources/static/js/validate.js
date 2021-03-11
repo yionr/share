@@ -2,14 +2,13 @@
  * 初始化表单验证
  */
 $.validator.addMethod("checkPassword", function (value, element) {
-    let checkPwd = /[_0-9a-zA-z]{8,20}/;
-    //TODO optional 是什么
+    let checkPwd = /^[_0-9a-zA-z]{8,16}$/;
     return this.optional(element) || (checkPwd.test(value));
-}, "密码只能包含数字、字母、下划线，且长度区间为8-20");
+}, "密码只能包含数字、字母、下划线，长度为8~16位");
 $.validator.addMethod("checkCodePassword", function (value, element) {
-    let checkPwd = /[_0-9a-zA-z]{0,20}/;
-    return this.optional(element) || (checkPwd.test(value));
-}, "密码只能包含数字、字母、下划线，且长度区间为1-20");
+    let checkPwd = /^[_0-9a-zA-z]{0,16}$/;
+    return (checkPwd.test(value));
+}, "密码只能包含数字、字母、下划线，最长长度为16位");
 $(function () {
     $('#loginModal form').validate({
         rules: {

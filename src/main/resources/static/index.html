@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" media="screen"/>
+    <link rel="stylesheet" type="text/css" href="css/deng.css"/>
     <title>风享站</title>
 
     <style>
@@ -14,38 +15,26 @@
             overflow: hidden;
         }
 
-        input:valid::after {
-            /*做个勾的反馈*/
-
-        }
-
-        input:invalid::after {
-            /*做个叉的反馈*/
-
-        }
-
         .fileGroup {
             display: block;
             width: 100%;
             text-align: left;
-            box-shadow: 0 0 5px 5px #ceecce;
             padding: 3px;
-            border-radius: 5px;
             font-size: 14px;
+            border: 3px #ceecce dashed;
         }
 
         .fileItem {
             display: block;
             width: 97%;
-            border: 1px solid greenyellow;
-            background-color: #ceecce;
             transition: .3s;
             text-align: center;
             border-radius: 3px;
+            text-indent: 2rem;
         }
 
         .fileItem:hover {
-            background-color: #90EE90;
+            background-color: #ceecce;
             user-select: none;
         }
 
@@ -99,8 +88,6 @@
 </head>
 
 <body>
-<!--<canvas id="canvas" width="1920" height="950"></canvas>-->
-
 <!-- loginModal -->
 <div class="modal fade" id="loginModal" tabindex="-1">
     <div class="modal-dialog">
@@ -132,7 +119,6 @@
         </div>
     </div>
 </div>
-
 <!-- regeditModal -->
 <div class="modal fade" id="regeditModal" tabindex="-1">
     <div class="modal-dialog">
@@ -154,8 +140,7 @@
                             <div class="form-group position-relative internalPassword" style="top: 0;">
                                 <label for="regPassword">密码</label>
                                 <input type="password" class="form-control" name="password"
-                                       id="regPassword" required
-                                       pattern="[_0-9a-zA-z]{8,20}">
+                                       id="regPassword">
                                 <br>
                                 <label for="confirmRegPassword" class="pos">确认密码</label>
                                 <input type="password" class="form-control" name="confirmPassword"
@@ -174,7 +159,6 @@
         </div>
     </div>
 </div>
-
 <!--changePasswordModal-->
 <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog">
     <div class="modal-dialog">
@@ -211,7 +195,6 @@
         </div>
     </div>
 </div>
-
 <!-- sendModal -->
 <div class="modal fade" id="sendModal" tabindex="-1">
     <div class="modal-dialog">
@@ -258,7 +241,6 @@
         </div>
     </div>
 </div>
-
 <!--QRCodeModal-->
 <div class="modal fade" tabindex="-1" role="dialog" id="QRCodeModal">
     <div class="modal-dialog">
@@ -278,7 +260,6 @@
         </div>
     </div>
 </div>
-
 <!--sendTextModal-->
 <div class="modal fade" tabindex="-1" role="dialog" id="sendTextModal">
     <div class="modal-dialog">
@@ -300,7 +281,6 @@
         </div>
     </div>
 </div>
-
 <!-- receiveModal -->
 <div class="modal fade" id="receiveModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
@@ -333,7 +313,6 @@
         </div>
     </div>
 </div>
-
 <!--receiveCodeModal-->
 <div class="modal fade" tabindex="-1" role="dialog" id="codeModal">
     <div class="modal-dialog">
@@ -358,7 +337,6 @@
         </div>
     </div>
 </div>
-
 <!--receiveImageModal-->
 <div class="modal fade" tabindex="-1" role="dialog" id="imageModal">
     <div class="modal-dialog">
@@ -378,7 +356,6 @@
         </div>
     </div>
 </div>
-
 <!--receiveTextModal-->
 <div class="modal fade" tabindex="-1" role="dialog" id="receiveTextModal">
     <div class="modal-dialog">
@@ -400,9 +377,8 @@
         </div>
     </div>
 </div>
-
 <!--toast-container-br-->
-<div class="position-fixed p-3 toast-container-br" style="bottom: 0;right: 0"></div>
+<div class="position-fixed p-3 toast-container-br" style="bottom: 30px;right: 0"></div>
 
 
 
@@ -449,6 +425,42 @@
     </nav>
 </header>
 <main class="container" style="height: 100%;">
+    <div class="deng-box1">
+        <div class="deng">
+            <div class="xian"></div>
+            <div class="deng-a">
+                <div class="deng-b"><div class="deng-t">2</div></div>
+            </div>
+            <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+        </div>
+    </div>
+    <div class="deng-box2">
+        <div class="deng">
+            <div class="xian"></div>
+            <div class="deng-a">
+                <div class="deng-b"><div class="deng-t">0</div></div>
+            </div>
+            <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+        </div>
+    </div>
+    <div class="deng-box3">
+        <div class="deng">
+            <div class="xian"></div>
+            <div class="deng-a">
+                <div class="deng-b"><div class="deng-t">2</div></div>
+            </div>
+            <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+        </div>
+    </div>
+    <div class="deng-box4">
+        <div class="deng">
+            <div class="xian"></div>
+            <div class="deng-a">
+                <div class="deng-b"><div class="deng-t">1</div></div>
+            </div>
+            <div class="shui shui-a"><div class="shui-c"></div><div class="shui-b"></div></div>
+        </div>
+    </div>
 
     <!--    TODO 建立开发板，放上一些tip和未来要加入的功能-->
     <!--    TODO 网页可以设置文件不用存入hdfs，缩短上传时间-->
@@ -486,7 +498,7 @@
         </div>
     </div>
 </main>
-<footer class="position-absolute p-2 d-flex justify-content-between" style="bottom: 0; left: 0;width: 100%;">
+<footer class="position-absolute px-4 d-flex justify-content-between" style="bottom: 0; left: 0;width: 100%;">
     <div>
         <p class="mr-3"><a href="https://beian.miit.gov.cn">浙ICP备19047112号-2</a></p>
         <p><a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33102202000473"><img src="img/beian.png" alt="公安备案"/>浙公网安备 33102202000473号</a></p>
@@ -505,13 +517,12 @@
 <script src="js/clipboard.min.js"></script>
 <script src="js/qrcode.js"></script>
 <script src="bootstrap/js/bootstrap.bundle.js"></script>
-<script src="js/crypto-js.js"></script>
-<script src="js/jquery.cookie.js"></script>
+<script src="js/core.js"></script>
+<script src="js/md5.js"></script>
 <script src="js/variable.js"></script>
 <script src="js/init.js"></script>
 <script src="js/validate.js"></script>
 <script src="js/tools.js"></script>
 <script src="js/modalEvent.js"></script>
 <script src="js/submit.js"></script>
-<script src="js/confetti.js"></script>
 </html>

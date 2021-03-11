@@ -21,6 +21,9 @@ $(function () {
                     }
                     break;
             }
+        },
+        error: function () {
+            newToast(false,'网络连接异常,自动登录失败，请手动登录或刷新页面')
         }
     })
 })
@@ -30,7 +33,7 @@ $(function () {
  */
 $(function () {
     if (!window.localStorage.getItem('readed')) {
-        title.html('风享站<span class="badge badge-dark">New</span>')
+        title.html('风享站<span class="badge badge-success">New</span>')
     }
     title.on('click',function () {
         $('#info').toggleClass('d-none')
@@ -43,8 +46,9 @@ $(function () {
         }
     })
     $('.card .close').on('click',function(){
-        $(this).closest('.card').fadeOut();
+        $('#info').addClass('d-none');
     })
+
 })
 
 
@@ -89,6 +93,9 @@ $(function () {
                         window.location.href = url.split('\?')[0]
                         break;
                 }
+            },
+            error: function () {
+                newToast(false,'网络连接异常，激活失败，请重试')
             }
         })
     } else if (urlParam.startsWith('code')) {
@@ -277,7 +284,7 @@ sendTextModal.find('.modal-footer').find('button').on('click', function () {
     }
     let temp = tempContent.length > 10 ? tempContent.substr(0, 10) + '...' : tempContent;
     let fileItem = $('<div class="fileItem text-left"> ' + temp + '</div>')
-    fileGroup.html('文本内容: <br>')
+    fileGroup.html('文本内容摘要: <br>')
     fileGroup.append(fileItem)
     file.attr('disabled', 'true')
     fileGroup.append('<textarea type="text" name="text" class="d-none">' + tempContent + '</textarea>')
