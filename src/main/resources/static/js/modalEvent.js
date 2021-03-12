@@ -27,9 +27,11 @@ $('.modal:not(#sendTextModal)').on('show.bs.modal', function () {
 })
 
 $('#myFiles').on('show.bs.modal',function () {
+    $('#load').removeClass('d-none')
     listFiles();
-})
-$('#myFiles').on('hidden.bs.modal',function () {
+}).on('hidden.bs.modal',function () {
+    $('#load').addClass('d-none')
+    $('#empty').addClass('d-none')
     $(this).find('table tbody').html('')
 })
 

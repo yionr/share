@@ -103,26 +103,30 @@ function listFiles() {
         success: function (data) {
             switch (data.status) {
                 case -1:
+                    $('#myFiles').modal('hide')
                     newToast(false, '客户端初始化异常，现重新分配clientId')
                     if (!localStorage.getItem('clientId'))
                         localStorage.setItem('clientId', guid())
                     break;
                 case 0:
                 case 1:
-                    if (!data.files)
+                    if (!data.files || data.files.length < 3){
+                        $('#load').addClass('d-none')
+                        $('#empty').removeClass('d-none')
                         break;
+                    }
                     let resultArr = eval(data.files);
-                    if (resultArr.length === 0)
-                        break;
                     for (let item of resultArr){
                         generateMyFileItem(item['fid'],item['name'],item['password'],item['times'],item['uid'],item['filetype'],item['leftTime'])
                     }
+                    $('#load').addClass('d-none')
                     break;
             }
         //files:
         },
         error: function () {
             newToast(false, '网络异常，无法加载我的文件列表')
+            $('#myFiles').modal('hide')
         }
     })
 }
@@ -153,7 +157,7 @@ function generateMyFileItem(fid, name, password, times, user, filetype, lastTime
         '                            <td>' + user + '</td>\n' +
         '                            <td>' + filetype + '</td>\n' +
         '                            <td>' + lastTime + '</td>\n' +
-        '                            <td><button type="button" class="close"><span>&times;</span></button></td>\n' +
+        '                            <td><button type="button" class="close"><span style="color: white">&times;</span></button></td>\n' +
         '                        </tr>')
     let table = $('#myFileList table');
     table.append(item);

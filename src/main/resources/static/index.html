@@ -97,12 +97,16 @@
             max-height: 100%;
             max-width: 100%;
         }
-        .table tbody tr td{
+        .table tbody tr td,.table tbody tr th{
             text-align: center;
             vertical-align: middle;
         }
         .table thead th{
             text-align: center;
+        }
+
+        .close:focus{
+            outline: none;
         }
     </style>
 </head>
@@ -410,6 +414,7 @@
             </div>
             <div class="modal-body">
                 <div id="myFileList">
+<!--                    TODO 本站说明可以拖动-->
                     <table class="table table-hover table-dark">
                         <thead>
                         <tr>
@@ -425,6 +430,12 @@
                         <tbody>
                         </tbody>
                     </table>
+                    <div class="text-center d-none" style="font-size: 36px;font-weight: bold" id="empty">文件列表为空</div>
+                    <div class="text-center d-none" id='load'>
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
