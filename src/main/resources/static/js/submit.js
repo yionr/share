@@ -263,7 +263,7 @@ receiveModal.find('form').submit(function () {
                                 receiveModal.find('form')[0].reset();
                                 break;
                             case 'image':
-                                $('.image').find('img').attr('src', 'data:image/png;base64,' + data.content)
+                                imageModal.find('img').attr('src', 'data:image/png;base64,' + data.content)
                                 imageModal.modal('show')
                                 receiveModal.find('form')[0].reset();
                                 break;

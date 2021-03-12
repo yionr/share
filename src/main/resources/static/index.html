@@ -71,14 +71,6 @@
             font-size: 14px;
         }
 
-        canvas {
-            display: block;
-            z-index: 0;
-            pointer-events: none;
-            position: fixed;
-            top: 0;
-        }
-
         footer p, footer div {
             display: inline-block;
         }
@@ -90,6 +82,13 @@
 
         footer a:hover {
             text-decoration: none;
+        }
+
+        img {
+            width: auto;
+            height: auto;
+            max-height: 100%;
+            max-width: 100%;
         }
     </style>
 </head>
@@ -346,7 +345,7 @@
 </div>
 <!--receiveImageModal-->
 <div class="modal fade" tabindex="-1" role="dialog" id="imageModal">
-    <div class="modal-dialog">
+    <div class="modal-dialog" style="width: auto;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">图片</h5>
@@ -355,7 +354,7 @@
                 </button>
             </div>
             <div class="modal-body image d-flex justify-content-center">
-                <img src="" alt="取过来的文件" width="400px">
+                <img src="" alt="取过来的文件">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
