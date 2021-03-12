@@ -38,6 +38,13 @@
             user-select: none;
         }
 
+        #myFileList{
+
+        }
+        .myFileItem{
+
+        }
+
         #textarea {
             width: 100%;
             height: 300px;
@@ -384,6 +391,43 @@
         </div>
     </div>
 </div>
+
+<!--myFilesModal-->
+<div class="modal" tabindex="-1" id="myFiles">
+    <div class="modal-dialog" style="max-width: 80%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">已上传的文件列表</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="myFileList">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">取件码</th>
+                            <th scope="col">文件名</th>
+                            <th scope="col">密码</th>
+                            <th scope="col">剩余次数</th>
+                            <th scope="col">所属用户</th>
+                            <th scope="col">文件类型</th>
+                            <th scope="col">剩余时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="reflush">刷新</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!--toast-container-br-->
 <div class="position-fixed p-3 toast-container-br" style="bottom: 30px;right: 0"></div>
 
@@ -418,6 +462,7 @@
                     <a class="dropdown-item" href="javascript:0;" id="exitLogin">退出登录</a>
                 </div>
             </div>
+            <button type="button" class="btn btn-dark mr-5" data-toggle="modal" data-target="#myFiles">我的文件</button>
         </div>
     </nav>
 </header>

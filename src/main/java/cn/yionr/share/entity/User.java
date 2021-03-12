@@ -12,4 +12,5 @@ public class User {
     private String password;
     private long created_time;
     private boolean active;
+    private boolean admin;
 }

@@ -1,4 +1,16 @@
 /**
+ * 为客户端设置一个uuid
+ */
+$(function () {
+    if (!localStorage.getItem('clientId')) {
+        localStorage.setItem('clientId',guid())
+    }
+})
+
+
+
+
+/**
  * 自动登录
  */
 $(function () {
@@ -153,7 +165,6 @@ $(function () {
         file.trigger('click')
     })
 })
-
 
 
 

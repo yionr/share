@@ -26,6 +26,15 @@ $('.modal:not(#sendTextModal)').on('show.bs.modal', function () {
     $(this).off('keypress')
 })
 
+$('#myFiles').on('show.bs.modal',function () {
+    listFiles();
+})
+$('#myFiles').on('hidden.bs.modal',function () {
+    $(this).find('table tbody').html('')
+})
+
+
+
 /**
  *关闭模态框的时候重置表单,清空所有内容
  */

@@ -222,6 +222,40 @@ public class FileServiceImpl implements FileService {
         return codes.size();
     }
 
+    @Override
+    public List<SFile> listFiles(String clientId, String email) {
+        List<SFile> files = sFileMapper.queryVisitorFileByClientId(clientId);
+
+        if (!(email == null || "".equals(email.trim()))) {
+            int uid = userMapper.queryUID(email);
+            files.addAll(sFileMapper.queryFileByUID(uid));
+        }
+        return files;
+    }
+
+    @Override
+    public boolean checkBelong(String fid, String clientId) {
+        String realClientId = sFileMapper.queryClientId(fid);
+        log.info("real is {} , submitted is {}",realClientId,clientId);
+        return realClientId.equals(clientId);
+    }
+
+    @Override
+    public boolean checkBelong(String fid, String clientId, String email) {
+        int userUid = userMapper.queryUID(email);
+// FIXME       Mapper method 'cn.yionr.share.mapper.SFileMapper.queryUID attempted to return null from a method with a primitive return type (int).
+        int fileUid = sFileMapper.queryUID(fid);
+        return checkBelong(fid,clientId) || (userUid == fileUid);
+    }
+
+    @Override
+    public void delete(String fid) throws IOException {
+        removeInLocal(fid);
+        sFileMapper.delete(fid);
+        fileMap.remove(fid);
+        codePool.add(fid);
+    }
+
     public boolean comparePassword(String password1, String password2) {
         if (password1 == null)
             password1 = "";
@@ -299,14 +333,6 @@ public class FileServiceImpl implements FileService {
         else
             hBaseUtils.delete(code);
     }
-
-
-    /**
-     * 该接口主要用来对以后用户进行删除的操作，目前可以暂时封掉
-     */
-//    public boolean delete(String code) {
-//        return removeInLocal(code) && removeInDB(code);
-//    }
 
 
     public byte[] readContent(String code, String filetype) throws IOException {

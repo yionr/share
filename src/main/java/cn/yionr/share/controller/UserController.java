@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import javax.servlet.http.HttpSession;
 
 @Slf4j
@@ -53,7 +54,11 @@ public class UserController {
         if (user.getEmail() == null) {
 //            自动登录
             log.info("客户端发起了一次自动登录请求");
-            log.info("客户端用户名为: " + email);
+            if (email == null) {
+                log.info("session未携带账户信息，无法登录");
+                return json.put("status", -1).toString();
+            } else
+                log.info("客户端用户名为: {}", email);
             User sessionUser = new User();
             sessionUser.setEmail(email);
             sessionUser.setPassword(password);
@@ -62,7 +67,7 @@ public class UserController {
                 log.info("自动登录成功");
                 json.put("status", 1);
             } catch (UserNotExsitException e) {
-                log.warn("该用户不存在，即将清除session");
+                log.warn("该用户不存在，属于session过期，即将清除session");
                 session.invalidate();
                 json.put("status", -1);
             } catch (WrongPasswordException e) {
@@ -76,8 +81,7 @@ public class UserController {
 
         } else {
 //        手动登录
-            log.info("客户端发起了一次手动登录请求");
-            log.info("客户端用户名为: " + user.getEmail());
+            log.info("客户端发起了一次手动登录请求客户端用户名为: {}", user.getEmail());
             try {
                 userService.login(user);
                 log.info("登录成功");
@@ -97,18 +101,18 @@ public class UserController {
         return json.toString();
 
     }
+
     @PostMapping("/changePassword")
-    public String changePassword(String oldPassword,String newPassword,HttpSession session) throws JSONException {
+    public String changePassword(String oldPassword, String newPassword, HttpSession session) throws JSONException {
         JSONObject json = new JSONObject();
         String email = (String) session.getAttribute("email");
         String password = (String) session.getAttribute("password");
-        if (password.equals(oldPassword)){
-            int status = userService.changePassword(email,newPassword);
+        if (password.equals(oldPassword)) {
+            int status = userService.changePassword(email, newPassword);
             session.invalidate();
-            return json.put("status",status).toString();
-        }
-        else {
-            return json.put("status",-1).toString();
+            return json.put("status", status).toString();
+        } else {
+            return json.put("status", -1).toString();
         }
     }
 
@@ -128,35 +132,35 @@ public class UserController {
      */
     @PostMapping("/active")
     public String active(String email, String uuid, HttpSession session) throws JSONException {
-            JSONObject json = new JSONObject();
-            try {
-                addSession(session,userService.active(email, uuid));
-                json.put("status",1);
-            } catch (UserWaitToActiveNotFoundException e) {
-                json.put("status",0);
-            } catch (ActiveLinkOutOfDateException e) {
-                json.put("status",-1);
-            } catch (UUIDInvalidException e) {
-                json.put("status",-2);
-            } catch (UserActivedException e) {
-                json.put("status",-3);
-            }
-            return json.toString();
+        JSONObject json = new JSONObject();
+        try {
+            addSession(session, userService.active(email, uuid));
+            json.put("status", 1);
+        } catch (UserWaitToActiveNotFoundException e) {
+            json.put("status", 0);
+        } catch (ActiveLinkOutOfDateException e) {
+            json.put("status", -1);
+        } catch (UUIDInvalidException e) {
+            json.put("status", -2);
+        } catch (UserActivedException e) {
+            json.put("status", -3);
+        }
+        return json.toString();
 
     }
 
     @PostMapping("/checkRegEmail")
-    public String checkRegEmail(String email){
+    public String checkRegEmail(String email) {
         return userService.checkEmail(email) ? "true" : "false";
     }
 
     @PostMapping("/checkLogEmail")
-    public String checkLogEmail(String email){
+    public String checkLogEmail(String email) {
         return userService.checkEmail(email) ? "false" : "true";
     }
 
     @PostMapping("/checkPassword")
-    public String checkPassword(HttpSession session,String oldPassword){
+    public String checkPassword(HttpSession session, String oldPassword) {
         return session.getAttribute("password").equals(oldPassword) ? "true" : "false";
     }
 

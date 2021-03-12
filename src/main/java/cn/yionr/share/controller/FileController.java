@@ -2,6 +2,7 @@ package cn.yionr.share.controller;
 
 import cn.yionr.share.entity.SFile;
 import cn.yionr.share.entity.SFileWrapper;
+import cn.yionr.share.service.UserService;
 import cn.yionr.share.service.exception.*;
 import cn.yionr.share.service.FileService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,16 +17,18 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URLEncoder;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @RestController
 public class FileController {
     FileService fileService;
+    UserService userService;
 
     @Autowired
-    public FileController(FileService fileService) {
+    public FileController(FileService fileService, UserService userService) {
         this.fileService = fileService;
+        this.userService = userService;
     }
 
     /**
@@ -69,7 +72,7 @@ public class FileController {
             json.put("status", 0);
         } catch (NoLastsCodeException e) {
             log.error(e.getMessage());
-            json.put("status",-1);
+            json.put("status", -1);
         }
 
         return json.toString();
@@ -81,8 +84,9 @@ public class FileController {
      * @return -3: 密码已修改;-2:文件容量超出上限 -1: 允许下载的次数超出上限; 1: 正常
      */
 //    TODO 添加假图片的check
+//    TODO 有了valid，其实可以重新考虑所有contorller方法的权限校验
     @PostMapping("/checkFile")
-    public String checkFile(String size, int times,String filetype, @RequestAttribute("visitor") Boolean visitor) throws JSONException {
+    public String checkFile(String size, int times, String filetype, @RequestAttribute("visitor") Boolean visitor) throws JSONException {
         JSONObject json = new JSONObject();
         if (visitor == null) {
             log.warn("密码不正确，已阻止用户上传文件");
@@ -94,7 +98,7 @@ public class FileController {
                 log.warn("允许下载的次数超出上限");
                 return json.put("status", -1).toString();
             }
-            if (bigger(size, 1024 * 1024 * 100 + "") || ("image".equals(filetype) && bigger(size,1024 * 1024 * 7 + ""))) {
+            if (bigger(size, 1024 * 1024 * 100 + "") || ("image".equals(filetype) && bigger(size, 1024 * 1024 * 7 + ""))) {
                 log.warn("文件容量超出上限");
                 return json.put("status", -2).toString();
             }
@@ -104,7 +108,7 @@ public class FileController {
                 log.warn("允许下载的次数超出上限");
                 return json.put("status", -1).toString();
             }
-            if (bigger(size, 1024 * 1024 * 1024 + "") || ("image".equals(filetype) && bigger(size,1024 * 1024 * 7 + ""))) {
+            if (bigger(size, 1024 * 1024 * 1024 + "") || ("image".equals(filetype) && bigger(size, 1024 * 1024 * 7 + ""))) {
                 log.warn("文件容量超出上限");
                 return json.put("status", -2).toString();
             }
@@ -188,16 +192,93 @@ public class FileController {
         }
     }
 
-    @GetMapping("/release")
-    public String release(HttpSession session){
-        if ("yionr99@gmail.com".equals(session.getAttribute("email"))){
+    /**
+     * @return -1：没有clientId，异常; 0:没内容 ; 1: 正常
+     */
+    @PostMapping("/listFiles")
+    public String listFiles(String clientId, HttpSession session) throws JSONException {
+        JSONObject json = new JSONObject();
+        if (clientId == null || "".equals(clientId.trim()))
+            return json.put("status", -1).toString();
+        JSONObject files;
+        List<SFile> sFiles;
+        if (valid(session))
+            sFiles = fileService.listFiles(clientId, (String) session.getAttribute("email"));
+        else
+            sFiles = fileService.listFiles(clientId, null);
+
+        if (sFiles.size() == 0)
+            return json.put("status", 0).toString();
+        else
+            json.put("status", 1);
+        List<String> fileList = new ArrayList<>();
+        for (SFile sFile : sFiles) {
+            files = new JSONObject();
+            files.put("fid", sFile.getFid());
+            files.put("name", sFile.getName());
+            files.put("password", sFile.getPassword());
+            files.put("times", sFile.getTimes());
+            files.put("uid", sFile.getUid());
+            files.put("filetype", sFile.getFiletype());
+            files.put("leftTime", new Date().getTime() - sFile.getUploaded_time());
+            fileList.add(files.toString());
+        }
+        json.put("files", Arrays.toString(fileList.toArray()));
+        return json.toString();
+    }
+
+    /**
+     * @return -1:文件不属于你； 1：删除成功； 0： 删除失败
+     */
+    @PostMapping("/deleteFile")
+    public String deleteFile(String fid, String clientId, HttpSession session) throws JSONException {
+        log.info("客户端请求删除文件");
+        JSONObject json = new JSONObject();
+        boolean belong;
+        if (!valid(session))
+            belong = fileService.checkBelong(fid, clientId);
+        else
+            belong = fileService.checkBelong(fid, clientId, (String) session.getAttribute("email"));
+        if (belong) {
             try {
-                return "释放了" + fileService.release() + "个取件码！";
+                fileService.delete(fid);
+                log.info("删除成功");
+                json.put("status",1);
             } catch (IOException e) {
-                return "IO异常";
+                log.warn("删除失败");
+                json.put("status",0);
             }
-        }else
+        } else{
+            json.put("status", -1);
+            log.warn("该文件不属于该用户");
+        }
+        return json.toString();
+    }
+
+    @GetMapping("/release")
+    public String release(HttpSession session) {
+        if (valid(session)) {
+            String email = (String) session.getAttribute("email");
+            if (userService.isAdmin(email)) {
+                try {
+                    return "释放了" + fileService.release() + "个取件码！";
+                } catch (IOException e) {
+                    return "IO异常";
+                }
+            }
             return "您没有该权限!";
+        }
+        return "无效session";
+    }
+
+    public boolean valid(HttpSession session) {
+        String email = (String) session.getAttribute("email");
+        if (email == null || "".equals(email.trim()))
+            return false;
+        else {
+            String password = (String) session.getAttribute("password");
+            return userService.checkPassword(email, password);
+        }
     }
 
     @GetMapping("/{code:\\d+}")

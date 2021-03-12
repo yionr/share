@@ -119,6 +119,19 @@ public class UserServiceImpl implements UserService {
         return user == null || !user.isActive();
     }
 
+    @Override
+    public boolean checkPassword(String email,String password) {
+        String realPassword = userMapper.queryPassword(email);
+        if (realPassword == null || "".equals(realPassword.trim()))
+            return false;
+        return realPassword.equals(password);
+    }
+
+    @Override
+    public boolean isAdmin(String email) {
+        return userMapper.isAdmin(email);
+    }
+
     public void sendMail(User user) {
         log.info("生成激活码为: " + DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8)));
         new Thread(() -> mailTool.sendMail(MailVo.builder().to(user.getEmail()).subject("账号激活").email(user.getEmail()).uuid(DigestUtils.md5DigestAsHex((user.getCreated_time() + "").getBytes(StandardCharsets.UTF_8))).build())).start();

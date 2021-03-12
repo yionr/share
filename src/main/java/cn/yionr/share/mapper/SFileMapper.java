@@ -11,8 +11,17 @@ import java.util.List;
 
 @Repository
 public interface SFileMapper {
-    @Insert("insert into sfile values(#{fid},#{name},#{password},#{times},#{uid},#{filetype},#{uploaded_time})")
+    @Insert("insert into sfile values(#{fid},#{name},#{password},#{times},#{uid},#{filetype},#{uploaded_time},#{clientId})")
     int addSFile(SFile sf);
+
+    @Select("select * from sfile where clientId=#{clientId}")
+    List<SFile> queryFileByClientId(String clientId);
+
+    @Select("select * from sfile where clientId=#{clientId} AND uid=-1")
+    List<SFile> queryVisitorFileByClientId(String clientId);
+
+    @Select("select * from sfile where uid=#{uid}")
+    List<SFile> queryFileByUID(int uid);
 
     @Select("select fid from sfile")
     List<String> listCodes();
@@ -43,4 +52,7 @@ public interface SFileMapper {
 
     @Select("select uid from sfile where fid=#{code}")
     int queryUID(String code);
+
+    @Select("select clientId from sfile where fid=#{code}")
+    String queryClientId(String code);
 }

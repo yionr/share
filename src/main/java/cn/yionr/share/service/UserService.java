@@ -14,4 +14,8 @@ public interface UserService {
     int changePassword(String email, String newPassword);
 
     boolean checkEmail(String email);
+
+    boolean checkPassword(String email,String password);
+
+    boolean isAdmin(String email);
 }

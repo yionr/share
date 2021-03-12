@@ -177,6 +177,9 @@ sendModal.find('form').submit(function () {
                     $('#sendBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span id="process"></span>%')
                     $('#sendBtn').attr('disabled', 'true');
                     sendModal.find('form').ajaxSubmit({
+                        data: {
+                            clientId: localStorage.getItem('clientId')
+                        },
                         dataType: 'json',
                         xhr: function () {
                             let myXhr = $.ajaxSettings.xhr();
