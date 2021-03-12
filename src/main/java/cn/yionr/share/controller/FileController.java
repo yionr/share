@@ -92,7 +92,7 @@ public class FileController {
             log.warn("密码不正确，已阻止用户上传文件");
             return json.put("status", -3).toString();
         }
-        log.warn("文件容量为： " + size);
+        log.warn("文件容量为：{} bit", size);
         if (visitor) {
             if (times > 9) {
                 log.warn("允许下载的次数超出上限");
@@ -228,13 +228,15 @@ public class FileController {
     }
 
     /**
-     * @return -1:文件不属于你； 1：删除成功； 0： 删除失败
+     * @return -1:文件不属于你； 1：删除成功； 0： 删除失败; 2: 文件不存在
      */
     @PostMapping("/deleteFile")
     public String deleteFile(String fid, String clientId, HttpSession session) throws JSONException {
         log.info("客户端请求删除文件");
         JSONObject json = new JSONObject();
         boolean belong;
+        if (!fileService.exists(fid))
+            return json.put("status",2).toString();
         if (!valid(session))
             belong = fileService.checkBelong(fid, clientId);
         else

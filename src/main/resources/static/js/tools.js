@@ -109,10 +109,15 @@ function listFiles() {
                     break;
                 case 0:
                 case 1:
+                    if (!data.files)
+                        break;
                     let resultArr = eval(data.files);
+                    if (resultArr.length === 0)
+                        break;
                     for (let item of resultArr){
                         generateMyFileItem(item['fid'],item['name'],item['password'],item['times'],item['uid'],item['filetype'],item['leftTime'])
                     }
+                    break;
             }
         //files:
         },
@@ -152,7 +157,7 @@ function generateMyFileItem(fid, name, password, times, user, filetype, lastTime
         '                        </tr>')
     let table = $('#myFileList table');
     table.append(item);
-    $('#myFileList table .close').on('click',function () {
+    item.find('.close').on('click',function () {
         if (deleteFile($(this).closest('tr').find('[scope=row]').text()))
             $(this).closest('tr').remove()
     })

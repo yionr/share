@@ -28,4 +28,6 @@ public interface FileService {
     boolean checkBelong(String fid, String clientId,String email);
 
     void delete(String fid) throws IOException;
+
+    boolean exists(String fid);
 }

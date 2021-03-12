@@ -257,3 +257,8 @@ sendTextModal.find('.modal-footer').find('button').on('click', function () {
     sendModal.modal('show');
     sendTextModal.find('textarea').val('')
 })
+
+$('#reflush').on('click',function() {
+    $('#myFileList tbody').html('');
+    listFiles();
+})

@@ -256,6 +256,11 @@ public class FileServiceImpl implements FileService {
         codePool.add(fid);
     }
 
+    @Override
+    public boolean exists(String fid) {
+        return sFileMapper.queryFiletype(fid) != null;
+    }
+
     public boolean comparePassword(String password1, String password2) {
         if (password1 == null)
             password1 = "";
