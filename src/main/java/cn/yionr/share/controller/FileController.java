@@ -83,8 +83,6 @@ public class FileController {
     /**
      * @return -3: 密码已修改;-2:文件容量超出上限 -1: 允许下载的次数超出上限; 1: 正常
      */
-//    TODO 添加假图片的check
-//    TODO 有了valid，其实可以重新考虑所有contorller方法的权限校验
     @PostMapping("/checkFile")
     public String checkFile(String size, int times, String filetype, @RequestAttribute("visitor") Boolean visitor) throws JSONException {
         JSONObject json = new JSONObject();

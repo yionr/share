@@ -243,7 +243,6 @@ public class FileServiceImpl implements FileService {
     @Override
     public boolean checkBelong(String fid, String clientId, String email) {
         int userUid = userMapper.queryUID(email);
-// FIXME       Mapper method 'cn.yionr.share.mapper.SFileMapper.queryUID attempted to return null from a method with a primitive return type (int).
         int fileUid = sFileMapper.queryUID(fid);
         return checkBelong(fid,clientId) || (userUid == fileUid);
     }
