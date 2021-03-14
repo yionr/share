@@ -70,7 +70,6 @@ public class FileServiceImpl implements FileService {
         }
 
 //        FIXME codePool的维护还没完全检查过一遍，毫无疑问，存在问题，复现方式为： 让取件码无效，然后重启服务器，然后release
-//        启动时：扫描所有无效文件，移入回收站 -》 建立fileMap，维护剩下的正常的文件 -》 定期扫描，移入回收站
         for (String code : sFileMapper.listCodes()) {
             int deadTime = sFileMapper.queryUID(code) == -1 ? 7 : 30;
             if (Duration.between(LocalDateTime.ofInstant(Instant.ofEpochMilli(sFileMapper.queryUploaded_time(code)), ZoneId.systemDefault()), LocalDateTime.now()).toDays() > deadTime || sFileMapper.queryTimes(code) <= 0) {
@@ -234,7 +233,6 @@ public class FileServiceImpl implements FileService {
     @Override
     public boolean checkBelong(String fid, String clientId, String email) {
         int userUid = userMapper.queryUID(email);
-// FIXME       Mapper method 'cn.yionr.share.mapper.SFileMapper.queryUID attempted to return null from a method with a primitive return type (int).
         int fileUid = sFileMapper.queryUID(fid);
         return checkBelong(fid,clientId) || (userUid == fileUid);
     }
