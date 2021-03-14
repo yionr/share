@@ -11,8 +11,13 @@
  Target Server Version : 50733
  File Encoding         : 65001
 
- Date: 09/03/2021 16:51:41
+ Date: 14/03/2021 21:06:48
 */
+DROP DATABASE IF EXISTS share;
+
+CREATE DATABASE share default character set utf8mb4 collate utf8mb4_unicode_ci;
+
+USE share;
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
@@ -29,6 +34,7 @@ CREATE TABLE `sfile`  (
   `uid` int(11) NULL DEFAULT -1,
   `filetype` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'file',
   `uploaded_time` bigint(14) NOT NULL,
+  `clientId` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
   PRIMARY KEY (`fid`) USING BTREE,
   UNIQUE INDEX `sFile_fid_uindex`(`fid`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
@@ -43,9 +49,10 @@ CREATE TABLE `user`  (
   `password` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_time` bigint(14) NOT NULL DEFAULT 0,
   `active` tinyint(1) NOT NULL DEFAULT 0,
+  `admin` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`uid`) USING BTREE,
   UNIQUE INDEX `user_email_uindex`(`email`) USING BTREE,
   UNIQUE INDEX `user_uid_uindex`(`uid`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 45 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 52 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;
