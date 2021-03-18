@@ -108,8 +108,8 @@ public class FileServiceImpl implements FileService {
 //        该线程访问数据库频繁，要想减少，得把更多数据存到fileMap中
         new Thread(() -> {
             while (true) {
-                log.info("开始定期检查并删除过期文件、次数为0的文件（保留数据库记录）");
-                log.info("fileMap内容为：" + fileMap.toString());
+                log.debug("开始定期检查并删除过期文件、次数为0的文件（保留数据库记录）");
+                log.debug("fileMap内容为：{}",fileMap.toString());
 
                 Iterator<Map.Entry<String, Long>> iterator = fileMap.entrySet().iterator();
                 while (iterator.hasNext()) {
