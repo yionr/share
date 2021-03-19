@@ -50,3 +50,7 @@ spring.mail.properties.mail.smtp.socketFactory.port=465
 spring.mail.properties.mail.smtp.ssl.enable=true
 
 ```
+
+*注意：* 目前并未做到完全的配置代码分离，仍需要用户手动进代码改的地方有：
+1. `emailTemplate.html` 中的指向域名
+2. `index.html` 中底部的域名备案信息
